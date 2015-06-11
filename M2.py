@@ -3,14 +3,14 @@ import threading
 import pyinterface
 
 class slider_controller(object):
-    pos_sky = -400
-    pos_sig = 25000
-    pos_r = 25000
+    pos_sky = 
+    pos_sig = 
+    pos_r = 
     
-    speed = 50000
-    low_speed = 5
-    acc = 1000
-    dec = 1000
+    speed = 
+    low_speed = 
+    acc = 
+    dec = 
     
     error = []
     
@@ -43,23 +43,7 @@ class slider_controller(object):
         return
     
     def move_org(self):
-        """
-        Move to ORG position.
-        
-        NOTE: This method will be excuted in instantiation.
-        
-        Args
-        ====
-        Nothing.
-        
-        Returns
-        =======
-        Nothing.
-        
-        Examples
-        ========
-        >>> s.move_org()
-        """
+
         self.mtr.do_output(3)
         self.mtr.set_org()
         self.position = 'ORG'
@@ -79,93 +63,25 @@ class slider_controller(object):
         return
     
     def move_r(self, lock=True):
-        """
-        Move to R position.
-        
-        NOTE: If the slider is already at R position, it doesn't move.
-        
-        Args
-        ====
-        < lock : bool :  > (optional)
-            If <lock> is False, the method returns immediately.
-            Otherwise, it returns after the slider stopped.
-        
-        Returns
-        =======
-        Nothing.
-        
-        Examples
-        ========
-        >>> s.move_r()
-        """
+     
         self.move(self.pos_r, lock)
         self.position = 'R'
         return
     
     def move_sky(self, lock=True):
-        """
-        Move to SKY position.
-        
-        NOTE: If the slider is already at SKY position, it doesn't move.
-        
-        Args
-        ====
-        < lock : bool :  > (optional)
-            If <lock> is False, the method returns immediately.
-            Otherwise, it returns after the slider stopped.
-        
-        Returns
-        =======
-        Nothing.
-        
-        Examples
-        ========
-        >>> s.move_sky()
-        """
+      
         self.move(self.pos_sky, lock)
         self.position = 'SKY'
         return
     
     def move_sig(self, lock=True):
-        """
-        Move to SIG position.
-        
-        NOTE: If the slider is already at SIG position, it doesn't move.
-        
-        Args
-        ====
-        < lock : bool :  > (optional)
-            If <lock> is False, the method returns immediately.
-            Otherwise, it returns after the slider stopped.
-        
-        Returns
-        =======
-        Nothing.
-        
-        Examples
-        ========
-        >>> s.move_sig()
-        """
+       
         self.move(self.pos_sig, lock)
         self.position = 'SIG'
         return
     
     def unlock_brake(self):
-        """
-        Unlock the electromagnetic brake of the slider.
-        
-        Args
-        ====
-        Nothing.
-        
-        Returns
-        =======
-        Nothing.
-        
-        Examples
-        ========
-        >>> s.unlock_brake()
-        """
+       
         self.mtr.do_output(2, 0)
         msg = '!! Electromagnetic brake is now UNLOCKED !!'
         print('*'*len(msg))
@@ -174,21 +90,7 @@ class slider_controller(object):
         return
     
     def lock_brake(self):
-        """
-        Lock the electromagnetic brake of the slider.
-        
-        Args
-        ====
-        Nothing.
-        
-        Returns
-        =======
-        Nothing.
-        
-        Examples
-        ========
-        >>> s.lock_brake()
-        """
+     
         self.mtr.do_output(0)
         self.get_count()
         print('')
@@ -200,40 +102,12 @@ class slider_controller(object):
         return
     
     def clear_alarm(self):
-        """
-        Clear the alarm.
-        
-        Args
-        ====
-        Nothing.
-        
-        Returns
-        =======
-        Nothing.
-        
-        Examples
-        ========
-        >>> s.clear_alarm()
-        """
+      
         self.mtr.do_output(1)
         return
         
     def clear_interlock(self):
-        """
-        Clear the interlock.
-        
-        Args
-        ====
-        Nothing.
-        
-        Returns
-        =======
-        Nothing.
-        
-        Examples
-        ========
-        >>> s.clear_interlock()
-        """
+       
         self.mtr.ctrl.off_inter_lock()
         return
 
