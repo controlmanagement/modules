@@ -7,19 +7,16 @@ class slider_controller(object):
     pos_sig = 
     pos_r = 
     
-    speed = 
-    low_speed = 
-    acc = 
-    dec = 
+    speed =     #駆動速度
+    low_speed =     #最小駆動速度
+    acc =        #加速度指定
+    dec =       #減速の指定
     
     error = []
     
     position = ''
     count = 0
-    
-    cosmos_flag = False
-    cosmos_recv = ''
-    cosmos_interval = 0.3
+
     
     shutdown_flag = False
     
@@ -33,7 +30,7 @@ class slider_controller(object):
         print(msg)
         return
         
-    def print_error(self, msg):
+    def print_error(self, msg):     #エラーの表示
         self.error.append(msg)
         self.print_msg('!!!! ERROR !!!! ' + msg)
         return
@@ -53,7 +50,7 @@ class slider_controller(object):
     def move(self, dist, lock=True):
         pos = self.mtr.get_position()
         if pos == dist: return
-        diff = dist - pos
+        diff = dist - pos       #現在位置と指定した場所の差(差が0になったら停止)
         if lock: self.mtr.move_with_lock(self.speed, diff, self.low_speed,
                                          self.acc, self.dec)
         else: self.mtr.move(self.speed, diff, self.low_speed, self.acc,
