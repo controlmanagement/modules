@@ -1,29 +1,29 @@
-import time
-import threading
+import time #?
+import threading    #?
 import pyinterface
 
-class slider_controller(object):
-    pos_sky = 
-    pos_sig = 
-    pos_r = 
+class slider_controller(object):    #class・・変数・関数が集まったコードブロック
+    pos_sky =   #skyの位置
+    pos_sig =   #？
+    pos_r =     #rの位置
     
     speed =     #駆動速度
     low_speed =     #最小駆動速度
     acc =        #加速度指定
     dec =       #減速の指定
     
-    error = []
+    error = []  #エラーメッセージ用の箱
     
     position = ''
-    count = 0
+    count = 0   #countの初期値?
 
     
-    shutdown_flag = False
+    shutdown_flag = False   #shutdown_flagはFalseで指定
     
-    def __init__(self, move_org=True):
+    def __init__(self, move_org=True):  #def 関数名(引数1,引数2)　 
         self.mtr = pyinterface.create_gpg7204(1)
         if move_org: self.move_org()
-        self.start_cosmos_server()
+        self.start_cosmos_server()  #自分の関数の中の関数または、定数は、selfで呼び出し可能
         pass
         
     def print_msg(self, msg):
@@ -31,8 +31,8 @@ class slider_controller(object):
         return
         
     def print_error(self, msg):     #エラーの表示
-        self.error.append(msg)
-        self.print_msg('!!!! ERROR !!!! ' + msg)
+        self.error.append(msg)  #errorにmsgを加える(append)
+        self.print_msg('!!!! ERROR !!!! ' + msg) #errorにmsgを入れてエラーメッセージを表示
         return
     
     def get_count(self):
