@@ -21,13 +21,13 @@ class slider_controller(object):    #class・・変数・関数が集まった�
     shutdown_flag = False   #shutdown_flagはFalseで指定
     
     def __init__(self, move_org=True):  #def 関数名(引数1,引数2)　 
-        self.mtr = pyinterface.create_gpg7204(1)
+        self.mtr = pyinterface.create_gpg7204(1)    #gpg7204をcreate_gpg7204として読み込みmtrに代入 mtr.でgpg7204が使用可能
         if move_org: self.move_org()
         self.start_cosmos_server()  #自分の関数の中の関数または、定数は、selfで呼び出し可能
         pass
         
-    def print_msg(self, msg):
-        print(msg)
+    def print_msg(self, msg):   
+        print(msg)  #メッセージを表示
         return
         
     def print_error(self, msg):     #エラーの表示
@@ -42,41 +42,44 @@ class slider_controller(object):    #class・・変数・関数が集まった�
     def move_org(self): #原点にドライバーでmoveする
 
         self.mtr.do_output(3)
-        self.mtr.set_org()
-        self.position = 'ORG'
-        self.get_count()
+        self.mtr.set_org()  #原点の場所をセット
+        self.position = 'ORG'   #ORGをpositionとして指定
+        self.get_count()    #count値を呼び出す
         return
 
     def move(self, dist, lock=True):
         pos = self.mtr.get_position()   #現在のpotisionを取得
         if pos == dist: return  #もしpositionが目的地(distination)と等しければreturn
         diff = dist - pos       #現在位置と指定した場所の差(差が0になったら停止)
-        if lock: self.mtr.move_with_lock(self.speed, diff, self.low_speed, #lock=trueならpyinterface内の以下を実行
+        if lock: self.mtr.move_with_lock(self.speed, diff, self.low_speed, #lock=trueなら以下を実行
                                          self.acc, self.dec)
+        #move_with_lockはmoveした後に目的地と現在地の差が範囲内に入っているかどうかを確かめる
+        #else以下は、moveのみの働き
         else: self.mtr.move(self.speed, diff, self.low_speed, self.acc,
-                            self.dec)   #falseならelse以下を実行   
+                            self.dec)     #lock=Falseならelse以下を実行 
         
         self.get_count()
         return
     
     def move_r(self, lock=True):
      
-        self.move(self.pos_r, lock)
+        self.move(self.pos_r, lock) #pos_rにアブソーバーを動かす
         self.position = 'R'
         return
     
     def move_sky(self, lock=True):
       
-        self.move(self.pos_sky, lock)
+        self.move(self.pos_sky, lock)   #skyを見るようにpositionを動かす
         self.position = 'SKY'
         return
     
-    def move_sig(self, lock=True):
+    def move_sig(self, lock=True):  #?
        
         self.move(self.pos_sig, lock)
         self.position = 'SIG'
         return
     
+    #以下のコードは、月曜日に西村さんに確認
     def unlock_brake(self):
        
         self.mtr.do_output(2, 0)
