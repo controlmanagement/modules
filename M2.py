@@ -36,10 +36,10 @@ class slider_controller(object):    #class・・変数・関数が集まった�
         return
     
     def get_count(self):
-        self.count = self.mtr.get_position()
+        self.count = self.mtr.get_position()    #gpg7204のget-positionを使用
         return
     
-    def move_org(self):
+    def move_org(self): #原点にドライバーでmoveする
 
         self.mtr.do_output(3)
         self.mtr.set_org()
@@ -48,13 +48,13 @@ class slider_controller(object):    #class・・変数・関数が集まった�
         return
 
     def move(self, dist, lock=True):
-        pos = self.mtr.get_position()
-        if pos == dist: return
+        pos = self.mtr.get_position()   #現在のpotisionを取得
+        if pos == dist: return  #もしpositionが目的地(distination)と等しければreturn
         diff = dist - pos       #現在位置と指定した場所の差(差が0になったら停止)
-        if lock: self.mtr.move_with_lock(self.speed, diff, self.low_speed,
+        if lock: self.mtr.move_with_lock(self.speed, diff, self.low_speed, #lock=trueならpyinterface内の以下を実行
                                          self.acc, self.dec)
         else: self.mtr.move(self.speed, diff, self.low_speed, self.acc,
-                            self.dec)
+                            self.dec)   #falseならelse以下を実行   
         
         self.get_count()
         return
