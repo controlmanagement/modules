@@ -79,7 +79,7 @@ class slider_controller(object):    #class・・変数・関数が集まった�
         self.position = 'SIG'
         return
     
-    #以下のコードは、月曜日に西村さんに確認
+    #以下のコードの内容は、月曜日に西村さんに確認
     def unlock_brake(self):
        
         self.mtr.do_output(2, 0)
