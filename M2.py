@@ -15,7 +15,7 @@ class slider_controller(object):    #class・・変数・関数が集まった�
     error = []  #エラーメッセージ用の箱
     
     position = ''
-    count = 0   #countの初期値?
+    count = 0   #countの初期値
 
     
     shutdown_flag = False   #shutdown_flagはFalseで指定
