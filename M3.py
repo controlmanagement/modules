@@ -2,7 +2,7 @@ import time
 import threading
 import pyinterface
 
-class slider_controller(object):
+class M3_controller(object):
 	pos_on =
     pos_off =
     
