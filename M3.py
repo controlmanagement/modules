@@ -35,10 +35,10 @@ class M3_controller(object):
         return
     
     def move_org(self):
-		self.dio.do_output()
+	self.dio.do_output()
         self.dio.do_output()
         self.position = 'org'
-		self.get_count
+	self.get_count
         return
 
     def move(self, dist, lock=True):
@@ -52,13 +52,13 @@ class M3_controller(object):
         return
     
     def move_on(self, lock=True):
-        self.move(self.pos_r, lock)
-        self.position = 'R'
+        self.move(self.pos_on, lock)
+        self.position = 'ON'
         return
     
     def move_off(self, lock=True):
-        self.move(self.pos_sky, lock)
-        self.position = 'SKY'
+        self.move(self.pos_off, lock)
+        self.position = 'OFF'
         return
     
     def unlock_brake(self):
@@ -91,22 +91,22 @@ class M3_controller(object):
         return
 
     def read_position(self):
-        return self.position
+	return self.position
         
     def read_count(self):
-        return self.count
-		
-	def slider():
+	return self.count
+    
+    def slider():
 		client = pyinterface.server_client_wrapper.control_client_wrapper(
-        slider_controller, '192.168.40.13', 4004)
+			slider_controller, '192.168.40.13', 4004)
 		return client
 
-	def slider_monitor():
+    def slider_monitor():
 		client = pyinterface.server_client_wrapper.monitor_client_wrapper(
-        slider_controller, '192.168.40.13', 4104)
+			slider_controller, '192.168.40.13', 4104)
 		return client
 
-	def start_slider_server():
+    def start_slider_server():
 		slider = slider_controller()
 		server = pyinterface.server_client_wrapper.server_wrapper(slider,
                                                               '', 4004, 4104)
