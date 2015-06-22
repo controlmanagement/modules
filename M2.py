@@ -1,5 +1,4 @@
-import time #?
-import threading    #?
+import time 
 import pyinterface
 
 class slider_controller(object):    #class・・変数・関数が集まったコードブロック
