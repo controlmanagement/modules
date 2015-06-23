@@ -5,8 +5,8 @@ import pyinterface
 
 
 
-class dome_controller(object):
-	speed = 
+class dome_controller_main(object):
+	speed = 3600 #[arcsec/sec]
 	low_speed = 
 	acc = 
 	dec = 
@@ -49,7 +49,8 @@ class dome_controller(object):
 		>>> s.move_org()
 		"""
 		
-		self.dio.do_output()	#move_org
+		if lock: self.lock_brake()
+		self.dio.dooutput(self, )	#move_org
 		self.position = 'ORG'
 		self.get_count()
 		return
