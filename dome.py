@@ -33,37 +33,8 @@ class dome_controller(object):
 		self.dio.di_output()
 		return
 
-	def move_org(self):
-		"""
-		Move to ORG position.
-		
-		NOTE: This method will be excuted in instantiation.
-		
-		Args
-		====
-		Nothing.
-		
-		Returns
-		=======
-		Nothing.
-		
-		Examples
-		========
-		>>> s.move_org()
-		"""
-		
-		self.dio.do_output()	#move_org
-		self.position = 'ORG'
-		self.get_count()
-		return
-
-	def move(self, dist, speed, lock=True):
-		pos = self.dio.di_input()	#get_position
-		if pos == dist: return
-		diff = dist - pos
-		if lock: self.dio.do_output()
-		else: speed = 
-		self.dio.do_output()
+	def do_output(self, count):		
+		self.dio.do_output()	
 		self.get_count()
 		return
 
