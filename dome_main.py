@@ -1,4 +1,5 @@
 import time
+import math
 import threading
 import pyinterface
 
@@ -29,10 +30,6 @@ class dome_controller(object):
 		self.print_msg('!!!!ERROR!!!!')
 		return
 
-	def get_count(self):
-		self.dio.di_output()
-		return
-
 	def move_org(self):
 		"""
 		Move to ORG position.
@@ -61,32 +58,21 @@ class dome_controller(object):
 		pos = self.dio.di_input()	#get_position
 		if pos == dist: return
 		diff = dist - pos
-		if lock: self.dio.do_output()
+		if lock: self.lock_brake()
 		else: speed = 
-		self.dio.do_output()
+		self.do_output()
 		self.get_count()
 		return
 
-	def lock_brake(self):
-		"""
-		Lock the electromagnetic brake of the membrane.
-		
-		Args
-		====
-		Nothing.
-		
-		Returns
-		=======
-		Nothing.
-		
-		Examples
-		========
-		>>> s.lock_brake()
-		"""
-		self.do_output()	#lock_brake
-		self.get_count()
-		
-		return
+	def adjust_speed(self, diff, dist):
+		if fabs(diff) >= ???:
+			speed = ???
+			acc = ???
+			move(self,dist,speed,lock=True)
+		pass
+
+
+
 
 
 
