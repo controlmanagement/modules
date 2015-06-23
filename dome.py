@@ -5,11 +5,8 @@ import pyinterface
 
 
 class dome_controller(object):
-	speed = 
-	low_speed = 
-	acc = 
-	dec = 
-	
+
+
 
 
 
@@ -33,7 +30,10 @@ class dome_controller(object):
 		self.dio.di_output()
 		return
 
-	def do_output(self, count):		
+	def do_output(self, speed, acc, dec):
+		speed_count = 
+		acc_count = 
+		dec_count = 
 		self.dio.do_output()	
 		self.get_count()
 		return
@@ -56,7 +56,6 @@ class dome_controller(object):
 		"""
 		self.do_output()	#lock_brake
 		self.get_count()
-		
 		return
 
 
