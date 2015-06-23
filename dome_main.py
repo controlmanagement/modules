@@ -50,7 +50,7 @@ class dome_controller_main(object):
 		"""
 		
 		if lock: self.lock_brake()
-		self.dio.dooutput(self, )	#move_org
+		self.dio.do_output(self, )	#move_org
 		self.position = 'ORG'
 		self.get_count()
 		return
