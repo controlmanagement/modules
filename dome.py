@@ -31,9 +31,18 @@ class dome_controller(object):
 		return
 
 	def do_output(self, speed, acc, dec):
-		speed_count = 
-		acc_count = 
-		dec_count = 
+		if speed <= ???:
+			speed_count1 = 
+			speed_count2 =
+		elif speed <= ??? and speed > ???:
+			speed_count1 = 
+			speed_count2 = 
+		else:
+			speed_count1 = ???
+			speed_count2 = ???
+		if turn = "right":
+			dir = ???
+		else: dir = ???
 		self.dio.do_output()	
 		self.get_count()
 		return
