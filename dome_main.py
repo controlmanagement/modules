@@ -8,9 +8,7 @@ import pyinterface
 class dome_controller_main(object):
 	speed = 3600 #[arcsec/sec]
 	low_speed = 
-	acc = 
-	dec = 
-	
+
 
 
 
@@ -59,6 +57,11 @@ class dome_controller_main(object):
 		pos = self.dio.di_input()	#get_position
 		if pos == dist: return
 		diff = dist - pos
+		dir = (360.0 + dis) % 360.0
+		if dir - 180.0 <= pos:
+			turn = "right"
+		else:
+			turn = "left"
 		if lock: self.lock_brake()
 		else: speed = 
 		self.do_output()
@@ -66,11 +69,16 @@ class dome_controller_main(object):
 		return
 
 	def adjust_speed(self, diff, dist):
-		if fabs(diff) >= ???:
+		if fabs(diff) >= ??? and fabs(diff) < ???:
 			speed = ???
-			acc = ???
 			move(self,dist,speed,lock=True)
-		pass
+		elif fabs(diff) >= ???:
+			speed = ???
+		else:
+			speed = ???
+
+
+
 
 
 
