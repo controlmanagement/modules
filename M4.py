@@ -73,11 +73,11 @@ class mirror_controller(object):
         self.get_count()
         return
     
-    def move_n(self, lock=True):
+    def move_nagoya(self, lock=True):
         """
-        Move to N position.
+        Move to NAGOYA position.
         
-        NOTE: If the slider is already at N position, it doesn't move.
+        NOTE: If the slider is already at NAGOYA position, it doesn't move.
         
         Args
         ====
@@ -93,8 +93,8 @@ class mirror_controller(object):
         ========
         >>> s.move_n()
         """
-        self.move(self.pos_n, lock)
-        self.position = 'N'
+        self.move(self.pos_nagoya, lock)
+        self.position = 'NAGOYA'
         return
     
     def move_smart(self, lock=True):
