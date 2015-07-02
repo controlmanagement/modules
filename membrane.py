@@ -7,12 +7,8 @@ class membrane_controller(object):
     pos_open = 
 
     pos_close = 
-    
-    speed = 
-    low_speed = 
-    acc = 
-    dec = 
-    
+	buffer = [0, 0]
+
     error = []
 
     position = ''
@@ -61,7 +57,12 @@ class membrane_controller(object):
         ========
         >>> s.move_org()
         """
-        self.dio.do_output()     #move_org
+		get_memb()
+		if pos == ??:
+			buffer = [1, 1]
+			self.dio.do_output(???, buffer, 6, 2)
+			while pos == ??:
+				
         self.dio.do_output()     #set_org
         self.position = 'ORG'
         self.get_count()
