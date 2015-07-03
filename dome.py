@@ -16,9 +16,9 @@ class dome_controller(object):
 
 
 	def _init_(self, ):
-    	self.dio = pyinterface.create_gpg2724(1)
-    	if move_org: self.move_org()
-    	pass
+		self.dio = pyinterface.create_gpg2724(1)
+		if move_org: self.move_org()
+		pass
 
 	def print_msg(self,msg):
 		print(msg)
@@ -59,31 +59,6 @@ class dome_controller(object):
 		self.get_count()
 		return
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-	def memb_move(self, dist):
-		m_pos = get_memb()
-		if dist = 'open':
-			buffer[4:6] = [1,1]
-			while m_pos == ???:
-				self.dio.do_output(???, buffer, 0, 6)
-				m_pos = get_memb()
-			buffer[5] = 0
-			self.dio.do_output(???, buffer, 0, 6)
-		else:
-			buffer[4:6] = [0,1]
-			while m_pos == ???????????:
-				self.dio.so_output(???, buffer, 0, 6)
-				m_pos = get_memb()
-			buffer[5] = 0
-			self.dio.do_output(???, buffer, 0, 6)
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
 	def move(self, dist, speed, lock=True):
 		pos = self.dio.di_input()	#get_position
 		if pos == dist: return
@@ -120,6 +95,7 @@ class dome_controller(object):
 		return
 
 
+
 	def slider():
 		client = pyinterface.server_client_wrapper.control_client_wrapper(slider_controller
 			, '192.168.40.13', 4004)
@@ -139,7 +115,6 @@ class dome_controller(object):
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 	def read_position(self):
@@ -150,10 +125,6 @@ class dome_controller(object):
 
 	def get_count(self):
 		self.dio.di_output()
-		return
-
-	def get_memb(self):
-		self.
 		return
 
 	def do_output(self, turn, speed, buffer):
