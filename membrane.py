@@ -18,8 +18,8 @@ class membrane_controller(object):
 
 
 	def __init__(self):
-		self.dio = pyinterface.create_gpg2724(1)
-		self.memb = memb_enc.get_pos()
+		self.dio = pyinterface.create_gpg2724()
+		self.memb = memb_enc.memb_encoder()
 		pass
 
 	def print_msg(self, msg):
@@ -53,7 +53,7 @@ class membrane_controller(object):
 		========
 		>>> s.move_org()
 		"""
-		move_open()
+		self.move_open()
 		self.position = 'ORG'
 		self.get_count()
 		return
@@ -78,15 +78,15 @@ class membrane_controller(object):
 		========
 		>>> s.move_open()
 		"""
-		self.memb.get_pos()
+		pos = self.memb.get_pos()
 		if pos == 'CLOSE':
 			global buffer
 			membrane_controller.buffer = [1, 1]
-			self.dio.do_output(self, membrane_controller.buffer, 6, 2)
+			self.dio.do_output(membrane_controller.buffer, 6, 2)
 			while pos != 'OPEN':
-				self.memb.get_memb()
+				pos = self.memb.get_pos()
 			membrane_controller.buffer = [0, 0]
-			self.dio.do_output(self, membrane_controller.buffer, 6, 2)
+			self.dio.do_output(membrane_controller.buffer, 6, 2)
 			return
 		self.position = 'OPEN'
 		return
@@ -112,15 +112,15 @@ class membrane_controller(object):
 		>>> s.move_close()
 		
 		"""
-		self.memb.get_pos()
+		pos = self.memb.get_pos()
 		if pos == 'OPEN':
 			global buffer
 			membrane_controller.buffer = [0, 1]
-			self.dio.do_output(self, membrane_controller.buffer, 6, 2)
+			self.dio.do_output(membrane_controller.buffer, 6, 2)
 			while pos != 'CLOSE':
-				get_memb()
-			buffer = [0, 0]
-			self.dio.do_output(self, membrane_controller.buffer, 6, 2)
+				pos = self.memb.get_pos()
+			membrane_controller.buffer = [0, 0]
+			self.dio.do_output(membrane_controller.buffer, 6, 2)
 			return
 		self.position = 'CLOSE'
 		return
