@@ -1,16 +1,13 @@
-
 import time
 import threading
 import pyinterface
+import memb_enc
+
+
 
 class membrane_controller(object):
-	pos_open = 
-
-	pos_close = 
 	buffer = [0, 0]
-
 	error = []
-
 	position = ''
 	count = 0
 
@@ -20,9 +17,9 @@ class membrane_controller(object):
 
 
 
-	def __init__(self, move_org=True):
+	def __init__(self):
 		self.dio = pyinterface.create_gpg2724(1)
-		if move_org: self.move_org()
+		self.memb = memb_enc.get_pos()
 		pass
 
 	def print_msg(self, msg):
@@ -39,34 +36,27 @@ class membrane_controller(object):
 		return
 
 	def move_org(self):
-		 """
-		 Move to ORG position.
-		 
-		 NOTE: This method will be excuted in instantiation.
-		 
-		 Args
-		 ====
-		 Nothing.
-		 
-		 Returns
-		 =======
-		 Nothing.
-		 
-		 Examples
-		 ========
-		 >>> s.move_org()
-		 """
-		get_memb()
-		if pos == ??:
-			buffer = [0, 1]
-			self.dio.do_output(???, buffer, 6, 2)
-			while pos == ??:
-				get_memb()
-			buffer = [0, 0]
-			self.dio.do_output(???, buffer, 6, 2)     #set_org
-			self.position = 'ORG'
-			self.get_count()
-			return
+		"""
+		Move to ORG position.
+		
+		NOTE: This method will be excuted in instantiation.
+		
+		Args
+		====
+		Nothing.
+		
+		Returns
+		=======
+		Nothing.
+		
+		Examples
+		========
+		>>> s.move_org()
+		"""
+		move_open()
+		self.position = 'ORG'
+		self.get_count()
+		return
 
 	def move_open(self, lock=True):
 		"""
@@ -77,8 +67,8 @@ class membrane_controller(object):
 		Args
 		====
 		< lock : bool :  > (optional)
-		    If <lock> is False, the method returns immediately.
-		    Otherwise, it returns after the membrane stopped.
+		If <lock> is False, the method returns immediately.
+		Otherwise, it returns after the membrane stopped.
 		
 		Returns
 		=======
@@ -88,14 +78,15 @@ class membrane_controller(object):
 		========
 		>>> s.move_open()
 		"""
-		get_memb()
-		if pos == ??:
-			buffer = [1, 1]
-			self.dio.do_output(???, buffer, 6, 2)
-			while pos == ??:
-				get_memb()
-			buffer = [0, 0]
-			self.dio.do_output(???, buffer, 6, 2)
+		self.memb.get_pos()
+		if pos == 'CLOSE':
+			global buffer
+			membrane_controller.buffer = [1, 1]
+			self.dio.do_output(self, membrane_controller.buffer, 6, 2)
+			while pos != 'OPEN':
+				self.memb.get_memb()
+			membrane_controller.buffer = [0, 0]
+			self.dio.do_output(self, membrane_controller.buffer, 6, 2)
 			return
 		self.position = 'OPEN'
 		return
@@ -121,126 +112,17 @@ class membrane_controller(object):
 		>>> s.move_close()
 		
 		"""
-		get_memb()
-		if pos == ??:
-			buffer = [0, 1]
-			self.dio.do_output(???, buffer, 6, 2)
-			while pos == ??:
+		self.memb.get_pos()
+		if pos == 'OPEN':
+			global buffer
+			membrane_controller.buffer = [0, 1]
+			self.dio.do_output(self, membrane_controller.buffer, 6, 2)
+			while pos != 'CLOSE':
 				get_memb()
 			buffer = [0, 0]
-			self.dio.do_output(???, buffer, 6, 2)
+			self.dio.do_output(self, membrane_controller.buffer, 6, 2)
 			return
 		self.position = 'CLOSE'
-		return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	def unlock_brake(self):
-		"""
-		Unlock the electromagnetic brake of the membrane.
-		
-		Args
-		====
-		Nothing.
-		
-		Returns
-		=======
-		Nothing.
-		
-		Examples
-		========
-		>>> s.unlock_brake()
-		"""
-		self.dio.do_output()     #unlock_brake
-		msg = '!! Electromagnetic brake is now UNLOCKED !!'
-		print('*'*len(msg))
-		print(msg)
-		print('*'*len(msg))
-		return
-
-	def lock_brake(self):
-		"""
-		Lock the electromagnetic brake of the membrane.
-		
-		Args
-		====
-		Nothing.
-		
-		Returns
-		=======
-		Nothing.
-		
-		Examples
-		========
-		>>> s.lock_brake()
-		"""
-		self.dio.do_output()     #lock_brake
-		self.get_count()
-		print('')
-		print('')
-		print('!! CAUTION !!')
-		print('-------------')
-		print('You must execute s.move_org() method, before executing any "move_**" method.')
-		print('')
-		return
-
-	def clear_alarm(self):
-		"""
-		Clear the alarm.
-		
-		Args
-		====
-		Nothing.
-		
-		Returns
-		=======
-		Nothing.
-		
-		Examples
-		========
-		>>> s.clear_alarm()
-		"""
-		self.dio.do_output()     #clear_alarm
-		return
-
-	def clear_interlock(self):
-		"""
-		Clear the interlock.
-		
-		Args
-		====
-		Nothing.
-		
-		Returns
-		=======
-		Nothing.
-		
-		Examples
-		========
-		>>> s.clear_interlock()
-		"""
-		self.dio.ctrl.off_inter_lock()     #※clear_interlock
 		return
 
 
@@ -260,7 +142,7 @@ class membrane_controller(object):
 	def slider():
 		client = pyinterface.server_client_wrapper.control_client_wrapper(slider_controller
 			, '192.168.40.13', 4004)
-	return client
+		return client
 
 	def slider_monitor():
 		client = pyinterface.server_client_wrapper.monitor_client_wrapper(
@@ -273,17 +155,6 @@ class membrane_controller(object):
 			'', 4004, 4104)
 		server.start()
 		return server
-
-
-
-
-
-
-
-
-
-
-
 
 
 
