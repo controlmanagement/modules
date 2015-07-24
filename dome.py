@@ -2,22 +2,24 @@ import time
 import math
 import threading
 import pyinterface
+import dome_enc
 
 
 
 class dome_controller(object):
 	speed = 3600 #[arcsec/sec]
-	low_speed = 
 	buffer = [0,0,0,0,0,0]
+	stop = [0]
 
 
 
 
 
 
-	def _init_(self, ):
+
+	def __init__(self):
 		self.dio = pyinterface.create_gpg2724(1)
-		if move_org: self.move_org()
+		self.enc = dome_enc.dome_encoder()
 		pass
 
 	def print_msg(self,msg):
@@ -49,49 +51,62 @@ class dome_controller(object):
 		"""
 		
 		
-		if lock: self.lock_brake()
-		dist = ???
-		pos = get_pos()
+
+		dist = 90
+		pos = self.enc.get_pos()
 		diff = dist - pos
 		if diff != 0:
-			move(self, dist, speed, lock=True)	#move_org
+			move(dist, speed, lock=True)	#move_org
 		self.position = 'ORG'
 		self.get_count()
 		return
+
+
 
 	def move(self, dist, speed, lock=True):
 		pos = self.dio.di_input()	#get_position
 		if pos == dist: return
 		diff = dist - pos
-		dir = (360.0 + dis) % 360.0
+		dir = (360.0 + dist) % 360.0
 		if dir - 180.0 <= pos:
 			turn = 'right'
 		else:
 			turn = 'left'
-		if lock: self.lock_brake()
-		if fabs(diff) >= ??? and fabs(diff) < ???:
-			speed = ???
-		elif fabs(diff) >= ???:
-			speed = ???
+		if math.fabs(diff) >= 90 and fabs(diff) < 150:
+			speed = 'mid'
+		elif math.fabs(diff) >= 150:
+			speed = 'high'
 		else:
-			speed = ???
-		self.do_output(???, turn, speed, buffer)
+			speed = 'low'
+		if diff != 0:
+			global buffer
+			dome_controller.buffer[1] = [1]
+			self.do_output(turn, speed)
+			while diff == 0:
+				pos = enc.get_pos()
+				diff = dist - pos
+				self.do_output(self, turn, speed)
+		dome_controller.buffer[1] = [0]
+		self.do_output(turn, speed)
 		self.get_count()
 		return
 
-	def emergency_stop():
-		stop = [1]
-		self.dio.do_output(self, stop, 10, 1)
+
+
+	def emergency_stop(self):
+		global stop
+		dome_controller.stop = [1]
+		self.dio.do_output(dome_controller.stop, 10, 1)
 		self.print_msg('!!EMERGENCY STOP!!')
 		return
 
 	def dome_fan(self, fan):
 		if fan == 'on':
 			fan_bit = [1, 1]
-			self.dio.do_output(????, fan_bit, 8, 2)
+			self.dio.do_output(self, fan_bit, 8, 2)
 		else:
 			fan_bit = [0, 0]
-			self.dio.do_output(????, fan_bit, 8, 2)
+			self.dio.do_output(self, fan_bit, 8, 2)
 		return
 
 
@@ -104,7 +119,7 @@ class dome_controller(object):
 	def slider_monitor():
 		client = pyinterface.server_client_wrapper.monitor_client_wrapper(
 			slider_controller, '192.168.40.13', 4104)
-	return client
+		return client
 
 	def start_slider_server():
 		slider = slider_controller()
@@ -127,42 +142,21 @@ class dome_controller(object):
 		self.dio.di_output()
 		return
 
-	def do_output(self, turn, speed, buffer):
-		if turn = 'right': buffer[0] = 0
-		else: buffer[0] = 1
-		if speed <= ???:
-			buffer[2:4] = [0, 0]
-		elif speed <= ??? and speed > ???:
-			buffer[2:4] = [1, 0]
+	def do_output(self, turn, speed):
+		global buffer
+		global stop
+		if turn == 'right': dome_controller.buffer[0] = 0
+		else: dome_controller.buffer[0] = 1
+		if speed == 'low':
+			dome_controller.buffer[2:4] = [0, 0]
+		elif speed == 'mid':
+			dome_controller.buffer[2:4] = [1, 0]
 		else:
-			buffer[2:4] = [0, 1]
-		if stop = 1:
-			buffer[1] = 0
-		else: buffer[1] = 1
-		self.dio.do_output(?, buffer, 0, 6)
-		self.get_count()
-		return
-
-
-
-
-	def lock_brake(self):
-		"""
-		Lock the electromagnetic brake of the membrane.
-		
-		Args
-		====
-		Nothing.
-		
-		Returns
-		=======
-		Nothing.
-		
-		Examples
-		========
-		>>> s.lock_brake()
-		"""
-		self.do_output()	#lock_brake
+			dome_controller.buffer[2:4] = [0, 1]
+		if dome_controller.stop == 1:
+			dome_controller.buffer[1] = 0
+		else: dome_controller.buffer[1] = 1
+		self.dio.do_output(dome_controller.buffer, 0, 6)
 		self.get_count()
 		return
 
