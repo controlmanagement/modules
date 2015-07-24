@@ -56,7 +56,7 @@ class dome_controller(object):
 		pos = self.enc.get_pos()
 		diff = dist - pos
 		if diff != 0:
-			move(dist, speed, lock=True)	#move_org
+			self.move(dist, speed, lock=True)	#move_org
 		self.position = 'ORG'
 		self.get_count()
 		return
