@@ -110,22 +110,20 @@ class slider_controller(object):    #class・・変数・関数が集まった�
         self.mtr.ctrl.off_inter_lock()
         return
 
-def slider():
-    client = pyinterface.server_client_wrapper.control_client_wrapper(
-        slider_controller, '192.168.40.13', 4004)
-    return client
+    def slider():
+        client = pyinterface.server_client_wrapper.control_client_wrapper(
+            slider_controller, '192.168.40.13', 4004)
+        return client
 
-def slider_monitor():
-    client = pyinterface.server_client_wrapper.monitor_client_wrapper(
-        slider_controller, '192.168.40.13', 4104)
-    return client
+    def slider_monitor():
+        client = pyinterface.server_client_wrapper.monitor_client_wrapper(
+            slider_controller, '192.168.40.13', 4104)
+        return client
 
-def start_slider_server():
-    slider = slider_controller()
-    server = pyinterface.server_client_wrapper.server_wrapper(slider,
-                                                              '', 4004, 4104)
-    server.start()
-    return server
+    def start_slider_server():
+        slider = slider_controller()
+        server = pyinterface.server_client_wrapper.server_wrapper(slider,
+                                                                  '', 4004, 4104)
+        server.start()
+        return server
 
-
-Enter file contents here
