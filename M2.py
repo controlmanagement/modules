@@ -2,15 +2,7 @@ import time
 import pyinterface
 
 class slider_controller(object):    #class・・変数・関数が集まったコードブロック
-    pos_sky =   #skyの位置
-    pos_sig =   #？
-    pos_r =     #rの位置
-    
-    speed =     #駆動速度
-    low_speed =     #最小駆動速度
-    acc =        #加速度指定
-    dec =       #減速の指定
-    
+
     error = []  #エラーメッセージ用の箱
     
     position = ''
@@ -60,23 +52,6 @@ class slider_controller(object):    #class・・変数・関数が集まった�
         self.get_count()
         return
     
-    def move_r(self, lock=True):
-     
-        self.move(self.pos_r, lock) #pos_rにアブソーバーを動かす
-        self.position = 'R'
-        return
-    
-    def move_sky(self, lock=True):
-      
-        self.move(self.pos_sky, lock)   #skyを見るようにpositionを動かす
-        self.position = 'SKY'
-        return
-    
-    def move_sig(self, lock=True):  #?
-       
-        self.move(self.pos_sig, lock)
-        self.position = 'SIG'
-        return
     
     #以下のコードの内容は、月曜日に西村さんに確認
     def unlock_brake(self):
