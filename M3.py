@@ -16,7 +16,7 @@ class M3_controller(object):
 	count = 0
     
 	def __init__(self, move_org=True):
-		self.dio = pyinterface.create_gpg2724()
+		self.dio = pyinterface.create_gpg2724(1)
 		if move_org: self.move_org()
 		pass
         
