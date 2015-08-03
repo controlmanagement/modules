@@ -16,7 +16,7 @@ class M3_controller(object):
 	count = 0
     
 	def __init__(self, move_org=True):
-		self.dio = pyinterface.create_gpg2724(1)
+		self.dio = pyinterface.create_gpg2724()
 		if move_org: self.move_org()
 		pass
         
@@ -29,19 +29,19 @@ class M3_controller(object):
 		self.print_msg('!!!! ERROR !!!! ' + msg)
 		return
     
-		def get_count(self):
+	def get_count(self):
 		self.count = self.dio.di_input()
 		return
     
-		def move_org(self):
+	def move_org(self):
 		self.dio.do_output()
 		self.dio.do_output()
 		self.position = 'org'
 		self.get_count
 		return
 
-		def move(self, dist, lock=True):
-		pos = self.dio.di.input()
+	def move(self, dist, lock=True):
+		pos = self.dio.di_input()
 		if pos == dist: return
 		diff = dist - pos
 		if lock: self.dio.do_output()
