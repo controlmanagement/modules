@@ -7,15 +7,6 @@
 ================================================
 Radio Telescope Observing System
 ------------------------------------------------
-[Abstract]
-
-file-name: antenna_1p85.py
-
-role: モーターの制御を行う
-
-main-author: Akihito Minami
-
-path: /home/1.85m/soft/obs/telescope_1p85/antenna_1p85.py
 
 ------------------------------------------------
 [Detail Description]
@@ -23,33 +14,29 @@ path: /home/1.85m/soft/obs/telescope_1p85/antenna_1p85.py
 ・構成
 
 　公開しているクラス
-　（１）antenna_1p85：モーターの制御を行う
+　（１）antenna_nanten：モーターの制御を行う
 
-------------------------------------------------
-[History]
-
-2011/11/16 minami ver.1
 
 ------------------------------------------------
 """
 
-import telescope_1p85.motor
+import telescope_nanten.motor
 import core.file_manager
 import core.controller
 
-class antenna_1p85(core.controller.antenna):
+class antenna_nanten(core.controller.antenna):
     """モーターの制御を行う"""
-    coord_dict = {"J2000"     : telescope_1p85.motor.COORD_J2000,
-                  "B1950"     : telescope_1p85.motor.COORD_B1950,
-                  "LB"        : telescope_1p85.motor.COORD_LB,
-                  "GALACTIC"  : telescope_1p85.motor.COORD_LB,
-                  "APPARENT"  : telescope_1p85.motor.COORD_APP,
-                  "HORIZONTAL": telescope_1p85.motor.COORD_HORIZONTAL,
-                  "SAME"      : telescope_1p85.motor.COORD_SAME}
+    coord_dict = {"J2000"     : telescope_nanten.motor.COORD_J2000,
+                  "B1950"     : telescope_nanten.motor.COORD_B1950,
+                  "LB"        : telescope_nanten.motor.COORD_LB,
+                  "GALACTIC"  : telescope_nanten.motor.COORD_LB,
+                  "APPARENT"  : telescope_nanten.motor.COORD_APP,
+                  "HORIZONTAL": telescope_nanten.motor.COORD_HORIZONTAL,
+                  "SAME"      : telescope_nanten.motor.COORD_SAME}
 
     def __init__(self):
  
-        self.m = telescope_1p85.motor.motor_client(print_socket=False)
+        self.m = telescope_nanten.motor.motor_client(print_socket=False)
         self.m.open()
         self.dev = core.file_manager.dev_manager()
         return
