@@ -24,13 +24,48 @@ class dome_get_status():
 		self.print_msg('!!!!ERROR!!!!')
 		return
 
-	def get_move_status():
+	def get_action():
 		ret = [0]
-		dome_param = self.dio.di_input(ret, ?, ?)
+		self.dio_2.di_input(ret, ?, ?)
 		if ret == 0:
 			move_status = ''
 		else:
 			move_status = ''
 		return ret
 
-	def
+	def get_door_status():
+		ret = [0,0,0,0,0,0]
+		self.dio_2.di_input(ret, ?, ?)
+		if ret[0] == 0:
+			right_act = 'stop'
+		else:
+			right_act = 'move'
+		
+		if ret[1] == 0:
+			if ret[2] == 0:
+				right_pos = 'move'
+			else:
+				right_pos = 'close'
+		else:
+			right_pos = 'open'
+		
+		if ret[3] == 0:
+			left_act = 'stop'
+		else:
+			left_act = 'move'
+		
+		if ret[4] == 0:
+			if ret[5] = 0:
+				left_pos = 'move'
+			else:
+				left_pos = 'close'
+		else:
+			left_pos = 'open'
+		
+		
+
+
+
+
+
+
