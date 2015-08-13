@@ -37,9 +37,9 @@ class dome_get_status():
 		ret = [0,0,0,0,0,0]
 		self.dio_2.di_input(ret, ?, ?)
 		if ret[0] == 0:
-			right_act = 'stop'
+			right_act = 'off'
 		else:
-			right_act = 'move'
+			right_act = 'drive'
 		
 		if ret[1] == 0:
 			if ret[2] == 0:
@@ -50,9 +50,9 @@ class dome_get_status():
 			right_pos = 'open'
 		
 		if ret[3] == 0:
-			left_act = 'stop'
+			left_act = 'off'
 		else:
-			left_act = 'move'
+			left_act = 'drive'
 		
 		if ret[4] == 0:
 			if ret[5] = 0:
@@ -61,9 +61,36 @@ class dome_get_status():
 				left_pos = 'close'
 		else:
 			left_pos = 'open'
+		return right_act,right_pos,left_act,left_pos
 		
+	def get_memb_status():
+		ret = [0,0,0]
+		self.dio.di_input(ret, ?, ?)
+		if ret[0] == 0:
+			memb_act = 'off'
+		else:
+			memb_act = 'drive'
 		
+		if ret[1] == 0:
+			if ret[2] == 0:
+				memb_pos = 'move'
+			else:
+				memb_pos = 'close'
+		else:
+			memb_pos = 'open'
+		return memb_act,memb_pos
 
+	def get_remote_status():
+		ret = [0]
+		self.dio.di_input(ret, ?, ?)
+		if ret == 0:
+			status = 'remote'
+		else:
+			status = 'local'
+		return ret
+
+	def error_check():
+		
 
 
 
