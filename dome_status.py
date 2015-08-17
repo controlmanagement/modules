@@ -32,16 +32,16 @@ class dome_get_status():
 
 	def get_action(self):
 		ret = [0]
-		self.dio_2.di_input(ret, ?, ?)
+		self.dio_2.di_input(ret, 0, 1)
 		if ret == 0:
-			move_status = ''
+			move_status = 'off'
 		else:
-			move_status = ''
+			move_status = 'drive'
 		return ret
 
 	def get_door_status(self):
 		ret = [0,0,0,0,0,0]
-		self.dio_2.di_input(ret, ?, ?)
+		self.dio_2.di_input(ret, 1, 6)
 		if ret[0] == 0:
 			right_act = 'off'
 		else:
@@ -88,7 +88,7 @@ class dome_get_status():
 
 	def get_remote_status(self):
 		ret = [0]
-		self.dio_2.di_input(ret, ?, ?)
+		self.dio_2.di_input(ret, 7, 3)
 		if ret == 0:
 			status = 'remote'
 		else:
@@ -97,12 +97,24 @@ class dome_get_status():
 
 	def error_check(self):
 		ret = [0,0,0,0,0,0]
-		self.dio_2.di_input(ret, ?, ?)
-		return ret
+		self.dio_2.di_input(ret, 15, 6)
+		if ret[0] == 1:
+			self.print_error('controll board sequencer error')
+		if ret[1] == 1:
+			self.print_error('controll board inverter error')
+		if ret[2] == 1:
+			self.print_error('controll board thermal error')
+		if ret[3] == 1:
+			self.print_error('controll board communication error')
+		if ret[4] == 1:
+			self.print_error('controll board sequencer(of dome_door or membrane) error')
+		if ret[5] == 1:
+			self.print_error('controll board inverter(of dome_door or membrane) error')
+		return
 
 	def limit_check(self):
 		limit = [0,0,0,0]
-		self.dio_2.di_input(ret, ?, ?)
+		self.dio_2.di_input(ret, 11, 4)
 		if limit == [0,0,0,0]:
 			ret = 0
 		elif limit == [1,0,0,0]:
@@ -139,8 +151,11 @@ class dome_get_status():
 	
 	def dome_encoder_acq(self):
 		counter = self.dio_6.get_counter(1)
-		dome_enc_arcsec = -((counter-dome_encoffset) * dome_enc2arcsec)-dome_enc_tel_offset
-		
-
+		dome_enc_arcsec = -((counter-dome_encoffset)*dome_enc2arcsec)-dome_enc_tel_offset
+		while(dome_enc_arcsec>1800.*360):
+			dome_enc_arcsec-=3600.*360;
+		while(dome_enc_arcsec<=-1800.*360):
+			dome_param.dome_enc_arcsec+=3600.*36
+		return dome_enc_arcsec
 
 
