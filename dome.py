@@ -2,7 +2,7 @@ import time
 import math
 import threading
 import pyinterface
-import dome_enc
+import dome_status
 
 
 
@@ -19,7 +19,8 @@ class dome_controller(object):
 
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2724(1)
-		self.enc = dome_enc.dome_encoder()
+		self.dio.initialize()
+		self.status = dome_status.dome_get_status()
 		pass
 
 	def print_msg(self,msg):
@@ -53,7 +54,8 @@ class dome_controller(object):
 		
 
 		dist = 90
-		pos = self.enc.get_pos()
+		pos_arcsec = self.status.dome_encoder_acq()
+		pos = pos_arcsec/3600
 		diff = dist - pos
 		if diff != 0:
 			self.move(dist, speed, lock=True)	#move_org
@@ -72,7 +74,7 @@ class dome_controller(object):
 			turn = 'right'
 		else:
 			turn = 'left'
-		if math.fabs(diff) >= 90 and fabs(diff) < 150:
+		if math.fabs(diff) >= 90 and math.fabs(diff) < 150:
 			speed = 'mid'
 		elif math.fabs(diff) >= 150:
 			speed = 'high'
@@ -83,11 +85,15 @@ class dome_controller(object):
 			dome_controller.buffer[1] = [1]
 			self.do_output(turn, speed)
 			while diff == 0:
-				pos = enc.get_pos()
+				pos_arcsec = self.status.dome_encoder_acq()
+				pos = pos_arcsec/3600
 				diff = dist - pos
-				self.do_output(self, turn, speed)
+				if math.fabs(diff) <= 0.2:
+					diff = 0
+				else:
+					self.do_output(self, turn, speed)
 		dome_controller.buffer[1] = [0]
-		self.do_output(turn, speed)
+		self.do_output(self, turn, speed)
 		self.get_count()
 		return
 
@@ -131,15 +137,11 @@ class dome_controller(object):
 
 
 
-
-	def read_position(self):
-		return self.position
-
 	def read_count(self):
 		return self.count
 
 	def get_count(self):
-		self.dio.di_output()
+		self.count = self.status.dome_encoder_acq()
 		return
 
 	def do_output(self, turn, speed):
