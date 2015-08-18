@@ -39,7 +39,7 @@ class mirror_controller(object):
 			nstep = -60500
 		else:
 			nstep = 60500
-		status = self.mtr.get_status()
+		status = self.mtr.ctrl.get_status()
 		if status:
 			if status == 0x0004:
 				pos = 'smart'
