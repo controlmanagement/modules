@@ -3,8 +3,6 @@ import threading
 import pyinterface
 
 class mirror_controller(object):
-	pos_nagoya = 0
-	pos_smart = 180
 	speed = 12000
 	low_speed = 100
 	acc = 12000
