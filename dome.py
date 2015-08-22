@@ -18,7 +18,7 @@ class dome_controller(object):
 
 
 	def __init__(self):
-		self.dio = pyinterface.create_gpg2724(1)
+		self.dio = pyinterface.create_gpg2000(1)
 		self.dio.initialize()
 		self.status = dome_status.dome_get_status()
 		pass
