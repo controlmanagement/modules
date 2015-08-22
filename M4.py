@@ -1,4 +1,3 @@
-
 import time
 import threading
 import pyinterface
@@ -18,7 +17,7 @@ class mirror_controller(object):
 	
 	
 	def __init__(self, move_org=True):
-		self.mtr = pyinterface.create_gpg7204(1)
+		self.dio = pyinterface.create_gpg7204(1)
 		pass
 		
 	def print_msg(self, msg):
@@ -31,7 +30,7 @@ class mirror_controller(object):
 		return
 	
 	def get_count(self):
-		self.count = self.mtr.get_position()
+		self.count = self.dio.get_position()
 		return
 
 	def move(self, dist, lock=True):
@@ -39,7 +38,7 @@ class mirror_controller(object):
 			nstep = -60500
 		else:
 			nstep = 60500
-		status = self.mtr.ctrl.get_status()
+		status = self.dio.ctrl.get_status()
 		if status:
 			if status == 0x0004:
 				pos = 'smart'
@@ -61,9 +60,9 @@ class mirror_controller(object):
 			self.low_speed = 100
 			self.acc = 1000
 			self.dec = 1000
-		if lock: self.mtr.move_with_lock(self.speed, nstep, self.low_speed,
+		if lock: self.dio.move_with_lock(self.speed, nstep, self.low_speed,
 										 self.acc, self.dec)
-		else: self.mtr.move(self.speed, nstep, self.low_speed, self.acc,
+		else: self.dio.move(self.speed, nstep, self.low_speed, self.acc,
 							self.dec)
 		self.get_count()
 		if dist == 'nagoya':
@@ -88,7 +87,7 @@ class mirror_controller(object):
 		========
 		>>> s.unlock_brake()
 		"""
-		self.mtr.do_output()
+		self.dio.do_output()
 		msg = '!! Electromagnetic brake is now UNLOCKED !!'
 		print('*'*len(msg))
 		print(msg)
@@ -111,7 +110,7 @@ class mirror_controller(object):
 		========
 		>>> s.lock_brake()
 		"""
-		self.mtr.do_output()
+		self.dio.do_output()
 		self.get_count()
 		print('')
 		print('')
@@ -137,7 +136,7 @@ class mirror_controller(object):
 		========
 		>>> s.clear_alarm()
 		"""
-		self.mtr.do_output()
+		self.dio.do_output()
 		return
 		
 	def clear_interlock(self):
@@ -156,7 +155,7 @@ class mirror_controller(object):
 		========
 		>>> s.clear_interlock()
 		"""
-		self.mtr.ctrl.off_inter_lock()
+		self.dio.ctrl.off_inter_lock()
 		return
 		
 	def read_position(self):
@@ -182,4 +181,3 @@ class mirror_controller(object):
 				'', 4004, 4104)
 		server.start()
 		return server
-
