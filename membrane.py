@@ -1,7 +1,7 @@
 import time
 import threading
 import pyinterface
-import memb_enc
+import dome_status
 
 
 
@@ -9,7 +9,7 @@ class membrane_controller(object):
 	buffer = [0, 0]
 	error = []
 	position = ''
-	count = 0
+	act = ''
 
 
 
@@ -18,8 +18,8 @@ class membrane_controller(object):
 
 
 	def __init__(self):
-		self.dio = pyinterface.create_gpg2000()
-		self.memb = memb_enc.memb_encoder()
+		self.dio = pyinterface.create_gpg2000(1)
+		self.status = dome_status.dome_get_status()
 		pass
 
 	def print_msg(self, msg):
@@ -31,8 +31,8 @@ class membrane_controller(object):
 		self.print_msg('!!!! ERROR !!!! ' + msg)
 		return
 
-	def get_count(self):
-		self.dio.di_output()     #get_count
+	def get_status(self):
+		self.act, self.position = self.status.get_memb_status()
 		return
 
 	def move_org(self):
@@ -53,9 +53,8 @@ class membrane_controller(object):
 		========
 		>>> s.move_org()
 		"""
-		self.move_open()
-		self.position = 'ORG'
-		self.get_count()
+		self.move_close()
+		self.get_status()
 		return
 
 	def move_open(self, lock=True):
@@ -88,7 +87,7 @@ class membrane_controller(object):
 			membrane_controller.buffer = [0, 0]
 			self.dio.do_output(membrane_controller.buffer, 6, 2)
 			return
-		self.position = 'OPEN'
+		self.get_status()
 		return
 
 	def move_close(self, lock=True):
@@ -100,8 +99,8 @@ class membrane_controller(object):
 		Args
 		====
 		< lock : bool :  > (optional)
-		    If <lock> is False, the method returns immediately.
-		    Otherwise, it returns after the membrane stopped.
+		If <lock> is False, the method returns immediately.
+		Otherwise, it returns after the membrane stopped.
 		
 		Returns
 		=======
@@ -122,7 +121,7 @@ class membrane_controller(object):
 			membrane_controller.buffer = [0, 0]
 			self.dio.do_output(membrane_controller.buffer, 6, 2)
 			return
-		self.position = 'CLOSE'
+		self.get_status()
 		return
 
 
@@ -131,8 +130,8 @@ class membrane_controller(object):
 	def read_position(self):
 		return self.position
 
-	def read_count(self):
-		return self.count
+	def read_act(self):
+		return self.act
 
 
 
