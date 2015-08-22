@@ -18,7 +18,7 @@ class membrane_controller(object):
 
 
 	def __init__(self):
-		self.dio = pyinterface.create_gpg2724()
+		self.dio = pyinterface.create_gpg2000()
 		self.memb = memb_enc.memb_encoder()
 		pass
 
