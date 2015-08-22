@@ -34,65 +34,65 @@ class dome_get_status():
 		ret = [0]
 		self.dio_2.di_input(ret, 0, 1)
 		if ret == 0:
-			move_status = 'off'
+			move_status = 'OFF'
 		else:
-			move_status = 'drive'
+			move_status = 'DRIVE'
 		return ret
 
 	def get_door_status(self):
 		ret = [0,0,0,0,0,0]
 		self.dio_2.di_input(ret, 1, 6)
 		if ret[0] == 0:
-			right_act = 'off'
+			right_act = 'OFF'
 		else:
-			right_act = 'drive'
+			right_act = 'DRIVE'
 		
 		if ret[1] == 0:
 			if ret[2] == 0:
-				right_pos = 'move'
+				right_pos = 'MOVE'
 			else:
-				right_pos = 'close'
+				right_pos = 'CLOSE'
 		else:
-			right_pos = 'open'
+			right_pos = 'OPEN'
 		
 		if ret[3] == 0:
-			left_act = 'off'
+			left_act = 'OFF'
 		else:
-			left_act = 'drive'
+			left_act = 'DRIVE'
 		
 		if ret[4] == 0:
 			if ret[5] = 0:
-				left_pos = 'move'
+				left_pos = 'MOVE'
 			else:
-				left_pos = 'close'
+				left_pos = 'CLOSE'
 		else:
-			left_pos = 'open'
+			left_pos = 'OPEN'
 		return right_act,right_pos,left_act,left_pos
 		
 	def get_memb_status(self):
 		ret = [0,0,0]
 		self.dio_2.di_input(ret, ?, ?)
 		if ret[0] == 0:
-			memb_act = 'off'
+			memb_act = 'OFF'
 		else:
-			memb_act = 'drive'
+			memb_act = 'DRIVE'
 		
 		if ret[1] == 0:
 			if ret[2] == 0:
-				memb_pos = 'move'
+				memb_pos = 'MOVE'
 			else:
-				memb_pos = 'close'
+				memb_pos = 'CLOSE'
 		else:
-			memb_pos = 'open'
+			memb_pos = 'OPEN'
 		return memb_act,memb_pos
 
 	def get_remote_status(self):
 		ret = [0]
 		self.dio_2.di_input(ret, 7, 3)
 		if ret == 0:
-			status = 'remote'
+			status = 'REMOTE'
 		else:
-			status = 'local'
+			status = 'LOCAL'
 		return ret
 
 	def error_check(self):
