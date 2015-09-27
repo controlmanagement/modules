@@ -36,7 +36,7 @@ class mirror_controller(object):
 			nstep = -60500
 		else:
 			nstep = 60500
-		status = self.dio.ctrl.get_count()
+		status = self.dio.ctrl.get_counter()
 		if status:
 			if status == 0x0004:
 				pos = 'smart'
