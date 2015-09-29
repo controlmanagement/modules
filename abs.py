@@ -39,7 +39,7 @@ class abs_controller(object):
 		else:
 			self.buff = 0x01
 		while dist == self.position:
-			self.dio.out_byte('FBIDIO_OUT1_8', buff)
+			self.dio.out_byte('FBIDIO_OUT1_8', self.buff)
 			self.get_pos()
 		return
 	
