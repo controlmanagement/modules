@@ -22,7 +22,7 @@ class abs_controller(object):
 		self.print_msg('!!!! ERROR !!!! ' + msg)
 		return
 	
-	def get_position(self):
+	def get_pos(self):
 		ret = self.position = self.dio.ctrl.in_byte('FBIDIO_IN1_8')
 		if ret == 0x09:
 			self.position = 'IN'
@@ -43,5 +43,5 @@ class abs_controller(object):
 			self.get_pos()
 		return
 	
-	def read_position(self):
+	def read_pos(self):
 		return self.position
