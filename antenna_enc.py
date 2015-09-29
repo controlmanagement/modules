@@ -34,7 +34,7 @@ class enc_controller(object):
 		cnt_Az = self.dio.
 		cnt_El = self.dio.
 		
-		if cnt El > 0:
+		if cnt_El > 0:
 			enc_El = (324*cnt_El+295)/590
 		else:
 			enc_El = (324*cnt_El-295)/590
