@@ -31,17 +31,15 @@ class dome_get_status():
 		return
 
 	def get_action(self):
-		ret = [0]
-		self.dio_2.di_input(ret, 0, 1)
+		ret = self.dio_2.di_check(0, 1)
 		if ret == 0:
 			move_status = 'OFF'
 		else:
 			move_status = 'DRIVE'
-		return ret
+		return move_status
 
 	def get_door_status(self):
-		ret = [0,0,0,0,0,0]
-		self.dio_2.di_input(ret, 1, 6)
+		ret = self.dio_2.di_check(1, 6)
 		if ret[0] == 0:
 			right_act = 'OFF'
 		else:
@@ -67,11 +65,10 @@ class dome_get_status():
 				left_pos = 'CLOSE'
 		else:
 			left_pos = 'OPEN'
-		return right_act,right_pos,left_act,left_pos
+		return [right_act, right_pos, left_act, left_pos]
 		
 	def get_memb_status(self):
-		ret = [0,0,0]
-		self.dio_2.di_input(ret, ?, ?)
+		ret = self.dio_2.di_check(7, 3)
 		if ret[0] == 0:
 			memb_act = 'OFF'
 		else:
@@ -84,20 +81,18 @@ class dome_get_status():
 				memb_pos = 'CLOSE'
 		else:
 			memb_pos = 'OPEN'
-		return memb_act,memb_pos
+		return [memb_act, memb_pos]
 
 	def get_remote_status(self):
-		ret = [0]
-		self.dio_2.di_input(ret, 7, 3)
+		ret = self.dio_2.di_check(10, 1)
 		if ret == 0:
 			status = 'REMOTE'
 		else:
 			status = 'LOCAL'
-		return ret
+		return status
 
 	def error_check(self):
-		ret = [0,0,0,0,0,0]
-		self.dio_2.di_input(ret, 15, 6)
+		ret = self.dio_2.di_check(15, 6)
 		if ret[0] == 1:
 			self.print_error('controll board sequencer error')
 		if ret[1] == 1:
@@ -113,8 +108,7 @@ class dome_get_status():
 		return
 
 	def limit_check(self):
-		limit = [0,0,0,0]
-		self.dio_2.di_input(ret, 11, 4)
+		limit = self.dio_2.di_check(11, 4)
 		if limit == [0,0,0,0]:
 			ret = 0
 		elif limit == [1,0,0,0]:
@@ -146,11 +140,11 @@ class dome_get_status():
 	def dome_limit(self):
 		limit = self.limit_check()
 		if limit != 0:
-			self.dio_6.set_counter(1, self.touchsensor_pos[limit-1]+dome_encoffset)
+			self.dio_6.ctrl.set_counter(1, self.touchsensor_pos[limit-1]+dome_encoffset)
 		return limit
 	
 	def dome_encoder_acq(self):
-		counter = self.dio_6.get_counter(1)
+		counter = self.dio_6.get_position(1)
 		dome_enc_arcsec = -((counter-dome_encoffset)*dome_enc2arcsec)-dome_enc_tel_offset
 		while(dome_enc_arcsec>1800.*360):
 			dome_enc_arcsec-=3600.*360;
