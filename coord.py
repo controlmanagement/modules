@@ -1,6 +1,5 @@
 import math
 import ctypes
-import numpy
 import lib_sla as sla
 import lib_jpl as jpl
 
@@ -28,35 +27,86 @@ class coord_calc(object):
 	_double_p = _P(ctypes.c_double)
 	_void_p = ctypes.c_void_p
 	
-	def calc_planet_coordJ2000(self, ephem, jd_utc, tai_utc, ntarg, ra, dec, dist, radi):
+	eqrau = [0.0,
+		2440.0,            # Mercury
+		6051.8,            # Venus
+		0.0,
+		3389.9,            # Mars
+		69134.1,           # Jupiter
+		57239.9,           # Saturn
+		25264.3,           # Uranus
+		24553.1,           # Neptune
+		1151.0,            # Pluto
+		1737.53,           # Moon
+		696000.0           """ Sun """]
+	
+	
+	def calc_planet_coordJ2000(self, ephem, jd_utc, tai_utc, ntarg):
 		err_code = i = nctr = 3
 		tau = 499.004782       # Light time for unit distance (sec) 
 		aukm = 1.49597870e8    # AU in km 
-		r = r1 = r2 = rr = []
+		r = r1 = r2 = rr = [0,0,0,0,0,0]
 		
-		
+		ephem = self._void_p(ephem)
 		jd = jd_utc + (tai_utc + 32.184) / (24. * 3600.)  # Convert UTC to Dynamical Time 
 		err_code = jpl.jpl_pleph(ephem, jd, ntarg, nctr, r, 1)
 		
 		if err_code == False:
-			*dist = sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
+			dist = math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
 			jpl_pleph(ephem, jd, nctr, 12, r1, 1)                                #Earth position at jd
-			jpl_pleph(ephem, jd - *dist * tau / (24. * 3600.), ntarg, 12, r2, 1)  # Target position when the light left 
-			for(i = 0; i <= 5; i++) rr[i] = r2[i] - r1[i]
-			*dist = sqrt(rr[0] * rr[0] + rr[1] * rr[1] + rr[2] * rr[2])
-			slaDcc2s(rr, ra, dec)
+			jpl_pleph(ephem, jd - dist * tau / (24. * 3600.), ntarg, 12, r2, 1)  # Target position when the light left 
+			for i in range(6):
+				rr[i] = r2[i] - r1[i]
+			dist = math.sqrt(rr[0] * rr[0] + rr[1] * rr[1] + rr[2] * rr[2])
+			ra = self._double_p(0)
+			dec = self._double_p(0)
+			sla.slaDcc2s(rr, ra, dec)
 			
-			*ra = slaDranrm(*ra)
-			*radi = asin(eqrau[ntarg] / (*dist * aukm))
+			ra = sla.slaDranrm(ra)
+			radi = math.asin(self.eqrau[ntarg] / (dist.value * aukm))
+			return [ra.value, dec.value, dist, radi]
 		else
-		
-		
-		
-		
+			return err_code
 
+	def planet_J2000_geo_to_topo(gra, gdec, *dist, *radi, *tra, *tdec, jd_utc, dut1, tai_utc, longitude, latitude, height):
+		
+  double vgp[6], stl, vgo[6], v[6], rmat[3][3];
+  double date = jd_utc - 2400000.5 + dut1 / (24. * 3600.);
+  double jd = jd_utc - 2400000.5 + (tai_utc + 32.184) / (24. * 3600.);
+  double disttmp;
 
+  // Spherical to x,y,z 
+  slaDcs2c ( gra, gdec, v );
+  for(i = 0; i < 3; i++) v[i] *= *dist;
+  
+  // Precession to date. 
+  slaPrec ( 2000.0, slaEpj(jd), rmat );
+  slaDmxv ( rmat, v, vgp );
 
-	def 
+  // Geocenter to observer (date). 
+  stl = slaGmst ( date ) + longitude;
+  slaPvobs ( latitude, height, stl, vgo );
+  
+
+  // Observer to planet (date). 
+  for ( i = 0; i < 6; i++ ) {
+    v[i] = vgp[i] - vgo[i];
+  }
+
+  disttmp = *dist;
+  *dist = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+  *radi *= disttmp / *dist;
+
+  // Precession to J2000 
+  slaPrec ( slaEpj(jd) , 2000., rmat );
+  slaDmxv ( rmat, v, vgp );
+
+  
+ // To RA,Dec. 
+  slaDcc2s ( vgp, tra, tdec );
+  *tra = slaDranrm ( *tra );
+}
+
 
 
 
@@ -106,9 +156,9 @@ class coord_calc(object):
 		x[1] = a*math.sin(ranow);
 		x[2] = math.sin(delnow);
 		
-		nut_long = self._double(0)
-		nut_obliq = self._double(0)
-		eps0 = self._double(0)
+		nut_long = self._double_p(0)
+		nut_obliq = self._double_p(0)
+		eps0 = self._double_p(0)
 		sla.slaNutc(jd-2400000.5, nut_long, nut_obliq, eps0)
 		
 		x1[0]=x[0]-(x[1]*cos(eps0)+x[2]*sin(eps0))*nut_long;
