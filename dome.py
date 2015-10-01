@@ -12,11 +12,6 @@ class dome_controller(object):
 	stop = [0]
 
 
-
-
-
-
-
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(1)
 		self.dio.initialize()
@@ -66,7 +61,7 @@ class dome_controller(object):
 
 
 	def move(self, dist, speed, lock=True):
-		pos = self.dio.di_input()	#get_position
+		pos = self.dio.di_check()	#get_position
 		if pos == dist: return
 		diff = dist - pos
 		dir = (360.0 + dist) % 360.0
@@ -82,7 +77,7 @@ class dome_controller(object):
 			speed = 'low'
 		if diff != 0:
 			global buffer
-			dome_controller.buffer[1] = [1]
+			self.buffer[1] = [1]
 			self.do_output(turn, speed)
 			while diff == 0:
 				pos_arcsec = self.status.dome_encoder_acq()
@@ -91,9 +86,9 @@ class dome_controller(object):
 				if math.fabs(diff) <= 0.2:
 					diff = 0
 				else:
-					self.do_output(self, turn, speed)
-		dome_controller.buffer[1] = [0]
-		self.do_output(self, turn, speed)
+					self.do_output(turn, speed)
+		self.buffer[1] = [0]
+		self.do_output(turn, speed)
 		self.get_count()
 		return
 
@@ -102,39 +97,18 @@ class dome_controller(object):
 	def emergency_stop(self):
 		global stop
 		dome_controller.stop = [1]
-		self.dio.do_output(dome_controller.stop, 10, 1)
+		self.dio.do_output(self.stop, 10, 1)
 		self.print_msg('!!EMERGENCY STOP!!')
 		return
 
 	def dome_fan(self, fan):
 		if fan == 'on':
 			fan_bit = [1, 1]
-			self.dio.do_output(self, fan_bit, 8, 2)
+			self.dio.do_output(fan_bit, 8, 2)
 		else:
 			fan_bit = [0, 0]
-			self.dio.do_output(self, fan_bit, 8, 2)
+			self.dio.do_output(fan_bit, 8, 2)
 		return
-
-
-
-	def slider():
-		client = pyinterface.server_client_wrapper.control_client_wrapper(slider_controller
-			, '192.168.40.13', 4004)
-		return client
-
-	def slider_monitor():
-		client = pyinterface.server_client_wrapper.monitor_client_wrapper(
-			slider_controller, '192.168.40.13', 4104)
-		return client
-
-	def start_slider_server():
-		slider = slider_controller()
-		server = pyinterface.server_client_wrapper.server_wrapper(slider,
-			'', 4004, 4104)
-		server.start()
-		return server
-
-
 
 
 	def read_count(self):
@@ -147,18 +121,18 @@ class dome_controller(object):
 	def do_output(self, turn, speed):
 		global buffer
 		global stop
-		if turn == 'right': dome_controller.buffer[0] = 0
-		else: dome_controller.buffer[0] = 1
+		if turn == 'right': self.buffer[0] = 0
+		else: self.buffer[0] = 1
 		if speed == 'low':
-			dome_controller.buffer[2:4] = [0, 0]
+			self.buffer[2:4] = [0, 0]
 		elif speed == 'mid':
-			dome_controller.buffer[2:4] = [1, 0]
+			self.buffer[2:4] = [1, 0]
 		else:
-			dome_controller.buffer[2:4] = [0, 1]
+			self.buffer[2:4] = [0, 1]
 		if dome_controller.stop == 1:
-			dome_controller.buffer[1] = 0
-		else: dome_controller.buffer[1] = 1
-		self.dio.do_output(dome_controller.buffer, 0, 6)
+			self.buffer[1] = 0
+		else: self.buffer[1] = 1
+		self.dio.do_output(self.buffer, 0, 6)
 		self.get_count()
 		return
 
