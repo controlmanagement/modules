@@ -2,24 +2,29 @@ import os
 import ctypes
 
 
-SO_DIR = '/usr/lib'
+SO_DIR = '/usr/lib/slalib'
 
 
 try:
-	Dcc2s = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDCC2s'))
-	Dranrm = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDranrm'))
-	Dcs2c = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDcs2c'))
-	Prec = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaPrec'))
-	Epj = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaEpj'))
-	Dmxv = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDmxv'))
-	Gmst = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaGmst'))
-	Pvobs = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaPvobs'))
-	Preces = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaPreces'))
-	Nutc = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaNutc'))
-	Fk425 = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaFk425'))
-	Galeq = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaGaleq'))
-	Map = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaMap'))
-	Aop = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaAop'))
+	Dcc2s = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDCC2s.o'))
+	Dranrm = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDranrm.o'))
+	Dcs2c = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDcs2c.o'))
+	Prec = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaPrec.o'))
+	Epj = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaEpj.o'))
+	Dmxv = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDmxv.o'))
+	Gmst = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaGmst.o'))
+	Pvobs = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaPvobs.o'))
+	Preces = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaPreces.o'))
+	Nutc = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaNutc.o'))
+	Fk425 = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaFk425.o'))
+	Galeq = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaGaleq.o'))
+	Map = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaMap.o'))
+	Aop = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaAop.o'))
+	
+	Mappa = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaMappa.o'))
+	Aoppa = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaAoppa.o'))
+	Oapqk = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaOapqk.o'))
+	Ampqk = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaAmpqk.o'))
 except OSError:
 	pass
 else:
@@ -127,5 +132,28 @@ else:
 	slaAop.restype = _uint
 	slaAop.argtypes = (_double, _double, _double, _double, _double, _double, _double, _double, _double, _double, _double, _double, _double, _double,
 						_double_p, _double_p, _double_p, _double_p, _double_p)
-
-
+	
+	#slaMappa
+	#--------------------------------
+	slaMappa = Mappa.slaMappa
+	slaMappa.restype = _uint
+	slaMappa.argtypes = (_double, _double, _double)
+	
+	#slaAoppa
+	#--------------------------------
+	slaAoppa = Aoppa.slaAoppa
+	slaAoppa.restype = _uint
+	slaAoppa.argtypes = (_double, _double, _double, _double, _double, _double, _double, _double, _double, _double, _double, _double, _double)
+	
+	#slaOapqk
+	#--------------------------------
+	slaOapqk = Oapqk.slaOapqk
+	slaOapqk.restype = _uint
+	slaOapqk.argtypes = (_char_p, _double, _double, _double, _double_p, _double_p)
+	
+	#slaAmpqk
+	#--------------------------------
+	slaAmpqk = Ampqk.slaAmpqk
+	slaAmpqk.restype = _uint
+	slaAmpqk.argtypes = (_double, _double, _double, _double_p, _double_p)
+	
