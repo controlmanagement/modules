@@ -57,7 +57,7 @@ else:
 	#slaDranrm
 	#--------------------------------
 	slaDranrm = Dranrm.slaDranrm
-	slaDranrm.restype = _uint
+	slaDranrm.restype = _double
 	slaDranrm.argtypes = (_double)
 	
 	#slaDcs2c
