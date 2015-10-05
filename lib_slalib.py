@@ -75,7 +75,7 @@ else:
 	#slaEpj
 	#--------------------------------
 	slaEpj = Epj.slaEpj
-	slaEpj.restype = _uint
+	slaEpj.restype = _double
 	slaEpj.argtypes = (_double)
 	
 	#slaDmxv
@@ -87,7 +87,7 @@ else:
 	#slaGmst
 	#--------------------------------
 	slaGmst = Gmst.slaGmst
-	slaGmst.restype = _uint
+	slaGmst.restype = _double
 	slaGmst.argtypes = (_double)
 	
 	#slaPvobs
