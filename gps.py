@@ -2,6 +2,8 @@ import pyinterface
 
 class gps_controller(object):
 
+	error = []
+
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(2)
 		print("__init__:on")
@@ -13,7 +15,7 @@ class gps_controller(object):
 
 	def print_error(self,msg):
 		self.error.append(msg)
-		self.print_msg('!!!!ERROR!!!!')
+		self.print_msg('!!!!ERROR!!!!' + msg)
 		return
 
 	def gpsJuliusDayUTC(self):
