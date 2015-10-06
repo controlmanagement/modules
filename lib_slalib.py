@@ -100,7 +100,7 @@ else:
 	#--------------------------------
 	slaPreces = Preces.slaPreces
 	slaPreces.restype = _uint
-	slaPreces.argtypes = (_uchar, _double, _double, _double_p, _double_p)
+	slaPreces.argtypes = (_uchar_p, _double, _double, _double_p, _double_p)
 	
 	#slaNutc
 	#--------------------------------
