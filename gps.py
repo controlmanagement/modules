@@ -8,13 +8,13 @@ class gps_controller(object):
 		return
 
 	def print_msg(self,msg):
-			print(msg)
-			return
+		print(msg)
+		return
 
 	def print_error(self,msg):
-			self.error.append(msg)
-			self.print_msg('!!!!ERROR!!!!')
-			return
+		self.error.append(msg)
+		self.print_msg('!!!!ERROR!!!!')
+		return
 
 	def gpsJuliusDayUTC(self):
 
@@ -42,6 +42,6 @@ class gps_controller(object):
 		mjd=(365.25*year)+(year/400)-(year/100)+(30.59*(month-2))+day-678912
 	
 		#print year,month,day,hour,min,sec,subsec
-  	#print d,m,p,mjd,jd
+  		#print d,m,p,mjd,jd
 	
 		return jd
