@@ -12,11 +12,6 @@ class membrane_controller(object):
 	act = ''
 
 
-
-
-
-
-
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(1)
 		self.status = dome_status.dome_get_status()
@@ -32,7 +27,9 @@ class membrane_controller(object):
 		return
 
 	def get_status(self):
-		self.act, self.position = self.status.get_memb_status()
+		ret = self.status.get_memb_status()
+		self.act = ret[0]
+		self.position = ret[1]
 		return
 
 	def move_org(self):
@@ -77,13 +74,13 @@ class membrane_controller(object):
 		========
 		>>> s.move_open()
 		"""
-		pos = self.memb.get_pos()
-		if pos == 'CLOSE':
+		self.get_status()
+		if self.position == 'CLOSE':
 			global buffer
 			membrane_controller.buffer = [1, 1]
 			self.dio.do_output(membrane_controller.buffer, 6, 2)
-			while pos != 'OPEN':
-				pos = self.memb.get_pos()
+			while self.position != 'OPEN':
+				self.get_status()
 			membrane_controller.buffer = [0, 0]
 			self.dio.do_output(membrane_controller.buffer, 6, 2)
 			return
@@ -111,13 +108,13 @@ class membrane_controller(object):
 		>>> s.move_close()
 		
 		"""
-		pos = self.memb.get_pos()
-		if pos == 'OPEN':
+		self.get_status()
+		if self.position == 'OPEN':
 			global buffer
 			membrane_controller.buffer = [0, 1]
 			self.dio.do_output(membrane_controller.buffer, 6, 2)
-			while pos != 'CLOSE':
-				pos = self.memb.get_pos()
+			while self.position != 'CLOSE':
+				self.get_status()
 			membrane_controller.buffer = [0, 0]
 			self.dio.do_output(membrane_controller.buffer, 6, 2)
 			return
@@ -132,29 +129,3 @@ class membrane_controller(object):
 
 	def read_act(self):
 		return self.act
-
-
-
-
-
-
-	def slider():
-		client = pyinterface.server_client_wrapper.control_client_wrapper(slider_controller
-			, '192.168.40.13', 4004)
-		return client
-
-	def slider_monitor():
-		client = pyinterface.server_client_wrapper.monitor_client_wrapper(
-			slider_controller, '192.168.40.13', 4104)
-		return client
-
-	def start_slider_server():
-		slider = slider_controller()
-		server = pyinterface.server_client_wrapper.server_wrapper(slider,
-			'', 4004, 4104)
-		server.start()
-		return server
-
-
-
-
