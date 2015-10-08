@@ -100,6 +100,9 @@ class slalib_controller(object):
 		return st.value
 	
 	def slaPvobs(self, latitude, height, stl):
+		"""
+		slaPvobs
+		"""
 		latitude = self._double(latitude)
 		height = self._double(height)
 		stl = self._double(stl)
@@ -109,15 +112,137 @@ class slalib_controller(object):
 		lib.slaPvobs(latitude, height, stl, pv6)
 		return pv6
 	
-	def slaPreces(self, )
+	def slaPreces(self, FK, ep0, ep1, ra, dec):
+		"""
+		slaPreces
+		"""
+		FK = self._uchar_p(FK)
+		ep0 = self._double(ep0)
+		ep1 = self._double(ep1)
+		ra = self._double_p(ra)
+		dec = self._double_p(dec)
+		lib.slaPreces(FK, ep0, ep1, ra, dec)
+		return [ra.value, dec.value]
 	
+	def slaNutc(self, date):
+		"""
+		slaNutc
+		"""
+		date = self._double(date)
+		long = obliq = eps0 = self._double_p(0)
+		lib.slaNutc(date, long, obliq, eps0)
+		return [long.value, obliq.value, eps0.value]
 	
+	def slaFk425(self, r1950, d1950, dr1950, dd1950, p1950, v1950):
+		"""
+		slaFk425
+		"""
+		r1950 = self._double(r1950)
+		d1950 = self._double(d1950)
+		dr1950 = self._double(dr1950)
+		dd1950 = self._double(dd1950)
+		p1950 = self._double(p1950)
+		v1950 = self._double(v1950)
+		r2000 = d2000 = dr2000 = dd2000 = p2000 = v2000 = self._double_p(0)
+		lib.slaFk425(r1950, d1950, dr1950, dd1950, p1950, v1950, r2000, d2000, dr2000, dd2000, p2000, v2000)
+		return [r2000.value, d2000.value, dr2000.value, dd2000.value, p2000.value, v2000.value]
 	
+	def slaGaleq(self, long, lati):
+		"""
+		slaGaleq
+		"""
+		long = self._double(long)
+		lati = self._double(lati)
+		ra = dec = self._double_p(0)
+		lib.slaGaleq(long, lati, ra, dec)
+		return [ra.value, dec.value]
 	
+	def slaMap(self, m_ra, m_dec, p_ra, p_dec, px, rv, eq, date):
+		"""
+		slaMap
+		"""
+		m_ra = self._double(m_ra)
+		m_dec = self._double(m_dec)
+		p_ra = self._doube(p_dec)
+		px = self._double(px)
+		rv = self._double(rv)
+		eq = self._double(eq)
+		date = self._double(date)
+		ap_ra = ap_dec = self._double_p(0)
+		lib.slaMap(m_ra, m_dec, p_ra, p_dec, px, rv, eq, date, ap_ra, ap_dec)
+		return [ap_ra.value, ap_dec.value]
 	
+	def slaAop(self, g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, l_amb, tlr):
+		"""
+		slaAop
+		"""
+		g_ra = self._double(g_ra)
+		g_dec = self._double(g_dec)
+		mjd = self._double(mjd)
+		dut = self._double(dut)
+		m_long = self._double(m_long)
+		m_lati = self._double(m_lati)
+		height = self._double(height)
+		xp = self._double(xp)
+		yp = self._double(yp)
+		l_amb = self._double(l_amb)
+		tlr = self._double(tlr)
+		az = el = ha = dec = ra = self._double_p(0)
+		lib.slaAop(g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, l_amb, tlr, az, el, ha, dec, ra)
+		return [az.value, el.value, ha.value, ra.value, dec.value]
 	
+	def slaMappa(self, eq, tdb):
+		"""
+		slaMappa
+		"""
+		eq = self._double(eq)
+		tdb = self._double(tdb)
+		amprms = self._double*21
+		date = [0]*21
+		amprms = amprms(*date)
+		lib.slaMappa(eq, mjd_tdb, amprms)
+		return amprms
 	
+	def slaAoppa(self, mjd_utc, dut, long, lat, alt, xp, yp, tmp, p, hu, wl, tlr):
+		"""
+		slaAoppa
+		"""
+		mjd_utc = self._double(mjd_utc)
+		dut = self._double(dut)
+		long = self,_double(long)
+		lat = self._doubel(lat)
+		alt = self._double(alt)
+		xp = sele._double(xp)
+		yp = self._double(yp)
+		tmp = self._double(tmp)
+		p = self._double(p)
+		hu = self._double(hu)
+		wl = self._double(wl)
+		tlr = self._double(tlr)
+		aoprms = self._double_p*14
+		date = [0]*14
+		aoprms = aoprms(*date)
+		lib.slaAoppa(mjd_utc, dut, long, lat, alt, xp, yp, tmp, p, hu, wl, tlr, aoprms)
+		return aoprms
 	
+	def slaOapqk(self, type, ob1, ob2, aoprms):
+		"""
+		slaOapqk
+		"""
+		type = self._char_p(type)
+		ob1 = self._double(ob1)
+		ob2 = self._double(ob2)
+		ra = dec = self._double_p(0)
+		lib.slaOapqk(type, ob1, ob2, aoprms, ra, dec)
+		return [ra.value, dec.value]
 	
-	
+	def slaAmpqk(self, ra, dec, amprms):
+		"""
+		slaAmpqk
+		"""
+		ra = self._double(ra)
+		dec = self._double(dec)
+		m_ra = m_dec = self._double_p(0)
+		lib.slaAmpqk(ra, dec, amprms, m_ra, m_dec)
+		return [m_ra.value, m_dec.value]
 	
