@@ -464,77 +464,33 @@ class coord_calc(object):
 
 
 
-	def read_kisa_file():
-{
-  FILE *fp;
-  int i_prm;
-  char buffer[BUFFERSIZE], *file_stat;
-
-  if(NULL == (fp = fopen(KISA_FILE, "r"))){
-    return -1;
-  }
-  
-  i_prm=0;
-  while(1) {
-    file_stat=fgets(buffer,BUFFERSIZE,fp); /* 1st line for comment */
-    if(file_stat==NULL) {
-      fclose(fp);
-      return(-2);
-    }
-    if(buffer[0]=='#' || strncmp(buffer,"/*",2)==0 || strncmp(buffer,"//",2)==0) {
-      continue;
-    } else {
-      switch(i_prm) {
-      case 0:
-		gkisa.a1=atof(buffer);
-		break;
-      case 1:
-		gkisa.a2=atof(buffer);
-		break;
-      case 2:
-		gkisa.a3=atof(buffer);
-		break;
-      case 3:
-		gkisa.b1=atof(buffer);
-		break;
-      case 4:
-		gkisa.b2=atof(buffer);
-		break;
-      case 5:
-		gkisa.b3=atof(buffer);
-		break;
-      case 6:
-		gkisa.c1=atof(buffer);
-		break;
-      case 7:
-		gkisa.c2=atof(buffer);
-		break;
-      case 8:
-		gkisa.d1=atof(buffer);
-		break;
-      case 9:
-		gkisa.d2=atof(buffer);
-		break;
-      case 10:
-		gkisa.e1=atof(buffer);
-		break;
-      case 11:
-		gkisa.e2=atof(buffer);
-		break;
-      case 12:
-		gkisa.g1=atof(buffer);
-		break;
-      }
-      i_prm++;
-      if(i_prm>12){
-		fprintf(stderr, "%f %f %f %f %f %f %f %f %f %f %f %f %f\n", gkisa.a1, gkisa.a2, gkisa.a3, gkisa.b1, gkisa.b2, gkisa.b3, gkisa.c1, gkisa.c2, gkisa.d1, gkisa.d2, gkisa.e1, gkisa.e2, gkisa.g1);
-		break;
-      }
-    }
-  }
-  fclose(fp);
- 
-  return 0;
-}
-
+	def read_kisa_file(hosei):
+		f = open(hosei)
+		line = f.readline()
+		kisa = [0]*24
+		n = 0
+		
+		while line:
+			line = line.rstrip()
+			kisa[n] = line
+			line = f.readline()
+			n = n+1
+		f.close
+		
+		
+		#apply hosei file
+		"""
+		f = open(diff_f)
+		line = f.readline()
+		diff = [0]*24
+		n = 0
+		while line:
+			line = line.rstrip()
+			diff[n] = line
+			line = f.readline()
+			n = n+1
+		f.close()
+		kisa = [kisa[i]+diff[i] for i in range(kisa)]
+		"""
+		return kisa
 
