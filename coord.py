@@ -102,55 +102,35 @@ class coord_calc(object):
 		tdec = ret[1]
 		return [dist, radi, tra, tdec]
 
-	def apply_kisa(self, double az1, double el1, double *az2, double *el2):
-  double cos_az,sin_az,cos_el,sin_el,
-    d_az,	/* offset of Az origin */
-    d_el;	/* offest of El origin */
-  		
-		# calculate the values of correction
-		cos_az = math.cos(az1)
-		sin_az = math.sin(az1)
-		cos_el = math.cos(el1)
-		sin_el = math.sin(el1)
+	def apply_kisa(self, az, el, kisa):
+		"""
+		#kisa parameter
+		(daz[0], de[1], kai_az[2], omega_az[3], eps[4], kai2_az[5], omega2_az[6], kai_el[7], omega_el[8], kai2_el[9], omega2_el[10], g[11], gg[12], ggg[13], gggg[14],
+		del[15], de_radio[16], del_radio[17], cor_v[18], cor_p[19], g_radio[20], gg_radio[21], ggg_radio[22], gggg_radio[23])
+		"""
+		DEG2RAD = math.pi/180
+		RAD2DEG = 180/math.pi
+		ARCSEC2RAD = math.pi/(180*60*60.)
+		kisa[3] = kisa[3]*DEG2RAD
+		kisa[6] = kisa[6]*DEG2RAD
+		kisa[8] = kisa[8]*DEG2RAD
+		kisa[10] = kisa[10]*DEG2RAD
+		kisa[19] = kisa[19]*DEG2RAD
+		el_d = el*RAD2DEG
+		delta = [0,0]
 		
-		# basic correction for AzEl mount
-		d_az = gkisa.a1*sin_el + gkisa.a2 + gkisa.a3*cos_el +gkisa.b1*sin_az*sin_el - gkisa.b2*cos_az*sin_el;
-  d_el =  gkisa.b1*cos_az + gkisa.b2*sin_az + gkisa.b3 + gkisa.g1 * el1 * 180. / M_PI;
-
-  /* For radio observations */
-  if(gopt_flag == 0) {
-    d_az=d_az
-      + gkisa.c1*sin(az1-el1) + gkisa.c2*cos(az1-el1)
-      + gkisa.d1
-      + gkisa.e1*cos_el - gkisa.e2*sin_el;
-    d_el=d_el
-      + gkisa.c1*cos(az1-el1) - gkisa.c2*sin(az1-el1)
-      + gkisa.d2
-      + gkisa.e1*sin_el + gkisa.e2*cos_el;
-  }
-  /* convert to encoder offset on the horizon */
-  d_az =  d_az / cos_el;
-
-  /* apply the correction values ->  radians*/
-  *az2 = az1 +(d_az /60.0) * M_PI / 180.;
-  *el2 = el1 +(d_el /60.0)* M_PI / 180.;
-}
+		dx = kisa[2]*math.sin(kisa[3]-az)*math.sin(el)+kisa[4]*math.sin(el)+kisa[0]*math.cos(el)+de+kisa[5]*math.sin(2*(kisa[3]-az))*math.sin(el)\
+			+kisa[16]+kisa[18]*math.cos(el+kisa[19])
+		delta[0] = -dx
 		
+		dy = -kisa[7]*math.cos(kisa[8]-az)-kisa[9]*math.cos(2*(kisa[10]-az))+kisa[15]+kisa[11]*el_d+kisa[12]*el_d*el_d+kisa[13]*el_d*el_d*el_d+kisa[14]*el_d*el_d*el_d*el_d\
+			+kisa[17]-kisa[18]*math.sin(el+kisa[19])+kisa[20]*el_d+kisa[21]*el_d*el_d+kisa[22]*el_d*el_d*el_d+kisa[23]*el_d*el_d*el_d*el_d
+		delta[1] = -dy
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		if(math.fabs(math.cos(el))>0.001)
+			delta[0]=delta[0]/math.cos(el)
+		delta[0]=delta[0]*ARCSEC2RAD
+		delta[1]=delta[1]*ARCSEC2RAD
 		
 
 	def calc_vobs_fk5(self, jd, ra_2000, dec_2000):
@@ -162,70 +142,56 @@ class coord_calc(object):
 		double rasol,delsol;
 		double vobs, lst;
 		
-		#ra_2000=DEG2RAD
-		#dec_2000=DEG2RAD
+		//ra_2000=DEG2RAD
+		//dec_2000=DEG2RAD
 		a = math.cos(dec_2000)
 		x_2000[0] = a*math.cos(ra_2000)
 		x_2000[1] = a*math.sin(ra_2000)
 		x_2000[2]= math.sin(dec_2000)
 		
 		tu= (jd - 2451545.)/36525.
+		ret = sla.slaPreces( "FK5", 2000., 2000.+tu*100., ra_2000, dec_2000)
+		#ret[0] =ranow,	ret[1] = delow
 		
-		ranow = self._double(ra_2000)
-		delow = self._double(dec_2000)
-		sla.slaPreces( "FK5", 2000., 2000.+tu*100., ranow, delnow)
+		a = math.cos(ret[1])
+		x[0] = a*math.cos(ret[0])
+		x[1] = a*math.sin(ret[0])
+		x[2] = math.sin(ret[1])
 		
-		a = math.cos(delnow);
-		x[0] = a*math.cos(ranow);
-		x[1] = a*math.sin(ranow);
-		x[2] = math.sin(delnow);
+		ret = sla.slaNutc(jd-2400000.5)
+		#ret[0] = nut_long, ret[1] = nut_obliq, ret[2] = eps0
+		x1[0]=x[0]-(x[1]*math.cos(ret[2])+x[2]*math.sin(ret[2]))*ret[0]
+		x1[1]=x[1]+x[0]*math.cos(ret[2])*ret[0]-x[2]*ret[1]
+		x1[2]=x[2]+x[0]*math.sin(ret[2])*ret[0]+x[1]*ret[1]
 		
-		nut_long = self._double_p(0)
-		nut_obliq = self._double_p(0)
-		eps0 = self._double_p(0)
-		sla.slaNutc(jd-2400000.5, nut_long, nut_obliq, eps0)
-		
-		x1[0]=x[0]-(x[1]*cos(eps0)+x[2]*sin(eps0))*nut_long;
-		x1[1]=x[1]+x[0]*cos(eps0)*nut_long - x[2]*nut_obliq;
-		x1[2]=x[2]+x[0]*sin(eps0)*nut_long + x[1]*nut_obliq;
-		
-		x[0]=x1[0];
-		x[1]=x1[1];
-		x[2]=x1[2];
-		
+		x[0]=x1[0]
+		x[1]=x1[1]
+		x[2]=x1[2]
 		v0= 47.404704e-3;
 		
-		ramda=35999.3729*tu+100.4664+(1.9146-0.0048*tu)*cos((35999.05*tu+267.53)*DEG2RAD)+0.0200*cos((71998.1*tu+265.1)*DEG2RAD);
+		ramda=35999.3729*tu+100.4664+(1.9146-0.0048*tu)*math.cos((35999.05*tu+267.53)*DEG2RAD)+0.0200*math.cos((71998.1*tu+265.1)*DEG2RAD)
 		
-		r=1.000141+(0.016707-0.000042*tu)*cos((35999.05*tu+177.53)*DEG2RAD)+0.000140*cos((71998.*tu+175.)*DEG2RAD);
+		r=1.000141+(0.016707-0.000042*tu)*math.cos((35999.05*tu+177.53)*DEG2RAD)+0.000140*math.cos((71998.*tu+175.)*DEG2RAD)
 		
-		ramda1=628.308\
-			+(20.995-0.053*tu)*cos((35999.5*tu+357.52)*DEG2RAD)\
-			+0.439*cos((71998.1*tu+355.1)*DEG2RAD)\
-			+0.243*cos((445267.*tu+298.)*DEG2RAD);
+		ramda1=628.308+(20.995-0.053*tu)*math.cos((35999.5*tu+357.52)*DEG2RAD)+0.439*math.cos((71998.1*tu+355.1)*DEG2RAD)\
+			+0.243*math.cos((445267.*tu+298.)*DEG2RAD)
 		
-		beta=0.024*cos((483202.*tu+273.)*DEG2RAD);
+		beta=0.024*math.cos((483202.*tu+273.)*DEG2RAD)
 		
-		r1      = (10.497-0.026*tu) * cos((35999.05*tu+267.53)*DEG2RAD) \
-   	           + 0.243 * cos((445267.*tu+28.)*DEG2RAD) \
-   	           + 0.176 * cos((71998.*tu+265.)*DEG2RAD);
+		r1 = (10.497-0.026*tu)*math.cos((35999.05*tu+267.53)*DEG2RAD)+0.243*math.cos((445267.*tu+28.)*DEG2RAD)+0.176*math.cos((71998.*tu+265.)*DEG2RAD)
 		
-		ramda   = ramda *DEG2RAD;
+		ramda   = ramda *DEG2RAD
 		
-		v[0]    = -r*ramda1*sin(ramda) + r1*cos(ramda);
-		v[1]    =  r*ramda1*cos(ramda) + r1*sin(ramda);
-		v[2]    =  r * beta;
+		v[0] = -r*ramda1*math.sin(ramda)+r1*math.cos(ramda)
+		v[1] = r*ramda1*math.cos(ramda)+r1*math.sin(ramda)
+		v[2] = r*beta
 		
-		v[0]    = v[0] - (      0.263 * cos((3034.9*tu+124.4)*DEG2RAD) \
-   	             +       0.058 * cos((1222. *tu+140.)*DEG2RAD) \
-   	             +       0.013 * cos((6069. *tu+144.)*DEG2RAD));
-		v[1]    = v[1] - (     0.263 * cos((3034.9*tu+34.4)*DEG2RAD) \
-   	             +       0.058 * cos((1222. *tu+50.)*DEG2RAD) \
-   	             +       0.013 * cos((6069. *tu+54.)*DEG2RAD));
+		v[0] = v[0]-(0.263*math.cos((3034.9*tu+124.4)*DEG2RAD)+0.058*math.cos((1222. *tu+140.)*DEG2RAD)+0.013*math.cos((6069. *tu+144.)*DEG2RAD))
+		v[1] = v[1]-(0.263*math.cos((3034.9*tu+34.4)*DEG2RAD)+0.058*math.cos((1222. *tu+50.)*DEG2RAD)+0.013*math.cos((6069. *tu+54.)*DEG2RAD))
 			
-		v[0] = v[0] * v0;
-		v[1] = v[1] * v0;
-		v[2] = v[2] * v0;
+		v[0] = v[0]*v0
+		v[1] = v[1]*v0
+		v[2] = v[2]*v0
 		
 		e = (23.439291 - 0.013004*tu)*3600.;
 		
