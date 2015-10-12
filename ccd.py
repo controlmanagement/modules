@@ -31,4 +31,4 @@ class ccd_controller(object):
 		self.img.get_data(self, frame_no, framenum, size, dwDataFormat = 'IFIMG_COLOR_RGB24', dwXcoodinates = 0, dwYcoodinates = 0, dwXLength = 640, dwYLength = 480)
 		# save data
 		self.img.save(fiename, size*3, Bufferformat)
-		return
+		return status
