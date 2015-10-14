@@ -9,13 +9,6 @@ import antenna_enc
 
 class nanten_main_controller(object):
 	
-	# Default
-	Paz = 3.8
-	Iaz = 8
-	Daz = 0.11
-	Pel = 3.73
-	Iel = 8
-	Del = 0.07
 	MOTOR_SAMPLING = 10 #memo
 	dt = MOTOR_SAMPLING/1000.
 	
@@ -45,8 +38,17 @@ class nanten_main_controller(object):
 		
 		
 		
-	def calc_pid(self, az_arcsec, el_arcsec, azv, elv):
+	def calc_pid(self, az_arcsec, el_arcsec, azv, elv, az_mate_rate = 16000, el_max_rate = 12000):
+		# Default
+		Paz = 3.8
+		Iaz = 8
+		Daz = 0.11
+		Pel = 3.73
+		Iel = 8
+		Del = 0.07
 		
+		m_bAzTrack = "FALSE"
+		m_bElTrack = "FALSE"
 		
 		az_enc = self.enc.???
 		el_enc = self.enc.???
@@ -86,82 +88,87 @@ class nanten_main_controller(object):
 		
 		
 		
-	if(10000<fabs(az_rate)){ m_bAzTrack=TRUE;}//def Paz=2
-	else az_err_integral+=(az_err_before+az_err)*dt/2.+azv_acc*0.0;
-	if(10000<fabs(el_rate)){ m_bElTrack=TRUE;}//def Pel=2
-	else el_err_integral+=(el_err_before+el_err)*dt/2.+elv_acc*0.0;
-	
-	azv_err_avg = azv_err_avg_func(azv_err);
-	elv_err_avg = elv_err_avg_func(elv_err);
-	
-	if(fabs(azv_err_avg)> fabs(azv)/10.+10.){
-	  az_err_integral = 0.;
-	}
-	
-	if(fabs(az_err)> 150){//150
-	  az_err_integral = 0;
-	}
-	
-	if(fabs(elv_err_avg)>fabs(elv)/10.+10.){
-	  el_err_integral = 0.;
-	}
-	if(fabs(el_err)> 150){//150
-	  el_err_integral = 0.;
-	}
-	
-	az_rate=  Paz*az_err + Iaz*az_err_integral + Daz*azv_err_avg	+azv*1.57;
-	el_rate=  Pel*el_err + Iel*el_err_integral + Del*elv_err_avg	+elv*1.57;
-	
-	
-	if(fabs(az_err)<8000 &&  az_rate>10000){//150
-		az_rate = 10000;
-	}
-	if(fabs(az_err)<8000 &&  az_rate<-10000){//150
-		az_rate = -10000;
-	}
-	
-	
-	if(fabs(el_err)<9000 &&  el_rate>10000){//150
-		el_rate = 10000;
-	}
-	if(fabs(el_err)<7000 &&  el_rate<-8000){//150
-		el_rate = -8000;
-	}
+		if　10000 < math.fabs(az_rate):
+			m_bAzTrack = "TRUE" #def Paz=2?
+		else:
+			az_err_integral += (self.az_err_before+az_err)*self.dt/2.+azv_acc*0.0
+		if 10000 < math.fabs(el_rate):
+			m_bElTrack = "TRUE" #def Pel=2?
+		else:
+			el_err_integral += (self.el_err_before+el_err)*self.dt/2.+elv_acc*0.0;
 		
-	
+		ret = self.err_avg_func(azv_err, elv_err)
+		azv_err_avg = ret[0]
+		elv_err_avg = ret[1]
+		
+		if math.fabs(azv_err_avg) > math.fabs(azv)/10.+10.):
+			az_err_integral = 0.
+		
+		if math.fabs(az_err) > 150:
+			az_err_integral = 0
+		
+		if math.fabs(elv_err_avg) > math.fabs(elv)/10.+10.):
+			el_err_integral = 0.
+		
+		if math.fabs(el_err) > 150:
+			el_err_integral = 0.
+		
+		az_rate = Paz*az_err + Iaz*az_err_integral + Daz*azv_err_avg +azv*1.57
+		el_rate = Pel*el_err + Iel*el_err_integral + Del*elv_err_avg +elv*1.57
+		
+		if math.fabs(az_err) < 8000 and az_rate > 10000:
+			az_rate = 10000
+		
+		if math.fabs(az_err) < 8000 and az_rate < -10000:
+			az_rate = -10000
+		
+		if math.fabs(el_err) < 9000 and el_rate > 10000:
+			el_rate = 10000
+		
+		if math.fabs(el_err) < 7000 and el_rate < -8000:
+			el_rate = -8000
+		
+		
 		#update
 		self.az_enc_before = az_enc
 		self.el_enc_before = el_enc
 		self.az_err_before = az_err
 		self.el_err_before = el_err
-	
-	
-	az_max_rate=motordrv_nanten2_az_maxrate();
-	el_max_rate=motordrv_nanten2_el_maxrate();
-	
-	//if(az_enc<5*DEG2ARCSEC) rate=min(1000, rate);
-	
-	// 危険領域での速度のリミット
-	if((el_enc<5.*DEG2ARCSEC && el_rate<0 ) || (el_enc>85.*DEG2ARCSEC && el_rate>0)) 
-		el_max_rate=MIN(1600, az_max_rate);
-	
-	if((az_enc<-270.*DEG2ARCSEC && el_rate<0)|| (az_enc>270.*DEG2ARCSEC && az_rate>0)) 
-		az_max_rate=MIN(1600, az_max_rate);// bug?
-	
-	// 速度のリミット
-	if(az_rate>az_max_rate) az_rate=az_max_rate;
-	if(az_rate<-az_max_rate) az_rate=-az_max_rate;
-	if(el_rate>el_max_rate) el_rate=el_max_rate;
-	if(el_rate<-el_max_rate) el_rate=-el_max_rate;
-	
-	// ありえない領域での逆運動禁止 //bug?
-	if(az_enc<=-270*DEG2ARCSEC && az_rate<0) az_rate=0;
-	if(az_enc>=270*DEG2ARCSEC && az_rate>0) az_rate=0;
-	
-	
-	if(el_enc<=0*DEG2ARCSEC && el_rate<0) el_rate=0; 
-	if(el_enc>=90*DEG2ARCSEC && el_rate>0) el_rate=0;
-	
+		
+		if az_max_rate > 16000:
+			az_max_rate = 16000
+		if el_max_rate > 12000:
+			el_max_rate = 12000
+		
+		#if(az_enc<5*DEG2ARCSEC) rate=min(1000, rate);
+		
+		#limit of dangerous zone
+		if (el_enc < 5.*DEG2ARCSEC and el_rate < 0 ) or (el_enc > 85.*DEG2ARCSEC and el_rate > 0):
+			el_max_rate = min(1600, az_max_rate)
+		if (az_enc < -270.*DEG2ARCSEC and el_rate < 0) or (az_enc > 270.*DEG2ARCSEC and az_rate > 0): 
+			az_max_rate = min(1600, az_max_rate); #bug?
+		
+		#lmit of speed
+		if az_rate > az_max_rate:
+			az_rate = az_max_rate
+		if az_rate < -az_max_rate:
+			az_rate = -az_max_rate
+		if el_rate > el_max_rate
+			el_rate = el_max_rate
+		if el_rate < -el_max_rate:
+			el_rate = -el_max_rate
+		
+		#ありえない領域での逆運動禁止 //bug?
+		if az_enc <= -270*DEG2ARCSEC and az_rate < 0:
+			az_rate = 0
+		if az_enc >= 270*DEG2ARCSEC and az_rate > 0:
+			az_rate = 0
+		
+		if el_enc <= 0*DEG2ARCSEC and el_rate < 0:
+			el_rate = 0 
+		if el_enc >= 90*DEG2ARCSEC and el_rate > 0:
+			el_rate = 0
+		
 	    motordrv_nanten2_set_rate_ref((int)az_rate,(int)el_rate);
 	motordrv_nanten2_output();
 	
