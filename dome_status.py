@@ -10,15 +10,16 @@ class dome_get_status():
 	dome_enc1loop = 2343
 	dome_enc_tel_offset = 1513*360
 	dome_enc2arcsec = (3600.0*360/dome_enc1loop)
-
+	error = []
 
 
 
 	def __init__(self):
-		self.dio_2 = pyinterface.create_gpg2724(1)
-		self.dio_2.initialize()
+		#self.dio_2 = pyinterface.create_gpg2000(1)
+		self.dio_2 = pyinterface.create_gpg2000(2)
+		#self.dio_2.ctrl.initialize()
 		self.dio_6 = pyinterface.create_gpg6204(1)
-		self.dio_6.initialize()
+		#self.dio_6.ctrl.initialize()
 		pass
 	
 	def print_msg(self,msg):
@@ -27,11 +28,11 @@ class dome_get_status():
 
 	def print_error(self,msg):
 		self.error.append(msg)
-		self.print_msg('!!!!ERROR!!!!')
+		self.print_msg('!!!!ERROR!!!!'+ msg)
 		return
 
 	def get_action(self):
-		ret = self.dio_2.di_check(0, 1)
+		ret = self.dio_2.di_check(1, 1)
 		if ret == 0:
 			move_status = 'OFF'
 		else:
@@ -39,7 +40,7 @@ class dome_get_status():
 		return move_status
 
 	def get_door_status(self):
-		ret = self.dio_2.di_check(1, 6)
+		ret = self.dio_2.di_check(2, 6)
 		if ret[0] == 0:
 			right_act = 'OFF'
 		else:
@@ -59,7 +60,7 @@ class dome_get_status():
 			left_act = 'DRIVE'
 		
 		if ret[4] == 0:
-			if ret[5] = 0:
+			if ret[5] == 0:
 				left_pos = 'MOVE'
 			else:
 				left_pos = 'CLOSE'
@@ -68,7 +69,7 @@ class dome_get_status():
 		return [right_act, right_pos, left_act, left_pos]
 		
 	def get_memb_status(self):
-		ret = self.dio_2.di_check(7, 3)
+		ret = self.dio_2.di_check(8, 3)
 		if ret[0] == 0:
 			memb_act = 'OFF'
 		else:
@@ -84,15 +85,15 @@ class dome_get_status():
 		return [memb_act, memb_pos]
 
 	def get_remote_status(self):
-		ret = self.dio_2.di_check(10, 1)
-		if ret == 0:
+		ret = self.dio_2.di_check(11, 1)
+		if ret[0] == 0:
 			status = 'REMOTE'
 		else:
 			status = 'LOCAL'
 		return status
 
 	def error_check(self):
-		ret = self.dio_2.di_check(15, 6)
+		ret = self.dio_2.di_check(16, 6)
 		if ret[0] == 1:
 			self.print_error('controll board sequencer error')
 		if ret[1] == 1:
@@ -107,49 +108,53 @@ class dome_get_status():
 			self.print_error('controll board inverter(of dome_door or membrane) error')
 		return
 
-	def limit_check(self):
-		limit = self.dio_2.di_check(11, 4)
-		if limit == [0,0,0,0]:
+	def limit_check(self,ret=13):
+		limit = self.dio_2.di_check(12, 4)
+		if limit[0:4] == [0,0,0,0]:
 			ret = 0
-		elif limit == [1,0,0,0]:
+		elif limit[0:4] == [1,0,0,0]:
 			ret = 1
-		elif limit == [0,1,0,0]:
+		elif limit[0:4] == [0,1,0,0]:
 			ret = 2
-		elif limit == [1,1,0,0]:
+		elif limit[0:4] == [1,1,0,0]:
 			ret = 3
-		elif limit == [0,0,1,0]:
+		elif limit[0:4] == [0,0,1,0]:
 			ret = 4
-		elif limit == [1,0,1,0]:
+		elif limit[0:4] == [1,0,1,0]:
 			ret = 5
-		elif limit == [0,1,1,0]:
+		elif limit[0:4] == [0,1,1,0]:
 			ret = 6
-		elif limit == [1,1,1,0]:
+		elif limit[0:4] == [1,1,1,0]:
 			ret = 7
-		elif limit == [0,0,0,1]:
+		elif limit[0:4] == [0,0,0,1]:
 			ret = 8
-		elif limit == [1,0,0,1]:
+		elif limit[0:4] == [1,0,0,1]:
 			ret = 9
-		elif limit == [0,1,0,1]:
+		elif limit[0:4] == [0,1,0,1]:
 			ret = 10
-		elif limit == [1,1,0,1]:
+		elif limit[0:4] == [1,1,0,1]:
 			ret = 11
-		elif limit == [0,0,1,1]:
+		elif limit[0:4] == [0,0,1,1]:
 			ret = 12
+		else :
+			self.print_error('at limit_check()')
+			return
+		
 		return ret
 
 	def dome_limit(self):
 		limit = self.limit_check()
 		if limit != 0:
-			self.dio_6.ctrl.set_counter(1, self.touchsensor_pos[limit-1]+dome_encoffset)
+			self.dio_6.ctrl.set_counter(self.touchsensor_pos[limit-1]+self.dome_encoffset)
 		return limit
 	
 	def dome_encoder_acq(self):
-		counter = self.dio_6.get_position(1)
-		dome_enc_arcsec = -((counter-dome_encoffset)*dome_enc2arcsec)-dome_enc_tel_offset
+		counter = self.dio_6.get_position()
+		dome_enc_arcsec = -((counter-self.dome_encoffset)*self.dome_enc2arcsec)-self.dome_enc_tel_offset
 		while(dome_enc_arcsec>1800.*360):
 			dome_enc_arcsec-=3600.*360;
 		while(dome_enc_arcsec<=-1800.*360):
-			dome_param.dome_enc_arcsec+=3600.*36
+			dome_enc_arcsec+=3600.*360
 		return dome_enc_arcsec
 
 
