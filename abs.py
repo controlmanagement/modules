@@ -44,11 +44,11 @@ class abs_controller(object):
 		return
 	
 	def move_r(self):
-		self.move(self, 'IN')
+		self.move('IN')
 		return
 	
 	def move_sky(self):
-		self.move(self, 'OUT')
+		self.move('OUT')
 		return
 		
 	def read_pos(self):
