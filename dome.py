@@ -7,14 +7,15 @@ import dome_status
 
 
 class dome_controller(object):
-	speed = 3600 #[arcsec/sec]
+	#speed = 3600 #[arcsec/sec]
 	buffer = [0,0,0,0,0,0]
 	stop = [0]
+	error = []
 
 
 	def __init__(self):
-		self.dio = pyinterface.create_gpg2000(1)
-		self.dio.initialize()
+		#self.dio = pyinterface.create_gpg2000(1)
+		#self.dio.initialize()
 		self.status = dome_status.dome_get_status()
 		pass
 
@@ -24,7 +25,7 @@ class dome_controller(object):
 
 	def print_error(self,msg):
 		self.error.append(msg)
-		self.print_msg('!!!!ERROR!!!!')
+		self.print_msg('!!!!ERROR!!!!'+msg)
 		return
 
 	def move_org(self):
@@ -53,15 +54,15 @@ class dome_controller(object):
 		pos = pos_arcsec/3600
 		diff = dist - pos
 		if diff != 0:
-			self.move(dist, speed, lock=True)	#move_org
+			self.move(dist, lock=True)	#move_org
 		self.position = 'ORG'
 		self.get_count()
 		return
 
 
 
-	def move(self, dist, speed, lock=True):
-		pos = self.dio.di_check()	#get_position
+	def move(self, dist, lock=True):
+		pos = self.status.dio_2.di_check()	#get_position
 		if pos == dist: return
 		diff = dist - pos
 		dir = (360.0 + dist) % 360.0
@@ -97,17 +98,17 @@ class dome_controller(object):
 	def emergency_stop(self):
 		global stop
 		dome_controller.stop = [1]
-		self.dio.do_output(self.stop, 10, 1)
+		self.status.dio_2.do_output(self.stop, 11, 1)
 		self.print_msg('!!EMERGENCY STOP!!')
 		return
 
 	def dome_fan(self, fan):
 		if fan == 'on':
 			fan_bit = [1, 1]
-			self.dio.do_output(fan_bit, 8, 2)
+			self.status.dio_2.do_output(fan_bit, 9, 2)
 		else:
 			fan_bit = [0, 0]
-			self.dio.do_output(fan_bit, 8, 2)
+			self.status.dio_2.do_output(fan_bit, 9, 2)
 		return
 
 
@@ -129,10 +130,10 @@ class dome_controller(object):
 			self.buffer[2:4] = [1, 0]
 		else:
 			self.buffer[2:4] = [0, 1]
-		if dome_controller.stop == 1:
+		if dome_controller.stop[0] == 1:
 			self.buffer[1] = 0
 		else: self.buffer[1] = 1
-		self.dio.do_output(self.buffer, 0, 6)
+		self.status.dio_2.do_output(self.buffer, 1, 6)
 		self.get_count()
 		return
 
