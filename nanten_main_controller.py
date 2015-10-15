@@ -28,12 +28,11 @@ class nanten_main_controller(object):
 		self.enc = antenna_enc.enc_controller()
 		pass
 
-	def move_azel(self, ):
+	def move_azel(self, az_arcsec, el_arcsec, azv, elv, m_bStop, az_max_rate = 16000, el_max_rate = 12000):
 		
-		
-		
-		
-		int16_t dummy;
+		ret = self.calc_pid(az_arcsec, el_arcsec, azv, elv, az_max_rate, el_max_rate)
+		az_rate_ref = ret[0]
+		el_rate_ref = ret[1]
 		
 		#指令値を目標値に向ける
 		daz_rate = az_rate_ref - self.az_rate_d
@@ -76,33 +75,22 @@ class nanten_main_controller(object):
 		if m_bStop == TRUE:
 			dummy = self.m_stop_rate_az
 		else:
-			dummy = self.az_rate_d
+			dummy = int(self.az_rate_d)
 		#dummy=m_bStop==TRUE?m_stop_rate_az:motor_param.az_rate_ref;
-		self.dio.ctrl.out_word()
-		dioOutputWord(CONTROLER_BASE2,0x00,dummy);	
-		motor_param.az_rate = dummy;
+		self.dio.ctrl.out_word("FBIDIO_OUT1_16", dummy)
+		#dioOutputWord(CONTROLER_BASE2,0x00,dummy)  output port is unreliable
+		seld.az_rate_d = dummy
 		
-		dummy=m_bStop==TRUE?m_stop_rate_el:motor_param.el_rate;
+		if m_bStop == TRUE:
+			dummy = self.m_stop_rate_el
+		else:
+			dummy = int(self.el_rate_d)
 		#dummy=m_bStop==TRUE?m_stop_rate_el:motor_param.el_rate_ref;
-		dioOutputWord(CONTROLER_BASE2,0x02,dummy);
-		motor_param.el_rate = dummy;
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-	def calc_pid(self, az_arcsec, el_arcsec, azv, elv, az_max_rate = 16000, el_max_rate = 12000):
+		self.dio.ctrl.out_word("FBIDIO_OUT33_48", dummy)
+		#dioOutputWord(CONTROLER_BASE2,0x02,dummy);
+		self.el_rate_d = dummy
+
+	def calc_pid(self, az_arcsec, el_arcsec, azv, elv, az_max_rate, el_max_rate):
 		# Default
 		Paz = 3.8
 		Iaz = 8
@@ -148,8 +136,6 @@ class nanten_main_controller(object):
 			elv_acc = 50
 		elif elv_acc < -50:
 			elv_acc = -50
-		
-		
 		
 		
 		if　10000 < math.fabs(self.az_rate):
@@ -257,4 +243,3 @@ class nanten_main_controller(object):
 		azv_err_avg = sum_az/self.count
 		elv_err_avg = sum_el/self.count
 		return [azv_err_avg, elv_err_avg]
-
