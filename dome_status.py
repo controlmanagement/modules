@@ -16,7 +16,7 @@ class dome_get_status():
 
 	def __init__(self):
 		#self.dio_2 = pyinterface.create_gpg2000(1)
-		self.dio_2 = pyinterface.create_gpg2000(1)
+		self.dio_2 = pyinterface.create_gpg2000(2)
 		#self.dio_2.ctrl.initialize()
 		self.dio_6 = pyinterface.create_gpg6204(1)
 		#self.dio_6.ctrl.initialize()
