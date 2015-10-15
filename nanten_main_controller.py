@@ -29,6 +29,9 @@ class nanten_main_controller(object):
 		pass
 
 	def move_azel(self, az_arcsec, el_arcsec, azv, elv, m_bStop, az_max_rate = 16000, el_max_rate = 12000):
+		MOTOR_MAXSTEP = 10000
+		MOTOR_AZ_MAXRATE = 16000
+		MOTOR_EL_MAXRATE = 12000
 		
 		ret = self.calc_pid(az_arcsec, el_arcsec, azv, elv, az_max_rate, el_max_rate)
 		az_rate_ref = ret[0]
@@ -99,11 +102,13 @@ class nanten_main_controller(object):
 		Iel = 8
 		Del = 0.07
 		
+		DEG2ARCSEC = 3600
 		m_bAzTrack = "FALSE"
 		m_bElTrack = "FALSE"
 		
-		az_enc = self.enc.???
-		el_enc = self.enc.???
+		ret = self.enc.get_azel()
+		az_enc = ret[0]
+		el_enc = ret[1]
 		
 		#calculate ichi_hensa
 		az_err = az_arcsec-az_enc
@@ -224,7 +229,8 @@ class nanten_main_controller(object):
 		return [az_rate_ref, el_rate_ref]
 
 	def err_avg_func(self, az_value, el_value):
-		 if self.count < AZV_ERR_AVG_NUM:
+		AZV_ERR_AVG_NUM = ELV_ERR_AVG_NUM = 13
+		if self.count < AZV_ERR_AVG_NUM:
 		 	 self.az_array[count] = az_value
 		 	 self.el_array[count] = el_value
 		 	 self.count += 1
