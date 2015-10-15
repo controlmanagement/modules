@@ -18,27 +18,91 @@ class nanten_main_controller(object):
 	el_array = [0]*13
 	ELV_ERR_AVG_NUM = 13 #AZV_ERR_AVG_NUM = ELV_ERR_AVG_NUM
 	az_enc_before = el_enc_before = azv_before = elv_before = 0
+	az_rate = el_rate = 0
+	az_rate_d = el_rate_d = 0
+	m_stop_rate_az = m_stop_rate_el = 0
+	
 	
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(1)
 		self.enc = antenna_enc.enc_controller()
 		pass
-	
-	
-	
-	
-	
-	
+
 	def move_azel(self, ):
 		
 		
 		
-		az_rate=  self.Paz*az_err + self.Iaz*az_err_integral + self.Daz*azv_err_avg	+azv*1.57;
-		el_rate=  self.Pel*el_err + self.Iel*el_err_integral + self.Del*elv_err_avg	+elv*1.57;
+		
+		int16_t dummy;
+		
+		#指令値を目標値に向ける
+		daz_rate = az_rate_ref - self.az_rate_d
+		del_rate = el_rate_ref - self.el_rate_d
+		
+		
+		#limit of acc
+		if abs(daz_rate) < MOTOR_MAXSTEP:
+			self.az_rate_d = az_rate_ref
+		else:
+			if daz_rate < 0:
+				a = -1
+			else:
+				a = 1
+			self.az_rate_d += a*MOTOR_MAXSTEP
+		if abs(del_rate) < MOTOR_MAXSTEP:
+			self.el_rate_d = el_rate_ref
+		else:
+			if del_rate < 0:
+				a = -1
+			else:
+				a = 1
+			self.el_rate += a*MOTOR_MAXSTEP
+		
+		#limit of max v
+		if self.az_rate_d > MOTOR_AZ_MAXRATE:
+			self.az_rate_d = MOTOR_AZ_MAXRATE
+		if self.az_rate_d < -MOTOR_AZ_MAXRATE:
+			self.az_rate_d = -MOTOR_AZ_MAXRATE
+		if self.el_rate_d > MOTOR_EL_MAXRATE:
+			self.el_rate_d = MOTOR_EL_MAXRATE
+		if self.el_rate_d < -MOTOR_EL_MAXRATE:
+			self.el_rate_d = -MOTOR_EL_MAXRATE
+		
+		# confirm limit of controll rack → forced outage
+		#if(0< motordrv_nanten2_cw_limit()+motordrv_nanten2_ccw_limit()+motordrv_nanten2_up_limit()+motordrv_nanten2_down_limit())
+		#	 motordrv_nanten2_drive_on(FALSE,FALSE);
+		
+		# output to port
+		if m_bStop == TRUE:
+			dummy = self.m_stop_rate_az
+		else:
+			dummy = self.az_rate_d
+		#dummy=m_bStop==TRUE?m_stop_rate_az:motor_param.az_rate_ref;
+		self.dio.ctrl.out_word()
+		dioOutputWord(CONTROLER_BASE2,0x00,dummy);	
+		motor_param.az_rate = dummy;
+		
+		dummy=m_bStop==TRUE?m_stop_rate_el:motor_param.el_rate;
+		#dummy=m_bStop==TRUE?m_stop_rate_el:motor_param.el_rate_ref;
+		dioOutputWord(CONTROLER_BASE2,0x02,dummy);
+		motor_param.el_rate = dummy;
 		
 		
 		
-	def calc_pid(self, az_arcsec, el_arcsec, azv, elv, az_mate_rate = 16000, el_max_rate = 12000):
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	def calc_pid(self, az_arcsec, el_arcsec, azv, elv, az_max_rate = 16000, el_max_rate = 12000):
 		# Default
 		Paz = 3.8
 		Iaz = 8
@@ -88,11 +152,11 @@ class nanten_main_controller(object):
 		
 		
 		
-		if　10000 < math.fabs(az_rate):
+		if　10000 < math.fabs(self.az_rate):
 			m_bAzTrack = "TRUE" #def Paz=2?
 		else:
 			az_err_integral += (self.az_err_before+az_err)*self.dt/2.+azv_acc*0.0
-		if 10000 < math.fabs(el_rate):
+		if 10000 < math.fabs(self.el_rate):
 			m_bElTrack = "TRUE" #def Pel=2?
 		else:
 			el_err_integral += (self.el_err_before+el_err)*self.dt/2.+elv_acc*0.0;
@@ -113,20 +177,20 @@ class nanten_main_controller(object):
 		if math.fabs(el_err) > 150:
 			el_err_integral = 0.
 		
-		az_rate = Paz*az_err + Iaz*az_err_integral + Daz*azv_err_avg +azv*1.57
-		el_rate = Pel*el_err + Iel*el_err_integral + Del*elv_err_avg +elv*1.57
+		self.az_rate = Paz*az_err + Iaz*az_err_integral + Daz*azv_err_avg +azv*1.57
+		self.el_rate = Pel*el_err + Iel*el_err_integral + Del*elv_err_avg +elv*1.57
 		
-		if math.fabs(az_err) < 8000 and az_rate > 10000:
-			az_rate = 10000
+		if math.fabs(az_err) < 8000 and self.az_rate > 10000:
+			self.az_rate = 10000
 		
-		if math.fabs(az_err) < 8000 and az_rate < -10000:
-			az_rate = -10000
+		if math.fabs(az_err) < 8000 and self.az_rate < -10000:
+			self.az_rate = -10000
 		
-		if math.fabs(el_err) < 9000 and el_rate > 10000:
-			el_rate = 10000
+		if math.fabs(el_err) < 9000 and self.el_rate > 10000:
+			self.el_rate = 10000
 		
-		if math.fabs(el_err) < 7000 and el_rate < -8000:
-			el_rate = -8000
+		if math.fabs(el_err) < 7000 and self.el_rate < -8000:
+			self.el_rate = -8000
 		
 		
 		#update
@@ -143,47 +207,36 @@ class nanten_main_controller(object):
 		#if(az_enc<5*DEG2ARCSEC) rate=min(1000, rate);
 		
 		#limit of dangerous zone
-		if (el_enc < 5.*DEG2ARCSEC and el_rate < 0 ) or (el_enc > 85.*DEG2ARCSEC and el_rate > 0):
+		if (el_enc < 5.*DEG2ARCSEC and self.el_rate < 0 ) or (el_enc > 85.*DEG2ARCSEC and self.el_rate > 0):
 			el_max_rate = min(1600, az_max_rate)
-		if (az_enc < -270.*DEG2ARCSEC and el_rate < 0) or (az_enc > 270.*DEG2ARCSEC and az_rate > 0): 
+		if (az_enc < -270.*DEG2ARCSEC and self.az_rate < 0) or (az_enc > 270.*DEG2ARCSEC and self.az_rate > 0): 
 			az_max_rate = min(1600, az_max_rate); #bug?
 		
 		#lmit of speed
-		if az_rate > az_max_rate:
-			az_rate = az_max_rate
-		if az_rate < -az_max_rate:
-			az_rate = -az_max_rate
-		if el_rate > el_max_rate
-			el_rate = el_max_rate
-		if el_rate < -el_max_rate:
-			el_rate = -el_max_rate
+		if self.az_rate > az_max_rate:
+			self.az_rate = az_max_rate
+		if self.az_rate < -az_max_rate:
+			self.az_rate = -az_max_rate
+		if self.el_rate > el_max_rate
+			self.el_rate = el_max_rate
+		if self.el_rate < -el_max_rate:
+			self.el_rate = -el_max_rate
 		
 		#ありえない領域での逆運動禁止 //bug?
-		if az_enc <= -270*DEG2ARCSEC and az_rate < 0:
-			az_rate = 0
-		if az_enc >= 270*DEG2ARCSEC and az_rate > 0:
-			az_rate = 0
+		if az_enc <= -270*DEG2ARCSEC and self.az_rate < 0:
+			self.az_rate = 0
+		if az_enc >= 270*DEG2ARCSEC and self.az_rate > 0:
+			self.az_rate = 0
 		
-		if el_enc <= 0*DEG2ARCSEC and el_rate < 0:
-			el_rate = 0 
-		if el_enc >= 90*DEG2ARCSEC and el_rate > 0:
-			el_rate = 0
+		if el_enc <= 0*DEG2ARCSEC and self.el_rate < 0:
+			self.el_rate = 0 
+		if el_enc >= 90*DEG2ARCSEC and self.el_rate > 0:
+			self.el_rate = 0
 		
-	    motordrv_nanten2_set_rate_ref((int)az_rate,(int)el_rate);
-	motordrv_nanten2_output();
-	
-	return TRUE;
-#else
-	motordrv_dummy_moveto(az_arcsec,el_arcsec);
-	return TRUE;
-#endif
-}
-		
-		
-		
-		
-		
-		
+	    az_rate_ref = int(self.az_rate) #??
+	    el_rate_ref = int(self.el_rate) #??
+		return [az_rate_ref, el_rate_ref]
+
 	def err_avg_func(self, az_value, el_value):
 		 if self.count < AZV_ERR_AVG_NUM:
 		 	 self.az_array[count] = az_value
@@ -205,17 +258,3 @@ class nanten_main_controller(object):
 		elv_err_avg = sum_el/self.count
 		return [azv_err_avg, elv_err_avg]
 
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
