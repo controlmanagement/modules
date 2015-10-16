@@ -172,7 +172,7 @@ class slalib_controller(object):
 		lib.slaMap(m_ra, m_dec, p_ra, p_dec, px, rv, eq, date, ap_ra, ap_dec)
 		return [ap_ra.value, ap_dec.value]
 	
-	def slaAop(self, g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, l_amb, tlr):
+	def slaAop(self, g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, temp, pressure, humid, lambda, tlr):
 		"""
 		slaAop
 		"""
@@ -185,10 +185,13 @@ class slalib_controller(object):
 		height = self._double(height)
 		xp = self._double(xp)
 		yp = self._double(yp)
-		l_amb = self._double(l_amb)
+		temp = self._double(temp)
+		pressure = self._double(pressure)
+		humid = self._double(humid)
+		lambda = self._double(lambda)
 		tlr = self._double(tlr)
 		az = el = ha = dec = ra = self._double_p(0)
-		lib.slaAop(g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, l_amb, tlr, az, el, ha, dec, ra)
+		lib.slaAop(g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, temp, pressure, humid, lambda, tlr, az, el, ha, dec, ra)
 		return [az.value, el.value, ha.value, ra.value, dec.value]
 	
 	def slaMappa(self, eq, tdb):
