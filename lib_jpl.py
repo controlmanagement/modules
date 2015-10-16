@@ -51,42 +51,42 @@ else:
 	#jpl_init_ephemeris
 	#--------------------------------
 	jpl_init_ephemeris = jpl.jpl_init_ephemeris
-	jpl_init_ephemeris.restype = 
+	jpl_init_ephemeris.restype = None
 	jpl_init_ephemeris.argtypes = (_char_p, _char, _double_p)
 	
 	#jpl_close_ephemeris
 	#--------------------------------
 	jpl_close_ephemeris = jpl.jpl_close_ephemeris
-	jpl_close_ephemeris.restype = 
+	jpl_close_ephemeris.restype = None
 	jpl_close_ephemeris.argtypes = (_void_p)
 	
 	#jpl_state
 	#--------------------------------
 	jpl_state = jpl.jpl_state
-	jpl_state.restype = 
+	jpl_state.restype = _int
 	jpl_state.argtypes = (_void_p, _double, _int, _double, _double, _int)
 	
 	#jpl_pleph
 	#--------------------------------
 	jpl_pleph = jpl.jpl_pleph
-	jpl_pleph.restype = 
+	jpl_pleph.restype = _int
 	jpl_pleph.argtypes = (_void_p, _double, _int, _int, _double, _int)
 	
 	#jpl_get_double
 	#--------------------------------
 	jpl_get_double = jpl.jpl_get_double
-	jpl_get_double.restype = 
+	jpl_get_double.restype = _double
 	jpl_get_double.argtypes = (_void_p, _int)
 	
 	#jpl_get_long
 	#--------------------------------
 	jpl_get_long = jpl.jpl_get_long
-	jpl_get_long.restype = 
+	jpl_get_long.restype = _double
 	jpl_get_long.argtypes = (_void_p, _int)
 	
 	#make_sub_ephem
 	#--------------------------------
 	make_sub_ephem = jpl.make_sub_ephem
-	make_sub_ephem.restype = 
+	make_sub_ephem.restype = _int
 	make_sub_ephem.argtypes = (_void_p, _char_p, _double, _double)
 	
