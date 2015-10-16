@@ -50,45 +50,54 @@ class dome_controller(object):
 		
 
 		dist = 90
-		pos_arcsec = self.status.dome_encoder_acq()
-		pos = pos_arcsec/3600
-		diff = dist - pos
-		if diff != 0:
-			self.move(dist, lock=True)	#move_org
+		self.move(dist)	#move_org
 		self.position = 'ORG'
 		self.get_count()
 		return
 
 
 
-	def move(self, dist, lock=True):
-		pos = self.status.dio_2.di_check()	#get_position
-		if pos == dist: return
+	def move(self, dist):
+		pos_arcsec = self.status.dome_encoder_acq()
+		pos = pos_arcsec/3600
+		pos = pos % 360.0
+		dist = dist % 360.0
 		diff = dist - pos
-		dir = (360.0 + dist) % 360.0
-		if dir - 180.0 <= pos:
+		dir = diff % 360.0
+		if pos == dist: return
+		if dir <= 180:
 			turn = 'right'
 		else:
 			turn = 'left'
-		if math.fabs(diff) >= 90 and math.fabs(diff) < 150:
-			speed = 'mid'
-		elif math.fabs(diff) >= 150:
+		if dir < 90 and dir > 270 :
+			speed = 'low'
+		elif dir > 150 and dir < 210:
 			speed = 'high'
 		else:
-			speed = 'low'
-		if diff != 0:
+			speed = 'mid'
+		if dir != 0:
 			global buffer
-			self.buffer[1] = [1]
+			self.buffer[1] = 1
 			self.do_output(turn, speed)
-			while diff == 0:
+			while dir != 0:
 				pos_arcsec = self.status.dome_encoder_acq()
 				pos = pos_arcsec/3600
+				pos = pos % 360.0
+				dist = dist % 360.0
 				diff = dist - pos
-				if math.fabs(diff) <= 0.2:
-					diff = 0
+				dir = diff % 360.0
+				#print(pos,dist,diff,dir)
+				if dir <= 0.2:
+					dir = 0
 				else:
+					if dir < 90 and dir > 270 :
+						speed = 'low'
+					elif dir > 150 and dir < 210:
+						speed = 'high'
+					else:
+						speed = 'mid'
 					self.do_output(turn, speed)
-		self.buffer[1] = [0]
+		self.buffer[1] = 0
 		self.do_output(turn, speed)
 		self.get_count()
 		return
