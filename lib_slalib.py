@@ -2,11 +2,11 @@ import os
 import ctypes
 
 
-SO_DIR = '/usr/lib/slalib'
+SO_DIR = '/home/amigos/python/slalib'
 
 
 try:
-	Dcc2s = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDCC2s.o'))
+	Dcc2s = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDcc2s.o'))
 	Dranrm = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDranrm.o'))
 	Dcs2c = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaDcs2c.o'))
 	Prec = ctypes.cdll.LoadLibrary(os.path.join(SO_DIR,'slaPrec.o'))
