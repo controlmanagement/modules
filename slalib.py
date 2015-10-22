@@ -27,7 +27,7 @@ class slalib_controller(object):
 		"""
 		slaDcc2s
 		"""
-		ra = dec = self._double_p(0)
+		ra = dec = self._double_p(self._int(0))
 		vc= self._double*6
 		v = vc(*v)
 		lib.slaDcc2s(v, ra, dec)
@@ -172,7 +172,7 @@ class slalib_controller(object):
 		lib.slaMap(m_ra, m_dec, p_ra, p_dec, px, rv, eq, date, ap_ra, ap_dec)
 		return [ap_ra.value, ap_dec.value]
 	
-	def slaAop(self, g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, temp, pressure, humid, lambda, tlr):
+	def slaAop(self, g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, temp, pressure, humid, w_length, tlr):
 		"""
 		slaAop
 		"""
@@ -188,10 +188,10 @@ class slalib_controller(object):
 		temp = self._double(temp)
 		pressure = self._double(pressure)
 		humid = self._double(humid)
-		lambda = self._double(lambda)
+		w_length = self._double(w_length)
 		tlr = self._double(tlr)
 		az = el = ha = dec = ra = self._double_p(0)
-		lib.slaAop(g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, temp, pressure, humid, lambda, tlr, az, el, ha, dec, ra)
+		lib.slaAop(g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, temp, pressure, humid, w_length, tlr, az, el, ha, dec, ra)
 		return [az.value, el.value, ha.value, ra.value, dec.value]
 	
 	def slaMappa(self, eq, tdb):
