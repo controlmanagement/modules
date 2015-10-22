@@ -119,8 +119,8 @@ class slalib_controller(object):
 		FK = self._uchar_p(FK)
 		ep0 = self._double(ep0)
 		ep1 = self._double(ep1)
-		ra = self._double_p(ra)
-		dec = self._double_p(dec)
+		ra = self._double_p(self._float(ra))
+		dec = self._double_p(self._float(dec))
 		lib.slaPreces(FK, ep0, ep1, ra, dec)
 		return [ra.value, dec.value]
 	
@@ -129,7 +129,7 @@ class slalib_controller(object):
 		slaNutc
 		"""
 		date = self._double(date)
-		long = obliq = eps0 = self._double_p(0)
+		long = obliq = eps0 = self._double_p(self._int(0))
 		lib.slaNutc(date, long, obliq, eps0)
 		return [long.value, obliq.value, eps0.value]
 	
@@ -143,7 +143,7 @@ class slalib_controller(object):
 		dd1950 = self._double(dd1950)
 		p1950 = self._double(p1950)
 		v1950 = self._double(v1950)
-		r2000 = d2000 = dr2000 = dd2000 = p2000 = v2000 = self._double_p(0)
+		r2000 = d2000 = dr2000 = dd2000 = p2000 = v2000 = self._double_p(self._int(0))
 		lib.slaFk425(r1950, d1950, dr1950, dd1950, p1950, v1950, r2000, d2000, dr2000, dd2000, p2000, v2000)
 		return [r2000.value, d2000.value, dr2000.value, dd2000.value, p2000.value, v2000.value]
 	
@@ -153,7 +153,7 @@ class slalib_controller(object):
 		"""
 		long = self._double(long)
 		lati = self._double(lati)
-		ra = dec = self._double_p(0)
+		ra = dec = self._double_p(self._int(0))
 		lib.slaGaleq(long, lati, ra, dec)
 		return [ra.value, dec.value]
 	
@@ -168,7 +168,7 @@ class slalib_controller(object):
 		rv = self._double(rv)
 		eq = self._double(eq)
 		date = self._double(date)
-		ap_ra = ap_dec = self._double_p(0)
+		ap_ra = ap_dec = self._double_p(self._int(0))
 		lib.slaMap(m_ra, m_dec, p_ra, p_dec, px, rv, eq, date, ap_ra, ap_dec)
 		return [ap_ra.value, ap_dec.value]
 	
@@ -190,7 +190,7 @@ class slalib_controller(object):
 		humid = self._double(humid)
 		w_length = self._double(w_length)
 		tlr = self._double(tlr)
-		az = el = ha = dec = ra = self._double_p(0)
+		az = el = ha = dec = ra = self._double_p(self._int(0))
 		lib.slaAop(g_ra, g_dec, mjd, dut, m_long, m_lati, height, xp, yp, temp, pressure, humid, w_length, tlr, az, el, ha, dec, ra)
 		return [az.value, el.value, ha.value, ra.value, dec.value]
 	
@@ -235,7 +235,7 @@ class slalib_controller(object):
 		type = self._char_p(type)
 		ob1 = self._double(ob1)
 		ob2 = self._double(ob2)
-		ra = dec = self._double_p(0)
+		ra = dec = self._double_p(self._int(0))
 		lib.slaOapqk(type, ob1, ob2, aoprms, ra, dec)
 		return [ra.value, dec.value]
 	
@@ -245,7 +245,7 @@ class slalib_controller(object):
 		"""
 		ra = self._double(ra)
 		dec = self._double(dec)
-		m_ra = m_dec = self._double_p(0)
+		m_ra = m_dec = self._double_p(self._int(0))
 		lib.slaAmpqk(ra, dec, amprms, m_ra, m_dec)
 		return [m_ra.value, m_dec.value]
 	
