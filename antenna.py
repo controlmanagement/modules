@@ -28,6 +28,11 @@ class antenna_controller(object):
 	def move_lb(self, g_long, g_lati, temp, pressure, humid, lamda, hosei):
 		self.antenna.move_lb(g_long, g_lati, temp, pressure, humid, lamda, hosei)
 		return
+	
+	def move_planet(self, ):
+		self.antenna.move_planet()
+		return
+	
 
 
 
