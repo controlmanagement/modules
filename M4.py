@@ -3,7 +3,7 @@ import time
 import threading
 import pyinterface
 
-class mirror_controller(object):
+class m4_controller(object):
 	pos_nagoya = 0
 	pos_smart = 180
 	speed = 12000
@@ -17,11 +17,18 @@ class mirror_controller(object):
 	count = 0
 	
 	
-	def __init__(self, move_org=True):
-		self.mtr = pyinterface.create_gpg7204(1)
-		self.mtr.ctrl.off_inter_lock()
+	def __init__(self):
 		pass
-		
+	
+	def start_server(self):
+		ret = self.start_m4_server()
+		return
+
+	def open(self, ndev=1):
+		self.mtr = pyinterface.create_gpg7204(ndev)
+		self.mtr.ctrl.off_inter_lock()
+		return
+
 	def print_msg(self, msg):
 		print(msg)
 		return
@@ -82,6 +89,14 @@ class mirror_controller(object):
 		else:
 			self.position = 'smart'
 			self.print_msg('No.9')
+		return
+	
+	def m4_in(self):
+		self.move('nagoya')
+		return
+
+	def m4_out(self):
+		self.move('smart')
 		return
 	
 	def unlock_brake(self):
@@ -171,27 +186,24 @@ class mirror_controller(object):
 		self.mtr.ctrl.off_inter_lock()
 		return
 		
-	def read_position(self):
+	def read_pos(self):
 		return self.position
 		
 	def read_count(self):
 		return self.count
-	
-	
-	def slider():
-		client = pyinterface.server_client_wrapper.control_client_wrapper(
-			slider_controller, '192.168.40.13', 4004)
-		return client
-	
-	def slider_monitor():
-		client = pyinterface.server_client_wrapper.monitor_client_wrapper(
-			slider_controller, '192.168.40.13', 4104)
-		return client
 
-	def start_slider_server():
-		slider = slider_controller()
-		server = pyinterface.server_client_wrapper.server_wrapper(slider,
-				'', 4004, 4104)
-		server.start()
-		return server
+def m4_client(host, port):
+	client = pyinterface.server_client_wrapper.control_client_wrapper(m4_controller, host, port)
+	return client
+
+def m4_monitor_client(host, port):
+	client = pyinterface.server_client_wrapper.monitor_client_wrapper(m4_controller, host, port)
+	return client
+
+def start_m4_server(port1 = 5923, port2 = 5924):
+	m4 = m4_controller()
+	server = pyinterface.server_client_wrapper.server_wrapper(m4,'', port1, port2)
+	server.start()
+	return server
+
 
