@@ -9,10 +9,17 @@ class abs_controller(object):
 	position = ''
 	
 	
-	def __init__(self, ndev=1):
-		self.dio = pyinterface.create_gpg2000(ndev)
+	def __init__(self):
 		pass
 	
+	def start_server(self):
+		ret = self.start_abs_server()
+		return
+	
+	def open(self, ndev=1):
+		self.dio = pyinterface.create_gpg2000(ndev)
+		return
+
 	def print_msg(self, msg):
 		print(msg)
 		return
@@ -23,7 +30,7 @@ class abs_controller(object):
 		return
 	
 	def get_pos(self):
-		ret = self.position = self.dio.ctrl.in_byte('FBIDIO_IN1_8')
+		ret = self.dio.ctrl.in_byte('FBIDIO_IN1_8')
 		if ret == 0x09:
 			self.position = 'IN'
 		elif ret == 0x05:
@@ -53,3 +60,17 @@ class abs_controller(object):
 		
 	def read_pos(self):
 		return self.position
+
+def abs_client(host, port):
+	client = pyinterface.server_client_wrapper.control_client_wrapper(abs_controller, host, port)
+	return client
+
+def abs_monitor_client(host, port):
+	client = pyinterface.server_client_wrapper.monitor_client_wrapper(abs_controller, host, port)
+	return client
+
+def start_abs_server(port1 = 5921, port2 = 5922):
+	abs = abs_controller()
+	server = pyinterface.server_client_wrapper.server_wrapper(abs,'', port1, port2)
+	server.start()
+	return server
