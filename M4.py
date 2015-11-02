@@ -42,7 +42,7 @@ class m4_controller(object):
 		self.count = self.mtr.get_position()
 		return
 
-	def move(self, dist, lock=True):
+	def move(self, dist):
 		if dist == 'nagoya':
 			nstep = -60500
 		else:
@@ -50,17 +50,14 @@ class m4_controller(object):
 		status = self.mtr.ctrl.get_status('MTR_LIMIT_STATUS')
 		self.print_msg(status)
 		if status:
-			self.print_msg('No.1')
 			if status == 0x0004:
 				pos = 'smart'
-				self.print_msg('No.2')
 				if dist == pos:
 					self.print_msg('m4 is already out')
 					self.position = 'smart'
 					return
 			elif status == 0x0008:
 				pos = 'nagoya'
-				self.print_msg('No.3')
 				if dist == pos:
 					self.print_msg('m4 is already in')
 					self.position = 'nagoya'
@@ -73,22 +70,13 @@ class m4_controller(object):
 		self.low_speed = 100
 		self.acc = 1000
 		self.dec = 1000
-		self.print_msg('No.4')
 		
-		if lock: 
-			self.mtr.move_with_lock(self.speed, nstep, self.low_speed,self.acc, self.dec)
-			self.print_msg('No.5')
-		else: 
-			self.mtr.move(self.speed, nstep, self.low_speed, self.acc,self.dec)
-			self.print_msg('No.6')
+		self.mtr.move(self.speed, nstep, self.low_speed, self.acc,self.dec)
 		self.get_count()
-		self.print_msg('No.7')
 		if dist == 'nagoya':
 			self.position = 'nagoya'
-			self.print_msg('No.8')
 		else:
 			self.position = 'smart'
-			self.print_msg('No.9')
 		return
 	
 	def m4_in(self):
