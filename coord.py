@@ -1,31 +1,12 @@
 import math
-import ctypes
-import slalib as sla
+import time
+from pyslalib import slalib
 import lib_jpl as jpl
 
 
 
 
 class coord_calc(object):
-	
-	_P = ctypes.POINTER
-	_char_p = ctypes.c_char_p
-	_uchar = ctypes.c_ubyte
-	_uchar_p = _P(ctypes.c_ubyte)
-	_ushort = ctypes.c_ushort
-	_ushort_p = _P(ctypes.c_ushort)
-	_int = ctypes.c_int
-	_int_p = _P(ctypes.c_int)
-	_uint = ctypes.c_uint
-	_long = ctypes.c_long
-	_long_p = _P(ctypes.c_long)
-	_ulong = ctypes.c_ulong
-	_ulong_p = _P(ctypes.c_ulong)
-	_float = ctypes.c_float
-	_float_p = _P(ctypes.c_float)
-	_double = ctypes.c_double
-	_double_p = _P(ctypes.c_double)
-	_void_p = ctypes.c_void_p
 	
 	eqrau = [0.0,
 		2440.0,            # Mercury
@@ -38,17 +19,27 @@ class coord_calc(object):
 		24553.1,           # Neptune
 		1151.0,            # Pluto
 		1737.53,           # Moon
-		696000.0           """ Sun """]
+		696000.0          ]# Sun
+	tai_utc = 36.0 # tai_utc=TAI-UTC  2015 July from ftp://maia.usno.navy.mil/ser7/tai-utc.dat
 	
 	
-	def calc_planet_coordJ2000(self, ephem, jd_utc, tai_utc, ntarg):
+	def calc_jd_utc(self):
+		h = time.gmtime()
+		ret = slalib.sla_caldj(h.tm_year, h.tm_mon, h.tm_mday) # ret[0] = MJD
+		jd_utc = ret[0]+2400000.5+h.tm_hour/24.0+h.tm_min/1440.0+h.tm_sec/86400.0
+		return jd_utc
+	
+	
+	def calc_planet_coordJ2000(self, ephem, ntarg):
 		err_code = i = nctr = 3
 		tau = 499.004782       # Light time for unit distance (sec) 
 		aukm = 1.49597870e8    # AU in km 
 		r = r1 = r2 = rr = [0,0,0,0,0,0]
+		rrr = [0,0,0]
 		
+		jd_utc = self.calc_jd_utc()
 		ephem = self._void_p(ephem)
-		jd = jd_utc + (tai_utc + 32.184) / (24. * 3600.)  # Convert UTC to Dynamical Time 
+		jd = jd_utc + (self.tai_utc + 32.184) / (24. * 3600.)  # Convert UTC to Dynamical Time 
 		err_code = jpl.jpl_pleph(ephem, jd, ntarg, nctr, r, 1)
 		
 		if err_code == False:
@@ -58,56 +49,59 @@ class coord_calc(object):
 			for i in range(6):
 				rr[i] = r2[i] - r1[i]
 			dist = math.sqrt(rr[0] * rr[0] + rr[1] * rr[1] + rr[2] * rr[2])
-			ret = sla.slaDcc2s(rr)
+			rrr[0:3] = rr[0:3]
+			ret = slalib.sla_dcc2s(rrr)
 			ra = ret[0]
 			dec = ret[1]
-			ra = sla.slaDranrm(ra)
+			ra = slalib.sla_dranrm(ra)
 			radi = math.asin(self.eqrau[ntarg] / (dist.value * aukm))
 			return [ra, dec, dist, radi]
-		else
+		else:
 			return err_code
 
-	def planet_J2000_geo_to_topo(gra, gdec, dist, radi, jd_utc, dut1, tai_utc, longitude, latitude, height):
+	def planet_J2000_geo_to_topo(gra, gdec, dist, radi, dut1, longitude, latitude, height):
+		jd_utc = self.calc_jd_utc()
 		date = jd_utc - 2400000.5 + dut1 / (24. * 3600.)
-		jd = jd_utc - 2400000.5 + (tai_utc + 32.184) / (24. * 3600.)
+		jd = jd_utc - 2400000.5 + (self.tai_utc + 32.184) / (24. * 3600.) # reference => http://www.cv.nrao.edu/~rfisher/Ephemerides/times.html
 		
 		# Spherical to x,y,z 
-		v = sla.slaDcs2c(gra, gdec)
+		v = slalib.sla_dcs2c(gra, gdec)
 		for i in range[3]:
 			v[i] *= dist
   		
 		# Precession to date. 
-		rmat = sla.slaPrec(2000.0, sla.slaEpj(jd))
-		vgp = sla.slaDmxv(rmat, v)
+		rmat = slalib.sla_prec(2000.0, slalib.sla_epj(jd))
+		vgp = slalib.sla_dmxv(rmat, v)
 		
 		# Geocenter to observer (date). 
-		stl = sla.slaGmst(date) + longitude
-		vgo = sla.slaPvobs(latitude, height, stl)
+		stl = slalib.sla_gmst(date) + longitude
+		vgo = slalib.sla_pvobs(latitude, height, stl)
 		
 		# Observer to planet (date). 
 		for i in range (6):
 			v[i] = vgp[i] - vgo[i]
 		
-		disttmp = *dist
+		disttmp = dist
 		dist = math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
 		radi *= disttmp / dist
 		
 		# Precession to J2000 
-		rmat = sla.slaPrec(sla.slaEpj(jd), 2000.)
-		vgp = sla.slaDmxv(rmat, v)
+		rmat = slalib.sla_prec(slalib.sla_epj(jd), 2000.)
+		vgp = slalib.sla_dmxv(rmat, v)
 		
 		# To RA,Dec. 
-		ret = sla.slaDcc2s(vgp)
-		tra = sla.slaDranrm(ret[0])
+		ret = slalib.sla_dcc2s(vgp)
+		tra = slalib.sla_dranrm(ret[0])
 		tdec = ret[1]
 		return [dist, radi, tra, tdec]
 
-	def apply_kisa(self, az, el, kisa):
+	def apply_kisa(self, az, el, hosei):
 		"""
 		#kisa parameter
 		(daz[0], de[1], kai_az[2], omega_az[3], eps[4], kai2_az[5], omega2_az[6], kai_el[7], omega_el[8], kai2_el[9], omega2_el[10], g[11], gg[12], ggg[13], gggg[14],
 		del[15], de_radio[16], del_radio[17], cor_v[18], cor_p[19], g_radio[20], gg_radio[21], ggg_radio[22], gggg_radio[23])
 		"""
+		kisa = self.read_kisa(hosei)
 		DEG2RAD = math.pi/180
 		RAD2DEG = 180/math.pi
 		ARCSEC2RAD = math.pi/(180*60*60.)
@@ -127,14 +121,16 @@ class coord_calc(object):
 			+kisa[17]-kisa[18]*math.sin(el+kisa[19])+kisa[20]*el_d+kisa[21]*el_d*el_d+kisa[22]*el_d*el_d*el_d+kisa[23]*el_d*el_d*el_d*el_d
 		delta[1] = -dy
 		
-		if(math.fabs(math.cos(el))>0.001)
+		if(math.fabs(math.cos(el))>0.001):
 			delta[0]=delta[0]/math.cos(el)
 		delta[0]=delta[0]*ARCSEC2RAD
 		delta[1]=delta[1]*ARCSEC2RAD
 		
 
-	def calc_vobs_fk5(self, jd, ra_2000, dec_2000):
+	def calc_vobs_fk5(self, ra_2000, dec_2000):
 		x_2000 = x = x1 = v = v_rev = v_rot = v2 = solx = solv = solx1 =[0,0,0]
+		jd_utc = self.calc_jd_utc()
+		jd = jd_utc + (self.tai_utc + 32.184) / (24. * 3600.)
 		
 		#ra_2000=DEG2RAD
 		#dec_2000=DEG2RAD
@@ -144,7 +140,7 @@ class coord_calc(object):
 		x_2000[2]= math.sin(dec_2000)
 		
 		tu= (jd - 2451545.)/36525.
-		ret = sla.slaPreces( "FK5", 2000., 2000.+tu*100., ra_2000, dec_2000)
+		ret = slalib.sla_preces( "FK5", 2000., 2000.+tu*100., ra_2000, dec_2000)
 		#ret[0] =ranow,	ret[1] = delow
 		
 		a = math.cos(ret[1])
@@ -152,7 +148,7 @@ class coord_calc(object):
 		x[1] = a*math.sin(ret[0])
 		x[2] = math.sin(ret[1])
 		
-		ret = sla.slaNutc(jd-2400000.5)
+		ret = slalib.sla_nutc(jd-2400000.5)
 		#ret[0] = nut_long, ret[1] = nut_obliq, ret[2] = eps0
 		nut_long = ret[0]
 		nut_obliq = ret[1]
@@ -235,7 +231,7 @@ class coord_calc(object):
 		delsol = 30.*DEG2RAD
 			
 		#slaPreces( "FK4", 1950.,2000.+tu*100.,&rasol,&delsol)
-		ret = sla.slaPreces( "FK4", 1900.,2000.+tu*100.,rasol,delsol)
+		ret = slalib.sla_preces( "FK4", 1900.,2000.+tu*100.,rasol,delsol)
 		#ret[0]=rasol, ret[1]=delsol
 		a = math.cos(ret[1])
 		solx[0] = a*math.cos(ret[0])
@@ -264,154 +260,8 @@ class coord_calc(object):
 		#printf("vobs=%f\n",vobs);
 		if gcalc_flag == 1:
 			return vobs
-		else if gcalc_flag == 2:
+		elif gcalc_flag == 2:
 			return lst
-
-
-
-
-
-
-
-
-
-
-
-
-
-	def tracking_proc():
-		
-  double dum1, dum2, dum3;
-  double gxx, gyy, lambda;
-  double planet_ra, planet_dec;
-  struct timeval tv;
-  static double pre_az=0, pre_el=0;
-  static double pre_target_speed_az = 0, pre_target_speed_el = 0, pre_mjd = 0;
-
-  # Calculate current MJD 
-  gettimeofday(&tv, NULL);
-  gmjd = (tv.tv_sec + tv.tv_usec/1000000.)/24./3600. + MJD0;
-  
-  # If radio source or planet, the proper motion sets to zero 
-  if(gopt_flag == 0 || gplanet_flag == 1){
-    gpx = 0.0; gpy = 0.0;
-  }
-
-  if(gplanet_flag == 1){
-    gcoord_mode_flag = COORD_J2000;
-    // Calculate geocentric J2000 coordinate 
-    if(0 != calc_planet_coordJ2000_geocent(ephem, gmjd+2400000.5, tai_utc, gplanet_number, &planet_ra, &planet_dec, &gplanet_dist, &gplanet_radi)){
-    fprintf(stderr, "Cannot calculate the position!\n");
-      exit(1);
-    }
-    planet_J2000_geo_to_topo(planet_ra, planet_dec, &gplanet_dist, &gplanet_radi, &gx, &gy, gmjd+2400000.5, gdut1, tai_utc, glongitude, glatitude, gheight);
-  }
-
-  // Apply offset when the offset coordinate system is the same as that of the source 
-  // gx -> gxx, gy -> gyy 
-  if(goffset_mode_flag == COORD_SAME || goffset_mode_flag == gcoord_mode_flag){
-    gyy = gy + goffy;
-    gxx = (goffdcos == 0)? (gx + goffx): (gx + goffx / cos(gyy));
-        //printf("%f %f %f %f\n", gx, gy, gxx, gyy);
-  }else if(goffset_mode_flag != COORD_J2000){
-    // THIS PART IS NOT IMPLIMENTED YET 
-    gxx = gx; gyy = gy;
-  }
-  // =================== added by nishimura 2011/11/23
-  else
-    {
-     gxx = gx; gyy = gy;
-   }
-  // ------------------- END
-
-  // Convert to J2000
-  if(gcoord_mode_flag == COORD_J2000){
-    gaJ2000 = gxx; gdJ2000 = gyy;
-    gpaJ2000 = gpx; gpdJ2000 = gpy;
-  }else if(gcoord_mode_flag == COORD_B1950){
-    slaFk425(gxx, gyy, gpx, gpy, 0, 0, &gaJ2000, &gdJ2000, &gpaJ2000, &gpdJ2000, &dum1, &dum2);
-    //printf("%f %f %f %f\n", gxx, gyy,gaJ2000, gdJ2000);
-  }else if(gcoord_mode_flag == COORD_LB){
-    // Ignore proper motion in this case 
-    slaGaleq(gxx, gyy, &gaJ2000, &gdJ2000);
-    gpaJ2000 = 0; gpdJ2000 = 0;
-  }
-
-  // Apply offset when the offset coordinate system is not the same as that of the source, 
-  // and the offset coordinate system is J2000 
-  if(!(goffset_mode_flag == COORD_SAME || goffset_mode_flag == gcoord_mode_flag) && goffset_mode_flag == COORD_J2000){
-    gdJ2000 += goffy;
-    gaJ2000 = (goffdcos == 0)? (gaJ2000 + goffx): (gaJ2000 + goffx / cos(gdJ2000));
-  }
-
-
-  // From J2000 to Apparent 
-  if(gcoord_mode_flag != COORD_APP){
-    slaMap(gaJ2000, gdJ2000, gpaJ2000, gpdJ2000, 0.0, 0.0, 2000.0, gmjd + (tai_utc + 32.184)/(24.*3600.), &gaApparent, &gdApparent);
-  }else{
-    // In this case, the proper motion is ignored 
-    gaApparent = gx;
-    gdApparent = gy;
-  }
-  
-  // Apply offset when the offset coordinate system is apparent. 
-  if(goffset_mode_flag == COORD_APP){
-    gpdJ2000 += goffy;
-    gpaJ2000 = (goffdcos == 0)? (gpaJ2000 + goffx): (gpaJ2000 + goffx / cos(gpdJ2000));
-  }
-
-  if(gopt_flag == 1)
-    lambda = glambda_opt;
-  else
-    lambda = glambda_radio;
-
-  // From apparent to Horizontal 
-  slaAop(gaApparent, gdApparent, gmjd, gdut1, glongitude, glatitude, gheight, 0, 0, gtemperature, gpressure, ghumidity, lambda, gtlr, &greal_az, &greal_el, &dum1, &dum2, &dum3);
-  
-  // From zenith angle to elevation 
-  greal_el = M_PI / 2. - greal_el;
-  //greal_az = greal_az + M_PI;
-
-  // Apply horizontal offset. 
-  greal_el += goffel;
-  greal_az = (goffazeldcos == 0)? (greal_az + goffaz): (greal_az + goffaz / cos(greal_el));
-
-  if(instruction == SET_COORD_HORIZONTAL){
-    gtarget_az = greal_az; gtarget_el = greal_el;
-  }else{
-    apply_kisa(greal_az, greal_el, &gtarget_az, &gtarget_el);
-  }
-
-  if(gtarget_az*180./M_PI - angle_az > 180. && gtarget_az*180./M_PI - 360. > AZ_LIMIT_MIN)
-    gtarget_az -= 2*M_PI;
-  else if(gtarget_az*180./M_PI - angle_az < -180. && gtarget_az*180./M_PI + 360. < AZ_LIMIT_MAX)
-    gtarget_az += 2*M_PI;
-
-  if(target_changed == 1){
-    pre_az = gtarget_az; pre_el = gtarget_el; pre_mjd = gmjd;
-    target_changed = 0;
-  }else{
-    gtarget_speed_az = (gtarget_az - pre_az) / (gmjd - pre_mjd) * 180. / M_PI / (24.*3600.);  // degree/sec 
-    gtarget_speed_el = (gtarget_el - pre_el) / (gmjd - pre_mjd) * 180. / M_PI / (24.*3600.);  // degree/sec 
-    pre_az = gtarget_az; pre_el = gtarget_el; pre_mjd = gmjd;
-	//gtarget_az=gtarget_az*180./M_PI;
-	//gtarget_el=gtarget_el*180./M_PI;
-    
-    //||||||||||||||||||||||||||||||||||||||||||||||||
-    printf("(%lf,%lf)->(%lf,%lf)->J2000(%lf,%lf)->App(%lf,%lf)->real(%lf,%lf)\n",gx,gy,gxx,gyy,gaJ2000,gdJ2000,gaApparent,gdApparent,greal_az,greal_el);
-    //||||||||||||||||||||||||||||||||||||||||||||||||
-
-
-  }
-}
-
-
-
-
-
-
-
-
 
 	def read_kisa_file(self, hosei):
 		f = open(hosei)
@@ -442,4 +292,6 @@ class coord_calc(object):
 		kisa = [kisa[i]+diff[i] for i in range(kisa)]
 		"""
 		return kisa
+
+
 
