@@ -1,7 +1,7 @@
 import time
 import math
 import coord
-import slalib
+from pyslalib import slalib
 import nanten_main_controller
 
 
@@ -16,18 +16,11 @@ class antenna_nanten_controller(object):
 	dut1 = 0.14708  #delta UT:  UT1-UTC (UTC seconds)
 	
 	
-	
-	
-	
-	
 	def __init__(self):
 		self.coord = coord.coord_calc()
-		self.sla = slalib.slalib_controller()
 		self.nanten = nanten_main_controller.nanten_main_controller()
-		
-		
-		
-		
+		pass
+	
 	def move_azel(self, az, el, hosei, off_az = 0, off_el = 0):
 		
 		real_el += off_el
@@ -35,8 +28,8 @@ class antenna_nanten_controller(object):
 		
 		if set_coord == "HORIZONTAL":
 			ret = self.coord.apply_kisa(real_az, real_el, hosei)
-			target_az = ret[0]
-			target_el = ret[1]
+			target_az = real_az+ret[0]
+			target_el = real_el+ret[1]
 		else:
 			target_az = real_az
 			target_el = real_el
@@ -54,7 +47,7 @@ class antenna_nanten_controller(object):
 		
 		# lamda is wavelength(not lambda)
 		if code_mode == "B1950":
-			ret = self.sla.slaFk425(gx, gy, gpx, gpy, 0, 0)
+			ret = slalib.sla_fk425(gx, gy, gpx, gpy, 0, 0)
 			gaJ2000 = ret[0]
 			gdJ2000 = ret[1]
 			gpaJ2000 = ret[2]
@@ -65,12 +58,12 @@ class antenna_nanten_controller(object):
 			gpaJ2000 = gpx # for check
 			gpdJ2000 = gpy # for check
 		
-		ret = self.sla.slaMap(gaJ2000, gdJ2000, gpaJ2000, gpdJ2000, 0, 0, 2000, gmjd + (tai_utc + 32.184)/(24.*3600.))
+		ret = slalib.sla_aap(gaJ2000, gdJ2000, gpaJ2000, gpdJ2000, 0, 0, 2000, mjd + (tai_utc + 32.184)/(24.*3600.))
 		"""
 		ret[0] = apparent_ra
 		ret[1] = apparent_dec
 		"""
-		ret = self.sla.slaAop(ret[0], ret[1], mjd, self.dut1, self.longitude, self.latitude, self.height, 0, 0, temp, pressure, humid, lamda, tlr)
+		ret = slalib.sla_aop(ret[0], ret[1], mjd, self.dut1, self.longitude, self.latitude, self.height, 0, 0, temp, pressure, humid, lamda, tlr)
 		"""
 		ret[0] = azimath(radian, N=0, E=90)
 		ret[1] = zenith(radian)
@@ -93,19 +86,16 @@ class antenna_nanten_controller(object):
 		self.move_radec(ret[0], ret[1], 0, 0, "J2000", temp, pressure, humid, lamda, hosei)
 		return
 	
-	def move_planet(self, ephem, jd_utc, tai_utc, ntarg):
+	def move_planet(self, ntarg):
 		
-		
-		ret = self.coord.calc_planet_coordJ2000(ephem, jd_utc, tai_utc, ntarg)
+		ret = self.coord.calc_planet_coordJ2000(ntarg)
 		if len(ret) == 1:
 			print(ret) #error
 			return
 			
-		ret = self.coord.planet_J2000_geo_to_topo(ret[0], ret[1], ret[2], ret[3], jd_utc, self.dut1, tai_utc, self.longitude, self.latitude, self.height)
+		ret = self.coord.planet_J2000_geo_to_topo(ret[0], ret[1], ret[2], ret[3], self.dut1, self.longitude, self.latitude, self.height)
 		
 		#ret[2] = ra, ret[3] = dec
 		self.move_radec(ret[2], ret[3], 0, 0)
 		return
 		
-
-
