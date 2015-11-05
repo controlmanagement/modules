@@ -37,10 +37,9 @@ class nanten_main_controller(object):
 		az_rate_ref = ret[0]
 		el_rate_ref = ret[1]
 		
-		#指令値を目標値に向ける
+		# command value to target value
 		daz_rate = az_rate_ref - self.az_rate_d
 		del_rate = el_rate_ref - self.el_rate_d
-		
 		
 		#limit of acc
 		if abs(daz_rate) < MOTOR_MAXSTEP:
@@ -70,7 +69,7 @@ class nanten_main_controller(object):
 		if self.el_rate_d < -MOTOR_EL_MAXRATE:
 			self.el_rate_d = -MOTOR_EL_MAXRATE
 		
-		# confirm limit of controll rack → forced outage
+		# confirm limit of controll rack => forced outage
 		#if(0< motordrv_nanten2_cw_limit()+motordrv_nanten2_ccw_limit()+motordrv_nanten2_up_limit()+motordrv_nanten2_down_limit())
 		#	 motordrv_nanten2_drive_on(FALSE,FALSE);
 		
@@ -143,7 +142,7 @@ class nanten_main_controller(object):
 			elv_acc = -50
 		
 		
-		if　10000 < math.fabs(self.az_rate):
+		if 10000 < math.fabs(self.az_rate):
 			m_bAzTrack = "TRUE" #def Paz=2?
 		else:
 			az_err_integral += (self.az_err_before+az_err)*self.dt/2.+azv_acc*0.0
@@ -156,13 +155,13 @@ class nanten_main_controller(object):
 		azv_err_avg = ret[0]
 		elv_err_avg = ret[1]
 		
-		if math.fabs(azv_err_avg) > math.fabs(azv)/10.+10.):
+		if math.fabs(azv_err_avg) > math.fabs((azv)/10.+10.):
 			az_err_integral = 0.
 		
 		if math.fabs(az_err) > 150:
 			az_err_integral = 0
 		
-		if math.fabs(elv_err_avg) > math.fabs(elv)/10.+10.):
+		if math.fabs(elv_err_avg) > math.fabs((elv)/10.+10.):
 			el_err_integral = 0.
 		
 		if math.fabs(el_err) > 150:
@@ -208,12 +207,12 @@ class nanten_main_controller(object):
 			self.az_rate = az_max_rate
 		if self.az_rate < -az_max_rate:
 			self.az_rate = -az_max_rate
-		if self.el_rate > el_max_rate
+		if self.el_rate > el_max_rate:
 			self.el_rate = el_max_rate
 		if self.el_rate < -el_max_rate:
 			self.el_rate = -el_max_rate
 		
-		#ありえない領域での逆運動禁止 //bug?
+		# arienai ryouiki deno gyakuunndou kinnsi //bug?
 		if az_enc <= -270*DEG2ARCSEC and self.az_rate < 0:
 			self.az_rate = 0
 		if az_enc >= 270*DEG2ARCSEC and self.az_rate > 0:
@@ -224,8 +223,8 @@ class nanten_main_controller(object):
 		if el_enc >= 90*DEG2ARCSEC and self.el_rate > 0:
 			self.el_rate = 0
 		
-	    az_rate_ref = int(self.az_rate) #??
-	    el_rate_ref = int(self.el_rate) #??
+		az_rate_ref = int(self.az_rate) #??
+		el_rate_ref = int(self.el_rate) #??
 		return [az_rate_ref, el_rate_ref]
 
 	def err_avg_func(self, az_value, el_value):
