@@ -1,7 +1,10 @@
 import math
 import time
 from pyslalib import slalib
-import lib_jpl as jpl
+import sys
+import ctypes
+from jplephem.spk import SPK
+
 
 
 
@@ -21,7 +24,13 @@ class coord_calc(object):
 		1737.53,           # Moon
 		696000.0          ]# Sun
 	tai_utc = 36.0 # tai_utc=TAI-UTC  2015 July from ftp://maia.usno.navy.mil/ser7/tai-utc.dat
+	ephem = 0
 	
+	
+	
+	def __init__(self):
+		self.jpl = SPK.open('../jpl_ephem/de430.bsp')
+		# from https://pypi.python.org/pypi/jplephem
 	
 	def calc_jd_utc(self):
 		h = time.gmtime()
@@ -30,34 +39,31 @@ class coord_calc(object):
 		return jd_utc
 	
 	
-	def calc_planet_coordJ2000(self, ephem, ntarg):
+	def calc_planet_coordJ2000(self, ntarg):
 		err_code = i = nctr = 3
-		tau = 499.004782       # Light time for unit distance (sec) 
-		aukm = 1.49597870e8    # AU in km 
-		r = r1 = r2 = rr = [0,0,0,0,0,0]
-		rrr = [0,0,0]
+		c = 2.99792e8
+		k_to_au = 6.68459e-9
 		
 		jd_utc = self.calc_jd_utc()
-		ephem = self._void_p(ephem)
 		jd = jd_utc + (self.tai_utc + 32.184) / (24. * 3600.)  # Convert UTC to Dynamical Time 
-		err_code = jpl.jpl_pleph(ephem, jd, ntarg, nctr, r, 1)
+		position = self.jpl[0, ntarg].compute(jd) # compute planet Barycenter
+		position -= self.jpl[0, 3].compute(jd) # compute Earth Barycenter
+		position -= self.jpl[3, 399].compute(jd) # compute Earth position
 		
-		if err_code == False:
-			dist = math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2])
-			jpl.jpl_pleph(ephem, jd, nctr, 12, r1, 1)                                #Earth position at jd
-			jpl.jpl_pleph(ephem, jd - dist * tau / (24. * 3600.), ntarg, 12, r2, 1)  # Target position when the light left 
-			for i in range(6):
-				rr[i] = r2[i] - r1[i]
-			dist = math.sqrt(rr[0] * rr[0] + rr[1] * rr[1] + rr[2] * rr[2])
-			rrr[0:3] = rr[0:3]
-			ret = slalib.sla_dcc2s(rrr)
-			ra = ret[0]
-			dec = ret[1]
-			ra = slalib.sla_dranrm(ra)
-			radi = math.asin(self.eqrau[ntarg] / (dist.value * aukm))
-			return [ra, dec, dist, radi]
-		else:
-			return err_code
+		dist = math.sqrt(position[0] ** 2 + position[1] ** 2 + position[2] ** 2) # [km]
+		position_1 = self.jpl[0, 3].compute(jd) #Earth position at jd
+		position_2 = self.jpl[0, ntarg].compute(jd - (dist / c) / (24. * 3600.)) # Target position when the light left
+		position = position_2 - position_1
+		position -= self.jpl[3, 399].compute(jd)
+		dist = math.sqrt(position[0] ** 2 + position[1] ** 2 + position[2] ** 2)
+		ret = slalib.sla_dcc2s(position)
+		ra = ret[0] # radian
+		dec = ret[1] # radian
+		ra = slalib.sla_dranrm(ra)
+		radi = math.asin(self.eqrau[ntarg] / dist)
+		dist = dist*k_to_au
+		return [ra, dec, dist, radi]
+
 
 	def planet_J2000_geo_to_topo(gra, gdec, dist, radi, dut1, longitude, latitude, height):
 		jd_utc = self.calc_jd_utc()
@@ -101,7 +107,7 @@ class coord_calc(object):
 		(daz[0], de[1], kai_az[2], omega_az[3], eps[4], kai2_az[5], omega2_az[6], kai_el[7], omega_el[8], kai2_el[9], omega2_el[10], g[11], gg[12], ggg[13], gggg[14],
 		del[15], de_radio[16], del_radio[17], cor_v[18], cor_p[19], g_radio[20], gg_radio[21], ggg_radio[22], gggg_radio[23])
 		"""
-		kisa = self.read_kisa(hosei)
+		kisa = self.read_kisa_file(hosei)
 		DEG2RAD = math.pi/180
 		RAD2DEG = 180/math.pi
 		ARCSEC2RAD = math.pi/(180*60*60.)
@@ -113,7 +119,7 @@ class coord_calc(object):
 		el_d = el*RAD2DEG
 		delta = [0,0]
 		
-		dx = kisa[2]*math.sin(kisa[3]-az)*math.sin(el)+kisa[4]*math.sin(el)+kisa[0]*math.cos(el)+de+kisa[5]*math.sin(2*(kisa[3]-az))*math.sin(el)\
+		dx = kisa[2]*math.sin(kisa[3]-az)*math.sin(el)+kisa[4]*math.sin(el)+kisa[0]*math.cos(el)+kisa[1]+kisa[5]*math.sin(2*(kisa[3]-az))*math.sin(el)\
 			+kisa[16]+kisa[18]*math.cos(el+kisa[19])
 		delta[0] = -dx
 		
@@ -125,9 +131,10 @@ class coord_calc(object):
 			delta[0]=delta[0]/math.cos(el)
 		delta[0]=delta[0]*ARCSEC2RAD
 		delta[1]=delta[1]*ARCSEC2RAD
+		return delta
 		
 
-	def calc_vobs_fk5(self, ra_2000, dec_2000):
+	def calc_vobs_fk5(self, ra_2000, dec_2000, gcalc_flag):
 		x_2000 = x = x1 = v = v_rev = v_rot = v2 = solx = solv = solx1 =[0,0,0]
 		jd_utc = self.calc_jd_utc()
 		jd = jd_utc + (self.tai_utc + 32.184) / (24. * 3600.)
@@ -271,7 +278,7 @@ class coord_calc(object):
 		
 		while line:
 			line = line.rstrip()
-			kisa[n] = line
+			kisa[n] = float(line)
 			line = f.readline()
 			n = n+1
 		f.close
@@ -292,6 +299,4 @@ class coord_calc(object):
 		kisa = [kisa[i]+diff[i] for i in range(kisa)]
 		"""
 		return kisa
-
-
 
