@@ -249,4 +249,3 @@ class nanten_main_controller(object):
 		azv_err_avg = sum_az/self.count
 		elv_err_avg = sum_el/self.count
 		return [azv_err_avg, elv_err_avg]
-
