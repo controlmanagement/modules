@@ -24,8 +24,6 @@ class coord_calc(object):
 		1737.53,           # Moon
 		696000.0          ]# Sun
 	tai_utc = 36.0 # tai_utc=TAI-UTC  2015 July from ftp://maia.usno.navy.mil/ser7/tai-utc.dat
-	ephem = 0
-	
 	
 	
 	def __init__(self):
@@ -37,7 +35,6 @@ class coord_calc(object):
 		ret = slalib.sla_caldj(h.tm_year, h.tm_mon, h.tm_mday) # ret[0] = MJD
 		jd_utc = ret[0]+2400000.5+h.tm_hour/24.0+h.tm_min/1440.0+h.tm_sec/86400.0
 		return jd_utc
-	
 	
 	def calc_planet_coordJ2000(self, ntarg):
 		err_code = i = nctr = 3
@@ -63,7 +60,6 @@ class coord_calc(object):
 		radi = math.asin(self.eqrau[ntarg] / dist)
 		dist = dist*k_to_au
 		return [ra, dec, dist, radi]
-
 
 	def planet_J2000_geo_to_topo(gra, gdec, dist, radi, dut1, longitude, latitude, height):
 		jd_utc = self.calc_jd_utc()
