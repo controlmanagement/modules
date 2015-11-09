@@ -1,5 +1,7 @@
 import math
 import time
+import sys
+sys.path.append('/home/amigos/python/')
 import pyinterface
 import antenna_enc
 
@@ -17,10 +19,13 @@ class nanten_main_controller(object):
 	AZV_ERR_AVG_NUM = 13
 	el_array = [0]*13
 	ELV_ERR_AVG_NUM = 13 #AZV_ERR_AVG_NUM = ELV_ERR_AVG_NUM
-	az_enc_before = el_enc_before = azv_before = elv_before = 0
+	az_enc_before = el_enc_before = 0
 	az_rate = el_rate = 0
 	az_rate_d = el_rate_d = 0
 	m_stop_rate_az = m_stop_rate_el = 0
+	t1 = t2 = 0.0
+	pre_hensa_az = pre_hensa_el = 0
+	pre_az_arcsec = pre_el_arcsec = 0
 	
 	
 	def __init__(self):
@@ -28,7 +33,7 @@ class nanten_main_controller(object):
 		self.enc = antenna_enc.enc_controller()
 		pass
 
-	def move_azel(self, az_arcsec, el_arcsec, azv, elv, m_bStop, az_max_rate = 16000, el_max_rate = 12000):
+	def move_azel(self, az_arcsec, el_arcsec, m_bStop, az_max_rate = 16000, el_max_rate = 12000):
 		MOTOR_MAXSTEP = 10000
 		MOTOR_AZ_MAXRATE = 16000
 		MOTOR_EL_MAXRATE = 12000
@@ -92,18 +97,33 @@ class nanten_main_controller(object):
 		#dioOutputWord(CONTROLER_BASE2,0x02,dummy);
 		self.el_rate_d = dummy
 
-	def calc_pid(self, az_arcsec, el_arcsec, azv, elv, az_max_rate, el_max_rate):
+	def calc_pid(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
 		# Default
+		"""
 		Paz = 3.8
 		Iaz = 8
 		Daz = 0.11
 		Pel = 3.73
 		Iel = 8
 		Del = 0.07
+		"""
+		# New parameter
+		p_az_coeff = 26.2
+		i_az_coeff = 1.7
+		d_az_coeff = 0.
+		s_az_coeff = 0.
+		p_el_coeff = 26.2
+		i_el_coeff = 0.8
+		d_el_coeff = 0.
+		
 		
 		DEG2ARCSEC = 3600
 		m_bAzTrack = "FALSE"
 		m_bElTrack = "FALSE"
+		if self.t2 == 0.0:
+			self.t2 = time.time()
+		else:
+			pass
 		
 		ret = self.enc.get_azel()
 		az_enc = ret[0]
@@ -120,11 +140,11 @@ class nanten_main_controller(object):
 		#integrate error
 		az_err_integral_integral+=az_err_integral*dt;
 		el_err_integral_integral+=el_err_integral*dt;
-		"""
 		
 		#deivative
 		azv_err = azv-(az_enc-self.az_enc_before)/self.dt
 		elv_err = elv-(el_enc-self.el_enc_before)/self.dt
+		"""
 		
 		azv_acc = (azv-self.azv_before)
 		elv_acc = (elv-self.elv_before)
@@ -141,34 +161,64 @@ class nanten_main_controller(object):
 		elif elv_acc < -50:
 			elv_acc = -50
 		
-		
 		if 10000 < math.fabs(self.az_rate):
 			m_bAzTrack = "TRUE" #def Paz=2?
 		else:
-			az_err_integral += (self.az_err_before+az_err)*self.dt/2.+azv_acc*0.0
+			# az_err_integral += (self.az_err_before+az_err)*self.dt/2.+azv_acc*0.0
+			pass
 		if 10000 < math.fabs(self.el_rate):
 			m_bElTrack = "TRUE" #def Pel=2?
 		else:
-			el_err_integral += (self.el_err_before+el_err)*self.dt/2.+elv_acc*0.0;
+			#el_err_integral += (self.el_err_before+el_err)*self.dt/2.+elv_acc*0.0
+			pass
 		
-		ret = self.err_avg_func(azv_err, elv_err)
-		azv_err_avg = ret[0]
-		elv_err_avg = ret[1]
+		hensa_az = target_az - az_enc
+		hensa_el = target_el - el_enc
+		dhensa_az = hensa_az - self.pre_hensa_az
+		dhensa_el = hensa_el - self.pre_hensa_el
+		if math.fabs(dhensa_az) > 1:
+			dhensa_az = 0
+		if math.fabs(dhensa_el) > 1:
+			dhensa_el = 0
 		
-		if math.fabs(azv_err_avg) > math.fabs((azv)/10.+10.):
-			az_err_integral = 0.
+		self.t1 = time.time()
+		current_speed_az = (az_enc - self.az_enc_before) / (self.t1-self.t2)
+		current_speed_el = (el_enc - self.el_enc_before) / (self.t1-self.t2)
 		
-		if math.fabs(az_err) > 150:
-			az_err_integral = 0
+		if pre_az_arcsec == 0: # for first move
+			target_speed_az = 0
+		else:
+			target_speed_az = (az_arcsec-self.pre_az_arcsec)/(self.t1-self.t2)
+		if pre_el_arcsec == 0: # for first move
+			target_speed_el = 0
+		else:
+			target_speed_el = (el_arcsec-self.pre_el_arcsec)/(self.t1-self.t2)
 		
-		if math.fabs(elv_err_avg) > math.fabs((elv)/10.+10.):
-			el_err_integral = 0.
+		if math.fabs(hensa_az) >= 0.00: # don't use ihensa?
+			ihensa_az = 0
+			#hensa_flag_az = 0;
+		else:
+			#if(hensa_flag_az == 0 && hensa_az * pre_hensa_az <= 0)
+			#  hensa_flag_az = 1;
+			#if(hensa_flag_az == 1)
+			ihensa_az += hensa_az
+		if math.fabs(hensa_el) >= 0.000:
+			ihensa_el = 0
+			#hensa_flag_el = 0;
+		else:
+			#if(hensa_flag_el == 0 && hensa_el * pre_hensa_el <= 0)
+			#  hensa_flag_el = 1;
+			#if(hensa_flag_el == 1)
+			ihensa_el += hensa_el
 		
-		if math.fabs(el_err) > 150:
-			el_err_integral = 0.
-		
+		""" Original
 		self.az_rate = Paz*az_err + Iaz*az_err_integral + Daz*azv_err_avg +azv*1.57
 		self.el_rate = Pel*el_err + Iel*el_err_integral + Del*elv_err_avg +elv*1.57
+		"""
+		
+		self.az_rate = target_speed_az * 20.9 + (current_speed_az*20.9 - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*ihensa_az*(self.t1-self.t2) + d_az_coeff*dhensa_az/(self.t1-self.t2)
+		self.el_rate = target_speed_el * 20.9 + p_el_coeff*hensa_el + i_el_coeff*ihensa_el*(self.t1-self.t2) + d_el_coeff*dhensa_el/(self.t1-self.t2)
+		
 		
 		if math.fabs(az_err) < 8000 and self.az_rate > 10000:
 			self.az_rate = 10000
@@ -188,6 +238,12 @@ class nanten_main_controller(object):
 		self.el_enc_before = el_enc
 		self.az_err_before = az_err
 		self.el_err_before = el_err
+		
+		self.pre_hensa_az = hensa_az
+		self.pre_hensa_el = hensa_el
+		
+		self.pre_az_arcsec = az_aecsec
+		self.pre_el_arcsec = el_arcsec
 		
 		if az_max_rate > 16000:
 			az_max_rate = 16000
@@ -222,11 +278,13 @@ class nanten_main_controller(object):
 			self.el_rate = 0 
 		if el_enc >= 90*DEG2ARCSEC and self.el_rate > 0:
 			self.el_rate = 0
+		self.t2 = self.t1
 		
 		az_rate_ref = int(self.az_rate) #??
 		el_rate_ref = int(self.el_rate) #??
 		return [az_rate_ref, el_rate_ref]
 
+	"""
 	def err_avg_func(self, az_value, el_value):
 		AZV_ERR_AVG_NUM = ELV_ERR_AVG_NUM = 13
 		if self.count < AZV_ERR_AVG_NUM:
@@ -248,3 +306,4 @@ class nanten_main_controller(object):
 		azv_err_avg = sum_az/self.count
 		elv_err_avg = sum_el/self.count
 		return [azv_err_avg, elv_err_avg]
+	"""
