@@ -21,7 +21,7 @@ class antenna_nanten_controller(object):
 		self.nanten = nanten_main_controller.nanten_main_controller()
 		pass
 	
-	def move_azel(self, az, el, hosei, off_az = 0, off_el = 0):
+	def move_azel(self, real_az, real_el, hosei, off_az = 0, off_el = 0):
 		
 		real_el += off_el
 		real_az += off_az # greal_az = (goffazeldcos == 0)? (greal_az + goffaz): (greal_az + goffaz / cos(greal_el));
