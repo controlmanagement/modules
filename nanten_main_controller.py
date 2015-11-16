@@ -41,6 +41,8 @@ class nanten_main_controller(object):
 		ret = self.calc_pid(az_arcsec, el_arcsec, azv, elv, az_max_rate, el_max_rate)
 		az_rate_ref = ret[0]
 		el_rate_ref = ret[1]
+		Az_track_flag = ret[2]
+		El_track_flag = ret[3]
 		
 		# command value to target value
 		daz_rate = az_rate_ref - self.az_rate_d
@@ -96,6 +98,7 @@ class nanten_main_controller(object):
 		self.dio.ctrl.out_word("FBIDIO_OUT33_48", dummy)
 		#dioOutputWord(CONTROLER_BASE2,0x02,dummy);
 		self.el_rate_d = dummy
+		return [Az_track_flag, El_track_flag]
 
 	def calc_pid(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
 		# Default
@@ -165,11 +168,13 @@ class nanten_main_controller(object):
 			m_bAzTrack = "TRUE" #def Paz=2?
 		else:
 			# az_err_integral += (self.az_err_before+az_err)*self.dt/2.+azv_acc*0.0
+			m_bAzTrack = 'FALSE'
 			pass
 		if 10000 < math.fabs(self.el_rate):
 			m_bElTrack = "TRUE" #def Pel=2?
 		else:
 			#el_err_integral += (self.el_err_before+el_err)*self.dt/2.+elv_acc*0.0
+			m_bElTrack = 'FALSE'
 			pass
 		
 		hensa_az = target_az - az_enc
@@ -282,7 +287,7 @@ class nanten_main_controller(object):
 		
 		az_rate_ref = int(self.az_rate) #??
 		el_rate_ref = int(self.el_rate) #??
-		return [az_rate_ref, el_rate_ref]
+		return [az_rate_ref, el_rate_ref, m_bAzTrack, m_bElTrack]
 
 	"""
 	def err_avg_func(self, az_value, el_value):
