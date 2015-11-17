@@ -33,7 +33,7 @@ class nanten_main_controller(object):
 		self.enc = antenna_enc.enc_controller()
 		pass
 
-	def move_azel(self, az_arcsec, el_arcsec, m_bStop, az_max_rate = 16000, el_max_rate = 12000):
+	def move_azel(self, az_arcsec, el_arcsec, az_max_rate = 16000, el_max_rate = 12000, m_bStop = 'FALSE'):
 		MOTOR_MAXSTEP = 10000
 		MOTOR_AZ_MAXRATE = 16000
 		MOTOR_EL_MAXRATE = 12000
