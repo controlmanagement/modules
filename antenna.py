@@ -43,7 +43,7 @@ class antenna_nanten(object):
 	"""
 	
 
-	def move(self, x, y, coord_sys, offset_x, offset_y, offset_dcos, temp = 0, pressure = 0, humid = 0, lamda = 0, planet = 0):
+	def move(self, x, y, coord_sys, offset_x, offset_y, dcos, hosei, temp = 0, pressure = 0, humid = 0, lamda = 0, planet = 0, px = 0, py = 0, code_mode = 'J2000'):
 		# offset_coord is not temporary available
 		
 		
@@ -52,11 +52,11 @@ class antenna_nanten(object):
 			pass
 		else:
 			if coord_sys == 'HORIZONTAL':
-				self.antenna.move_azel()
-			elif coord_sys == '' :
-				self.antenna.move_radec(x, y, self.coord_dict[coord.upper()])
-			elif coord_sys == '':
-				self.antenna.move_lb()
+				self.antenna.move_azel(x, y, dcos, hosei, offset_x, offset_yl)
+			elif coord_sys == 'ECLIPTIC' :
+				self.antenna.move_radec(x, y, px, py, code_mode, temp, pressure, humid, lamda, dcos, hosei, offset_x, offset_y)
+			elif coord_sys == 'GALACTIC':
+				self.antenna.move_lb(x, y, temp, pressure, humid, lamda, dcos, hosei, offset_x, offset_y)
 		return
 	
 	
