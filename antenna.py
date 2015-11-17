@@ -1,51 +1,93 @@
-import pyinterface
-import antenna_nanten_controller
+import telescope_nanten.antenna_nanten_controller
+#import core.file_manager
+#import core.controller
+#import dome
 
-
-
-
-
-class antenna_controller(object):
+class antenna_nanten(object):
 	
-	
-	
+	"""
+	coord_dict = {"J2000"       : telescope_nanten.motor.COORD_J2000,
+				  "B1950"       : telescope_nanten.motor.COORD_B1950,
+				  "LB"          : telescope_nanten.motor.COORD_LB,
+				  "GALACTIC"    : telescope_nanten.motor.COORD_LB,
+				  "APPARENT"    : telescope_nanten.motor.COORD_APP,
+				  "HORIZONTAL"  : telescope_nanten.motor.COORD_HORIZONTAL,
+				  "SAME"        : telescope_nanten.motor.COORD_SAME}
+	"""
+
 	def __init__(self):
-		self.antenna = antenna_nanten_controller.antenna_nanten_controller()
-		pass
-	
-	def start_server(self):
-		self.start_antenna_server()
+		self.antenna = telescope_nanten.antenna_nanten_controller.antenna_client('192.168.100.187', 5930)
+		#self.dev = core.file_manager.dev_manager()
+		#self.d = dome.dome_controller()
 		return
-	
-	def move_azel(self, az, el, hosei, off_az, off_el):
-		self.antenna.move_azel(az, el, hosei, off_az, off_el)
+		
+	"""
+	def use_radio(self):
+		self.m.kisa()
+		self.m.set_radio()
+		self.m.set_lambda(float(self.dev["LIGHT_SPEED"]) / float(self.dev['1stLO1'])*1000.)
 		return
-	
-	def move_radec(self, ra, dec, p_ra, p_dec, code_mode, temp, pressure, humid, lamda, hosei):
-		self.antenna.move_radec(ra, dec, p_ra, p_dec, code_mode, temp, pressure, humid, lamda, hosei)
-		return
-	
-	def move_lb(self, g_long, g_lati, temp, pressure, humid, lamda, hosei):
-		self.antenna.move_lb(g_long, g_lati, temp, pressure, humid, lamda, hosei)
-		return
-	
-	def move_planet(self, ):
-		self.antenna.move_planet()
+
+
+	def use_opt(self):
+		self.m.kisa()
+		self.m.set_opt()
 		return
 	
 
+	def set_condition(self, pressure, humidity, temperature_C):
+		self.m.set_pressure(pressure)
+		self.m.set_humidity(humidity)
+		self.m.set_temperature(temperature_C)
+		return
+	"""
+	
+
+	def move(self, x, y, coord_sys, offset_x, offset_y, offset_dcos, temp = 0, pressure = 0, humid = 0, lamda = 0, planet = 0):
+		# offset_coord is not temporary available
+		
+		
+		if planet:
+			self.antenna.move_planet(planet, temp, pressure, humid, lamda)
+			pass
+		else:
+			if coord_sys == 'HORIZONTAL':
+				self.antenna.move_azel()
+			elif coord_sys == '' :
+				self.antenna.move_radec(x, y, self.coord_dict[coord.upper()])
+			elif coord_sys == '':
+				self.antenna.move_lb()
+		return
+	
+	
+	
+	
+	def move_track(self, x, y, coord_sys, offset_x, offset_y, offset_dcos, temp = 0, pressure = 0, humid = 0, lamda = 0, planet = 0):
+		stop_flag = 0
+		while stop_flag == 0:
+			self.move(x, y, coord_sys, offset_x, offset_y, offset_dcos, temp = 0, pressure = 0, humid = 0, lamda = 0, planet = 0)
+			f = open('','r')
+			line = f.readline()
+			stop_flag = line
+			f.close()
+			return
+	
+	def move_opt(self, x, y, px, py, coord, acc):
+		#self.m.move_opt(x, y, px, py, self.coord_dict[coord.upper()], acc)
+		return
 
 
-def antenna_client(host, port):
-        client = pyinterface.server_client_wrapper.control_client_wrapper(antenna_controller, host, port)
-        return client
+	def scan(self, sx, sy, coord, dcos, dx, dy, dt, n, ramp, delay, temp, pressure, humid, lamda):
+		self.antenna.calc_otf(sx, sy, dcos, coord, dx, dy, dt, n, ramp, delay, temp, pressure, humid, lamda)
+		return
 
-def antenna_monitor_client(host, port):
-        client = pyinterface.server_client_wrapper.monitor_client_wrapper(antenna_controller, host, port)
-        return client
 
-def start_antenna_server(port1 = 5921, port2 = 5922):
-        antenna = antenna_controller()
-        server = pyinterface.server_client_wrapper.server_wrapper(antenna,'', port1, port2)
-        server.start()
-        return server
+	def get_status(self):
+		#az, el = self.m.get_azel()
+		#dome_az = self.d.get_count()
+		#return az, el, dome_az
+		
+		
+	def finalize(self):
+		self.antenna.stop_tracking()
+		return
