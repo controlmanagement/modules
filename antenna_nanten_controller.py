@@ -33,6 +33,7 @@ class antenna_nanten_controller(object):
 			real_el += off_el
 			real_az = real_az+off_az/math.cos(real_el) # because of projection
 		
+		"""
 		if set_coord == "HORIZONTAL":
 			ret = self.coord.apply_kisa(real_az, real_el, hosei)
 			target_az = real_az+ret[0]
@@ -40,9 +41,14 @@ class antenna_nanten_controller(object):
 		else:
 			target_az = real_az
 			target_el = real_el
+		"""
+		ret = self.coord.apply_kisa(real_az, real_el, hosei) # until define the set_coord
+		target_az = real_az+ret[0]
+		target_el = real_el+ret[1]
 		
-		self.nanten.move_azel(target_az, target_el, az_max_rate, el_max_rate)
-		return
+		#track = self.nanten.move_azel(target_az, target_el, az_max_rate, el_max_rate)
+		track = self.nanten.move_azel(target_az, target_el) #until define the set_coord
+		return track
 	
 	def move_radec(self, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_x = 0, off_y = 0):
 		#lamda not equals lambda
@@ -65,7 +71,7 @@ class antenna_nanten_controller(object):
 			gpaJ2000 = gpx # for check
 			gpdJ2000 = gpy # for check
 		
-		ret = slalib.sla_aap(gaJ2000, gdJ2000, gpaJ2000, gpdJ2000, 0, 0, 2000, mjd + (tai_utc + 32.184)/(24.*3600.))
+		ret = slalib.sla_map(gaJ2000, gdJ2000, gpaJ2000, gpdJ2000, 0, 0, 2000, mjd + (tai_utc + 32.184)/(24.*3600.))
 		"""
 		ret[0] = apparent_ra
 		ret[1] = apparent_dec
