@@ -140,7 +140,10 @@ class antenna_nanten_controller(object):
 				Az_track_flag = ret[0]
 				El_track_flag = ret[1]
 			elif coord_sys == 'EQUATORIAL':
-				ret = self.move_radec(start_x, start_y, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei)
+				# ret = self.move_radec(start_x, start_y, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei)
+				# gpx,gpy => 0 for radio observation or planet observation
+				# change this when you do optical observation
+				ret = self.move_radec(start_x, start_y, 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei)
 				Az_track_flag = ret[0]
 				El_track_flag = ret[1]
 			else:
