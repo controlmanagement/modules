@@ -28,6 +28,7 @@ class antenna_nanten_controller(object):
 		pass
 	
 	def move_azel(self, real_az, real_el, dcos, hosei = 'hosei_230.txt', off_az = 0, off_el = 0):
+		#def move_azel(self, real_az, real_el, dcos, geomech_flag = 1, hosei = 'hosei_230.txt', off_az = 0, off_el = 0):
 		if dcos == 0:
 			real_el += off_el
 			real_az += off_az
@@ -160,22 +161,39 @@ class antenna_nanten_controller(object):
 	
 	def otf(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp = 0, pressure = 0, humid = 0, lamda = 0, code_mode = 'J2000'):
 		otf_end_flag = 0
+		geomech_flag = 0
+		loop_count = 0
+		interval = 0
 		
 		while otf_end_flag == 0:
+			loop_count += 1
+			if loop_count%10 == 1 or interval > 0.1:
+				geomech_flag = 1
+				loop_count = 1
+			else:
+				geomech_flag = 0
 			mjd = 40587 + time.time()/(24.*3600.)
 			if mjd >= mjd_start and mjd <= mjd_end:
 				off_x = (end_x - start_x) / (mjd_end - mjd_start) * (mjd - mjd_start) + start_x
 				off_y = (end_y - start_y) / (mjd_end - mjd_start) * (mjd - mjd_start) + start_y
 				
 				if coord_sys == 'HORIZONTAL':
-					self.move_azel(off_x, off_y,dcos)
+					self.move_azel(off_x, off_y, dcos)
+					#self.move_azel(off_x,off_y, dcos, geomech_flag)
 				elif coord_sys == 'EQUATORIAL':
 					self.move_radec(off_x, off_y, 0, 0, code_mode, temp, pressure, humid, lamda, hosei)
+					#self.move_radec(off_x, off_y, 0, 0, code_mode, temp, pressure, humid, lamda, hosei, geomech_flag)
 				elif coord_sys == 'GALACTIC':
-					self.move_lb(off_x, off_y, temp, pressure, humid, lamda,dcos)
+					self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos)
+					#self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos, geomech_flag)
 			
 			if mjd > mjd_end:
 				otf_end_flag = 1
+			
+			loop_time = 40587 + time.time()/(24.*3600.)
+			interval = (loop_time-mjd)*24*3600.
+			if interval < 0.01:
+				time.sleep(0.01-interval)
 		return
 
 def antenna_client(host, port):
