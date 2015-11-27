@@ -19,6 +19,7 @@ class nanten_main_controller(object):
 	AZV_ERR_AVG_NUM = 13
 	el_array = [0]*13
 	ELV_ERR_AVG_NUM = 13 #AZV_ERR_AVG_NUM = ELV_ERR_AVG_NUM
+	#azv_before = elv_before = 0
 	az_enc_before = el_enc_before = 0
 	az_rate = el_rate = 0
 	az_rate_d = el_rate_d = 0
@@ -38,7 +39,7 @@ class nanten_main_controller(object):
 		MOTOR_AZ_MAXRATE = 16000
 		MOTOR_EL_MAXRATE = 12000
 		
-		ret = self.calc_pid(az_arcsec, el_arcsec, azv, elv, az_max_rate, el_max_rate)
+		ret = self.calc_pid(az_arcsec, el_arcsec, az_max_rate, el_max_rate)
 		az_rate_ref = ret[0]
 		el_rate_ref = ret[1]
 		Az_track_flag = ret[2]
@@ -64,7 +65,7 @@ class nanten_main_controller(object):
 				a = -1
 			else:
 				a = 1
-			self.el_rate += a*MOTOR_MAXSTEP
+			self.el_rate_d += a*MOTOR_MAXSTEP
 		
 		#limit of max v
 		if self.az_rate_d > MOTOR_AZ_MAXRATE:
@@ -81,21 +82,21 @@ class nanten_main_controller(object):
 		#	 motordrv_nanten2_drive_on(FALSE,FALSE);
 		
 		# output to port
-		if m_bStop == TRUE:
+		if m_bStop == 'TRUE':
 			dummy = self.m_stop_rate_az
 		else:
 			dummy = int(self.az_rate_d)
 		#dummy=m_bStop==TRUE?m_stop_rate_az:motor_param.az_rate_ref;
 		self.dio.ctrl.out_word("FBIDIO_OUT1_16", dummy)
 		#dioOutputWord(CONTROLER_BASE2,0x00,dummy)  output port is unreliable
-		seld.az_rate_d = dummy
+		self.az_rate_d = dummy
 		
-		if m_bStop == TRUE:
+		if m_bStop == 'TRUE':
 			dummy = self.m_stop_rate_el
 		else:
 			dummy = int(self.el_rate_d)
 		#dummy=m_bStop==TRUE?m_stop_rate_el:motor_param.el_rate_ref;
-		self.dio.ctrl.out_word("FBIDIO_OUT33_48", dummy)
+		self.dio.ctrl.out_word("FBIDIO_OUT17_32", dummy)
 		#dioOutputWord(CONTROLER_BASE2,0x02,dummy);
 		self.el_rate_d = dummy
 		return [Az_track_flag, El_track_flag]
@@ -149,6 +150,7 @@ class nanten_main_controller(object):
 		elv_err = elv-(el_enc-self.el_enc_before)/self.dt
 		"""
 		
+		"""
 		azv_acc = (azv-self.azv_before)
 		elv_acc = (elv-self.elv_before)
 		self.azv_before = azv
@@ -163,6 +165,7 @@ class nanten_main_controller(object):
 			elv_acc = 50
 		elif elv_acc < -50:
 			elv_acc = -50
+		"""
 		
 		if 10000 < math.fabs(self.az_rate):
 			m_bAzTrack = "TRUE" #def Paz=2?
@@ -177,6 +180,8 @@ class nanten_main_controller(object):
 			m_bElTrack = 'FALSE'
 			pass
 		
+		target_az = az_arcsec
+		target_el = el_arcsec
 		hensa_az = target_az - az_enc
 		hensa_el = target_el - el_enc
 		dhensa_az = hensa_az - self.pre_hensa_az
@@ -190,11 +195,11 @@ class nanten_main_controller(object):
 		current_speed_az = (az_enc - self.az_enc_before) / (self.t1-self.t2)
 		current_speed_el = (el_enc - self.el_enc_before) / (self.t1-self.t2)
 		
-		if pre_az_arcsec == 0: # for first move
+		if self.pre_az_arcsec == 0: # for first move
 			target_speed_az = 0
 		else:
 			target_speed_az = (az_arcsec-self.pre_az_arcsec)/(self.t1-self.t2)
-		if pre_el_arcsec == 0: # for first move
+		if self.pre_el_arcsec == 0: # for first move
 			target_speed_el = 0
 		else:
 			target_speed_el = (el_arcsec-self.pre_el_arcsec)/(self.t1-self.t2)
@@ -247,7 +252,7 @@ class nanten_main_controller(object):
 		self.pre_hensa_az = hensa_az
 		self.pre_hensa_el = hensa_el
 		
-		self.pre_az_arcsec = az_aecsec
+		self.pre_az_arcsec = az_arcsec
 		self.pre_el_arcsec = el_arcsec
 		
 		if az_max_rate > 16000:
