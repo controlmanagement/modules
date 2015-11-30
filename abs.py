@@ -1,6 +1,7 @@
 import time
 import threading
 import pyinterface
+import threading
 
 class abs_controller(object):
 	buff = 0x00
@@ -50,16 +51,16 @@ class abs_controller(object):
 			self.get_pos()
 		return
 	
-	def move_r(self):
-		self.move('IN')
-		return
-	
-	def move_sky(self):
-		self.move('OUT')
-		return
-		
 	def read_pos(self):
 		return self.position
+	
+	def start_thread(self, dist):
+		if dist == 'IN':
+			self.thread = threading.Thread(target = self.move, args = ('IN', ))
+		else: # dist == 'OUT'
+			self.thread = threading.Thread(target = self.move, args = ('OUT', ))
+		self.thread.start()
+		return
 
 def abs_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(abs_controller, host, port)
