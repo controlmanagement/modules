@@ -4,6 +4,7 @@ from pyslalib import slalib
 import sys
 import ctypes
 from jplephem.spk import SPK
+import geomech
 
 
 
@@ -27,8 +28,9 @@ class coord_calc(object):
 	
 	
 	def __init__(self):
-		self.jpl = SPK.open('../jpl_ephem/de430.bsp')
+		self.jpl = SPK.open('/home/amigos/python/jpl_ephem/de430.bsp')
 		# from https://pypi.python.org/pypi/jplephem
+		self.geomech = geomech.geomech_controller()
 	
 	def calc_jd_utc(self):
 		h = time.gmtime()
@@ -80,7 +82,7 @@ class coord_calc(object):
 		vgo = slalib.sla_pvobs(latitude, height, stl)
 		
 		# Observer to planet (date). 
-		for i in range (6):
+		for i in range (3):
 			v[i] = vgp[i] - vgo[i]
 		
 		disttmp = dist
@@ -98,12 +100,17 @@ class coord_calc(object):
 		return [dist, radi, tra, tdec]
 
 	def apply_kisa(self, az, el, hosei):
-		"""
+		""" from [coordinate.cpp]
 		#kisa parameter
 		(daz[0], de[1], kai_az[2], omega_az[3], eps[4], kai2_az[5], omega2_az[6], kai_el[7], omega_el[8], kai2_el[9], omega2_el[10], g[11], gg[12], ggg[13], gggg[14],
 		del[15], de_radio[16], del_radio[17], cor_v[18], cor_p[19], g_radio[20], gg_radio[21], ggg_radio[22], gggg_radio[23])
 		"""
-		kisa = self.read_kisa_file(hosei)
+		kisa = self.read_kisa_file(hosei,24)
+		geo_kisa = self.read_kisa_file("hosei_opt_geomech.txt",10)
+		"""
+		#geo_kisa parameter
+		(kai[0], omega[1], gxc[2], gyc[3], scx[4], scy[5], tx1[6], tx2[7], ty1[8], ty2[9])
+		"""
 		DEG2RAD = math.pi/180
 		RAD2DEG = 180/math.pi
 		ARCSEC2RAD = math.pi/(180*60*60.)
@@ -117,16 +124,27 @@ class coord_calc(object):
 		
 		dx = kisa[2]*math.sin(kisa[3]-az)*math.sin(el)+kisa[4]*math.sin(el)+kisa[0]*math.cos(el)+kisa[1]+kisa[5]*math.sin(2*(kisa[3]-az))*math.sin(el)\
 			+kisa[16]+kisa[18]*math.cos(el+kisa[19])
-		delta[0] = -dx
+		delta[0] = -dx # arcsec
 		
 		dy = -kisa[7]*math.cos(kisa[8]-az)-kisa[9]*math.cos(2*(kisa[10]-az))+kisa[15]+kisa[11]*el_d+kisa[12]*el_d*el_d+kisa[13]*el_d*el_d*el_d+kisa[14]*el_d*el_d*el_d*el_d\
 			+kisa[17]-kisa[18]*math.sin(el+kisa[19])+kisa[20]*el_d+kisa[21]*el_d*el_d+kisa[22]*el_d*el_d*el_d+kisa[23]*el_d*el_d*el_d*el_d
-		delta[1] = -dy
-		
+		delta[1] = -dy # arcsec
 		if(math.fabs(math.cos(el))>0.001):
 			delta[0]=delta[0]/math.cos(el)
-		delta[0]=delta[0]*ARCSEC2RAD
-		delta[1]=delta[1]*ARCSEC2RAD
+		
+		geo_x = geo_kisa[0]*(-math.sin((geo_kisa[1]-az)*(math.pi/180.))+math.cos((geo_kisa[1]-az)*(math.pi/180.)))+geo_kisa[2]
+		geo_y = geo_kisa[0]*(-math.sin((geo_kisa[1]-az)*(math.pi/180.))-math.cos((geo_kisa[1]-az)*(math.pi/180.)))+geo_kisa[3]
+		ret = self.geomech.read_geomech_col() # ret[0] = geomech_x, ret[1] = geomech_y
+		
+		gx = ret[0]-geo_x
+		gy = ret[1]-geo_y
+		ggx = -((gx+gy)/math.sqrt(2))*math.sin(el*(math.pi/180.)) # arcsec
+		ggy = -(gx-gy)/math.sqrt(2) # arcsec
+		
+		delta[0] = delta[0]-ggx
+		delta[1] = delta[1]-ggy
+		
+		
 		return delta
 		
 
@@ -266,10 +284,10 @@ class coord_calc(object):
 		elif gcalc_flag == 2:
 			return lst
 
-	def read_kisa_file(self, hosei):
+	def read_kisa_file(self, hosei,num):
 		f = open(hosei)
 		line = f.readline()
-		kisa = [0]*24
+		kisa = [0]*num
 		n = 0
 		
 		while line:
@@ -295,4 +313,5 @@ class coord_calc(object):
 		kisa = [kisa[i]+diff[i] for i in range(kisa)]
 		"""
 		return kisa
+
 
