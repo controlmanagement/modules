@@ -2,6 +2,7 @@ import time
 import threading
 import pyinterface
 import dome_status
+import threading
 
 
 
@@ -13,7 +14,14 @@ class membrane_controller(object):
 
 
 	def __init__(self):
-		self.dio = pyinterface.create_gpg2000(1)
+		pass
+	
+	def start_server(self):
+		ret = self.start_memb_server()
+		return
+	
+	def open(self, ndev=1):
+		self.dio = pyinterface.create_gpg2000(ndev)
 		self.status = dome_status.dome_get_status()
 		pass
 
@@ -30,29 +38,7 @@ class membrane_controller(object):
 		ret = self.status.get_memb_status()
 		self.act = ret[0]
 		self.position = ret[1]
-		return
-
-	def move_org(self):
-		"""
-		Move to ORG position.
-		
-		NOTE: This method will be excuted in instantiation.
-		
-		Args
-		====
-		Nothing.
-		
-		Returns
-		=======
-		Nothing.
-		
-		Examples
-		========
-		>>> s.move_org()
-		"""
-		self.move_close()
-		self.get_status()
-		return
+		return self.position
 
 	def move_open(self, lock=True):
 		"""
@@ -121,11 +107,31 @@ class membrane_controller(object):
 		self.get_status()
 		return
 
-
-
-
 	def read_position(self):
 		return self.position
 
 	def read_act(self):
 		return self.act
+	
+	def start_thread(self, status):
+		if status == 'OPEN':
+			self.thread = threading.Thread(target = self.move_open)
+		else: # status == 'CLOSE'
+			self.thread = threading.Thread(target = self.move_close)
+		self.thread.start()
+		return
+
+
+def memb_client(host, port):
+	client = pyinterface.server_client_wrapper.control_client_wrapper(membrane_controller, host, port)
+	return client
+
+def memb_monitor_client(host, port):
+	client = pyinterface.server_client_wrapper.monitor_client_wrapper(membrane_controller, host, port)
+	return client
+
+def start_memb_server(port1 = ????, port2 = ????):
+	memb = memb_controller()
+	server = pyinterface.server_client_wrapper.server_wrapper(memb,'', port1, port2)
+	server.start()
+	return server
