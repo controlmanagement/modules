@@ -1,7 +1,7 @@
-
 import time
 import threading
 import pyinterface
+import threading
 
 class m4_controller(object):
 	pos_nagoya = 0
@@ -43,7 +43,7 @@ class m4_controller(object):
 		return
 
 	def move(self, dist):
-		if dist == 'nagoya':
+		if dist == 'NAGOYA':
 			nstep = -60500
 		else:
 			nstep = 60500
@@ -51,16 +51,16 @@ class m4_controller(object):
 		self.print_msg(status)
 		if status:
 			if status == 0x0004:
-				pos = 'smart'
+				pos = 'SMART'
 				if dist == pos:
 					self.print_msg('m4 is already out')
-					self.position = 'smart'
+					self.position = 'SMART'
 					return
 			elif status == 0x0008:
-				pos = 'nagoya'
+				pos = 'NAGOYA'
 				if dist == pos:
 					self.print_msg('m4 is already in')
-					self.position = 'nagoya'
+					self.position = 'NAGOYA'
 					return
 			else:
 				self.print_error('limit error')
@@ -73,18 +73,10 @@ class m4_controller(object):
 		
 		self.mtr.move(self.speed, nstep, self.low_speed, self.acc,self.dec)
 		self.get_count()
-		if dist == 'nagoya':
-			self.position = 'nagoya'
+		if dist == 'NAGOYA':
+			self.position = 'NAGOYA'
 		else:
-			self.position = 'smart'
-		return
-	
-	def m4_in(self):
-		self.move('nagoya')
-		return
-
-	def m4_out(self):
-		self.move('smart')
+			self.position = 'SMART'
 		return
 	
 	def unlock_brake(self):
@@ -179,6 +171,14 @@ class m4_controller(object):
 		
 	def read_count(self):
 		return self.count
+	
+	def start_thread(self, status):
+		if status == 'NAGOYA':
+			self.thread = threading.Thread(target = self.move, args = ('NAGOYA'))
+		else: # status == 'SMART'
+			self.thread = threading.Thread(target = self.move, args = ('SMART'))
+		self.thread.start()
+		return
 
 def m4_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(m4_controller, host, port)
