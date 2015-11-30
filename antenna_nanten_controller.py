@@ -29,7 +29,6 @@ class antenna_nanten_controller(object):
 		pass
 	
 	def move_azel(self, real_az, real_el, dcos, hosei = 'hosei_230.txt', off_az = 0, off_el = 0):
-		#def move_azel(self, real_az, real_el, dcos, geomech_flag = 1, hosei = 'hosei_230.txt', off_az = 0, off_el = 0):
 		if dcos == 0:
 			real_el += off_el
 			real_az += off_az
@@ -119,7 +118,7 @@ class antenna_nanten_controller(object):
 		track = self.move_radec(ret[0], ret[1], 0, 0, "J2000", temp, pressure, humid, lamda, dcos, hosei)
 		return track
 	
-	def move_planet(self, ntarg,code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_x = 0, off_y = 0):
+	def move_planet(self, ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_x = 0, off_y = 0):
 		ret = self.coord.calc_planet_coordJ2000(ntarg)
 		if len(ret) == 1:
 			print(ret) #error
@@ -206,6 +205,7 @@ class antenna_nanten_controller(object):
 	def tracking_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y):
 		if coord_sys == 'EQUATRIAL':
 			while not self.stop_thread.is_set():
+				print('aaa')
 				self.move_radec(gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y)
 		elif coord_sys == 'GALACTIC':
 			while not self.stop_thread.is_set():
@@ -214,7 +214,7 @@ class antenna_nanten_controller(object):
 			while not self.stop_thread.is_set():
 				self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y)
 		return
-	
+		
 	def tracking_end(self):
 		self.stop_thread.set()
 		self.tracking.join()
