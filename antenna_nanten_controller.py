@@ -4,6 +4,7 @@ import coord
 from pyslalib import slalib
 import nanten_main_controller
 import pyinterface
+import threading
 
 
 
@@ -194,6 +195,28 @@ class antenna_nanten_controller(object):
 			interval = (loop_time-mjd)*24*3600.
 			if interval < 0.01:
 				time.sleep(0.01-interval)
+		return
+	
+	def thread_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_x = 0, off_y = 0):
+		self.stop_thread = threading.Event()
+		self.tracking = threading.Thread(target = self.tracking_start, args = (coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y,))
+		return
+	
+	def tracking_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y):
+		if coord_sys == 'EQUATRIAL':
+			while not self.stop_thread.is_set():
+				self.move_radec(gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y)
+		elif coord_sys == 'GALACTIC':
+			while not self.stop_thread.is_set():
+				self.move_lb(gx, gy, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y)
+		else: # planet
+			while not self.stop_thread.is_set():
+				self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y)
+		return
+	
+	def tracking_end(self):
+		self.stop_thread.set()
+		self.tracking.join()
 		return
 
 def antenna_client(host, port):
