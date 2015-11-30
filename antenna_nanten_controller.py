@@ -200,6 +200,7 @@ class antenna_nanten_controller(object):
 	def thread_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_x = 0, off_y = 0):
 		self.stop_thread = threading.Event()
 		self.tracking = threading.Thread(target = self.tracking_start, args = (coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y,))
+		self.tracking.start()
 		return
 	
 	def tracking_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y):
