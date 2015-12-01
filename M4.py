@@ -174,9 +174,9 @@ class m4_controller(object):
 	
 	def start_thread(self, status):
 		if status == 'NAGOYA':
-			self.thread = threading.Thread(target = self.move, args = ('NAGOYA'))
+			self.thread = threading.Thread(target = self.move, args = ('NAGOYA',))
 		else: # status == 'SMART'
-			self.thread = threading.Thread(target = self.move, args = ('SMART'))
+			self.thread = threading.Thread(target = self.move, args = ('SMART',))
 		self.thread.start()
 		return
 
