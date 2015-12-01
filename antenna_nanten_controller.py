@@ -130,7 +130,7 @@ class antenna_nanten_controller(object):
 		self.move_radec(ret[2], ret[3], 0, 0,code_mode, temp, pressure, humid, lamda, dcos, hosei  , off_x , off_y )
 		return
 	
-	def calc_otf(self, x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, temp = 0, pressure = 0, humid = 0, lamda = 0, hosei = 'hosei_230.txt', code_mode = 'J2000'):
+	def calc_otf(self, x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, temp, pressure, humid, lamda, hosei, code_mode):
 		start_x = x-float(dx)/2.-float(dx)/float(dt)*rampt
 		start_y = y-float(dy)/2.-float(dy)/float(dt)*rampt
 		total_t = rampt + dt * n
@@ -156,10 +156,10 @@ class antenna_nanten_controller(object):
 				Az_track_flag = ret[0]
 				El_track_flag = ret[1]
 		mjd = 40587 + time.time()/(24.*3600.)
-		self.otf(mjd+delay/24./3600., start_x, start_y, mjd+(delay+total_t)/24./3600., end_x, end_y, dcos, coord_sys, hosei)
+		self.otf(mjd+delay/24./3600., start_x, start_y, mjd+(delay+total_t)/24./3600., end_x, end_y, dcos, coord_sys, hosei, temp, pressure, humid, lamda, code_mode)
 		return
 	
-	def otf(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp = 0, pressure = 0, humid = 0, lamda = 0, code_mode = 'J2000'):
+	def otf(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode):
 		otf_end_flag = 0
 		geomech_flag = 0
 		loop_count = 0
@@ -219,6 +219,18 @@ class antenna_nanten_controller(object):
 		self.stop_thread.set()
 		self.tracking.join()
 		return
+	
+	def otf_start(self, x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, temp = 0, pressure = 0, humid = 0, lamda = 0, hosei = 'hosei_230.txt', code_mode = 'J2000'):
+		self.otf_stop_thread = threading.Event()
+		self.otf_thread = threading.Thread(target = self.calc_otf, args = (x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, temp, pressure, humid, lamda, hosei, code_mode, ))
+		self.otf_thread.start()
+		return
+	
+	def otf_end(self):
+		self.otf_stop_thread.set()
+		self.otf_thread.join()
+		return
+
 
 def antenna_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(antenna_nanten_controller, host, port)
