@@ -143,10 +143,7 @@ class coord_calc(object):
 		
 		delta[0] = delta[0]-ggx
 		delta[1] = delta[1]-ggy
-		
-		
 		return delta
-		
 
 	def calc_vobs_fk5(self, ra_2000, dec_2000, gcalc_flag):
 		x_2000 = x = x1 = v = v_rev = v_rot = v2 = solx = solv = solx1 =[0,0,0]
@@ -284,7 +281,7 @@ class coord_calc(object):
 		elif gcalc_flag == 2:
 			return lst
 
-	def read_kisa_file(self, hosei,num):
+	def read_kisa_file(self, hosei, num):
 		f = open(hosei)
 		line = f.readline()
 		kisa = [0]*num
