@@ -3,6 +3,9 @@ import math
 import threading
 import pyinterface
 import dome_status
+import sys
+import antenna_enc
+import threading
 
 
 
@@ -14,10 +17,36 @@ class dome_controller(object):
 
 
 	def __init__(self):
-		#self.dio = pyinterface.create_gpg2000(1)
-		#self.dio.initialize()
-		self.status = dome_status.dome_get_status()
 		pass
+
+	def start_server(self):
+		ret = self.start_dome_server()
+		return
+
+	def open(self, ndev=1):
+		self.dio = pyinterface.create_gpg2000(1)
+		self.status = dome_status.dome_get_status()
+		return
+
+
+	def start_thread(self):
+		self.end_track_flag = threading.Event()
+		self.thread = threading.Thread(target = self.move_track)
+		self.thread.start()
+		return
+
+	def end_thread(self):
+		self.end_tracking.set()
+		self.thread.join()
+		return
+
+	def move_track(self):
+		while not self.end_track_flag.is_set():
+			ret = self.enc.read_azel() # ret[0] = antenna_az
+			dome_az = self.get_count()
+			self.status.dome_limit()
+			if math.fabs(ret[0]-dome_az) >= 2.0:
+				self.move(ret[0])
 
 	def print_msg(self,msg):
 		print(msg)
@@ -87,7 +116,7 @@ class dome_controller(object):
 				diff = dist - pos
 				dir = diff % 360.0
 				#print(pos,dist,diff,dir)
-				if dir <= 0.2:
+				if dir <= 0.5:
 					dir = 0
 				else:
 					if dir < 90 and dir > 270 :
@@ -126,7 +155,7 @@ class dome_controller(object):
 
 	def get_count(self):
 		self.count = self.status.dome_encoder_acq()
-		return
+		return self.count
 
 	def do_output(self, turn, speed):
 		global buffer
@@ -146,4 +175,18 @@ class dome_controller(object):
 		self.get_count()
 		return
 
+
+def dome_client(host, port):
+	client = pyinterface.server_client_wrapper.control_client_wrapper(dome_controller, host, port)
+	return client
+
+def dome_monitor_client(host, port):
+	client = pyinterface.server_client_wrapper.monitor_client_wrapper(dome_controller, host, port)
+	return client
+
+def start_dome_server(port1 = ????, port2 = ????):
+	dome = dome_controller()
+	server = pyinterface.server_client_wrapper.server_wrapper(dome,'', port1, port2)
+	server.start()
+	return server
 
