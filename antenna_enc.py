@@ -13,7 +13,7 @@ class enc_controller(object):
 		pass
 	
 	def open(self, ndev = 1):
-		self.dio = pyinterface.create_gpg6204(1)
+		self.dio = pyinterface.create_gpg6204(ndev)
 		return
 	
 	def start_server(self):
