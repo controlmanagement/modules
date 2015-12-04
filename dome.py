@@ -24,7 +24,7 @@ class dome_controller(object):
 		return
 
 	def open(self, ndev=1):
-		self.dio = pyinterface.create_gpg2000(1)
+		self.dio = pyinterface.create_gpg2000(ndev)
 		self.status = dome_status.dome_get_status()
 		return
 
