@@ -42,6 +42,7 @@ class abs_controller(object):
 
 	def move(self, dist):
 		self.get_pos()
+		if dist == self.position: return
 		if dist == 'IN':
 			self.buff = 0x00
 			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
