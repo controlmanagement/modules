@@ -32,9 +32,9 @@ class abs_controller(object):
 	
 	def get_pos(self):
 		ret = self.dio.ctrl.in_byte('FBIDIO_IN1_8')
-		if ret == 0x09:
+		if ret == 0x02:
 			self.position = 'IN'
-		elif ret == 0x05:
+		elif ret == 0x01:
 			self.position = 'OUT'
 		else:
 			self.position = 'MOVE'
@@ -44,9 +44,13 @@ class abs_controller(object):
 		self.get_pos()
 		if dist == 'IN':
 			self.buff = 0x00
-		elif dist == 'OUT':
+			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
 			self.buff = 0x01
-		while dist != self.position:
+			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
+		elif dist == 'OUT':
+			self.buff = 0x02
+			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
+			self.buff = 0x03
 			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
 			self.get_pos()
 		return
