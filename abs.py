@@ -1,26 +1,26 @@
-import math
 import time
+import threading
 import pyinterface
-import portio
+import threading
 
-
-class enc_controller(object):
+class abs_controller(object):
+	buff = 0x00
+	error = []
 	
-	Az = ''
-	El = ''
+	position = ''
+	
 	
 	def __init__(self):
-		portio.iopl(3)
 		pass
 	
-	def open(self, ndev = 2):
-		self.dio = pyinterface.create_gpg6204(ndev)
-		return
-	
 	def start_server(self):
-		ret = self.start_enc_server()
+		ret = self.start_abs_server()
 		return
 	
+	def open(self, ndev=1):
+		self.dio = pyinterface.create_gpg2000(ndev)
+		return
+
 	def print_msg(self, msg):
 		print(msg)
 		return
@@ -30,118 +30,53 @@ class enc_controller(object):
 		self.print_msg('!!!! ERROR !!!! ' + msg)
 		return
 	
-	
-	"""
-	# for renishaw (Az,El)
-	def get_azel(self):
-		cntAz = self.dio.get_position(2)
-		cntEl = self.dio.get_position(1)
-		
-		if cntAz > 0:
-			encAz = (324*cntAz+295)/590
+	def get_pos(self):
+		ret = self.dio.ctrl.in_byte('FBIDIO_IN1_8')
+		if ret == 0x02:
+			self.position = 'IN'
+		elif ret == 0x01:
+			self.position = 'OUT'
 		else:
-			encAz = (324*cntAz-295)/590
-		self.Az = encAz      #arcsecond
-		
-		if cntEl > 0:
-			encEl = (324*cntEl+295)/590
-		else:
-			encEl = (324*cntEl-295)/590
-		self.El = encEl+45*3600      #arcsecond
-		return [self.Az, self.El]
-	"""
-	
-	
-	def get_azel(self):
-		# for renishaw(El), for nikon(Az)
-		byte_az = [0]*3
-		
-		#dioOutputByte(CONTROLER_BASE0,0x03,0x04);
-		#CONRROLER_BASE0 = 0xc000
-		portio.outb(0x04, (0x2050+0x03))
-		
-		time.sleep(3./1000) # need waiting
-		#dioOutputByte(CONTROLER_BASE0,0x03,0x00);
-		portio.outb(0x00, (0x2050+0x03))
-		
-		# get data from board
-		for i in range(3):
-			# byte_az[i] = dioInputByte(CONTROLER_BASE0,i);
-			byte_az[i] = portio.inb((0x2050+i))
-			
-			# reverse byte
-			# byte_az[i]=~byte_az[i];byte[2] is hugou 1keta+7keta suuji
-			byte_az[i] = ~byte_az[i] & 0b11111111
-			
-		self.Az = self.bin2dec_2s_complement(byte_az, 3)
-		
-		"""
-		cntEl = self.dio.get_position()
-		if cntEl > 0:
-			encEl = int((324*cntEl+295)/590)
-		else:
-			encEl = int((324*cntEl-295)/590)
-		self.El = encEl+45*3600      #arcsecond
-		"""
-		return [self.Az, self.El]
-	
-	
-	
-	def bin2dec_2s_complement(self, byte, nSize):
-		i = sign = ord = 1
-		abs = 0
-		if nSize == 0:
-			return 0
-		
-		#sign = byte[nSize-1]>>7 ?-1:1;
-		if byte[nSize-1]>>7 == True:
-			sign = -1
-		else:
-			sign = 1
-		"""
-		num = bin(byte[nSize-1])
-		if len(num) == 11:
-			num = num[3:10]
-			byte[nSize-1] = int(num, 2)
-		"""
-		if sign == 1:
-			for i in range(nSize):
-				print('if') # for test
-				print('byte['+str(i)+']='+str(byte[i])) # for test
-				abs += ord*byte[i]
-				ord *= 256
-			print('abs='+str(abs)) # for test
-			abs += ord*byte[nSize-1] & (~0x80 & 0b01111111)
-			
-		else:
-			for i in range(nSize):
-				print('else') # for test
-				print('byte['+str(i)+']='+str(byte[i])) # for test
-				abs += ord*(~byte[i] & 0b11111111)
-				ord *= 256
-				print(abs)
-			abs += ord*((~byte[nSize-1] & 0b11111111) &(~0x80 & 0b01111111))
-			abs += 1
-			print('abs='+str(abs)) # for test
-		
-		return abs*sign
-	
-	
-	
-	def read_azel(self):
-		return [self.Az, self.El]
+			self.position = 'MOVE'
+		return
 
+	def move(self, dist):
+		self.get_pos()
+		if dist == self.position: return
+		if dist == 'IN':
+			self.buff = 0x00
+			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
+			self.buff = 0x01
+			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
+		elif dist == 'OUT':
+			self.buff = 0x02
+			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
+			self.buff = 0x03
+			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
+			self.get_pos()
+		return
+	
+	def read_pos(self):
+		return self.position
+	
+	def start_thread(self, dist):
+		if dist == 'IN':
+			self.thread = threading.Thread(target = self.move, args = ('IN', ))
+		else: # dist == 'OUT'
+			self.thread = threading.Thread(target = self.move, args = ('OUT', ))
+		self.thread.start()
+		return
 
-def enc_client(host, port):
-	client = pyinterface.server_client_wrapper.control_client_wrapper(enc_controller, host, port)
+def abs_client(host, port):
+	client = pyinterface.server_client_wrapper.control_client_wrapper(abs_controller, host, port)
 	return client
 
-def enc_monitor_client(host, port):
-	client = pyinterface.server_client_wrapper.monitor_client_wrapper(enc_controller, host, port)
+def abs_monitor_client(host, port):
+	client = pyinterface.server_client_wrapper.monitor_client_wrapper(abs_controller, host, port)
 	return client
 
-def start_enc_server(port1 = 9999, port2 = 9999):
-	enc = enc_controller()
-	server = pyinterface.server_client_wrapper.server_wrapper(enc, '', port1, port2)
+def start_abs_server(port1 = 5921, port2 = 5922):
+	abs = abs_controller()
+	server = pyinterface.server_client_wrapper.server_wrapper(abs,'', port1, port2)
 	server.start()
 	return server
