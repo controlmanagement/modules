@@ -37,11 +37,11 @@ class gps_controller(object):
 		subsec=(cnt[20] &1)*1 + (cnt[21] &1)*4+(cnt[45] &1)*2 + (cnt[46] &1)*8
 	
 		d=day+hour/24.0+min/(24.0*60.0)+(sec+subsec/10.0)/(24.0*60.0*60.0)
-		m=-((14-month)/12.0)
-		p=(1461*(year+4800+m)/4.0)+(367*(month-2-12*m)/12.0)
-		jd=p-(3*(int)((year+4900+m)/100.0/4.0))      -32075.5+d
-	
-		mjd=(365.25*year)+(year/400)-(year/100)+(30.59*(month-2))+day-678912
+		m=-int((14-month)/12.0)
+		p=int((1461*(year+4800+m)/4.0))+int((367*(month-2-12*m)/12.0))
+		jd=p-(3*int((int((year+4900+m)/100.0/4.0))))      -32075.5+d
+		 
+		mjd=int((365.25*year))+int((year/400))-int((year/100))+int((30.59*(month-2)))+day-678912
 	
 		#print year,month,day,hour,min,sec,subsec
   		#print d,m,p,mjd,jd
