@@ -38,10 +38,10 @@ class gps_controller(object):
 	
 		d=day+hour/24.0+min/(24.0*60.0)+(sec+subsec/10.0)/(24.0*60.0*60.0)
 		m=-int((14-month)/12.0)
-		p=int((1461*(year+4800+m)/4.0))+int((367*(month-2-12*m)/12.0))
-		jd=p-(3*int((int((year+4900+m)/100.0/4.0))))      -32075.5+d
+		p=int(1461*(year+4800+m)/4.0)+int(367*(month-2-12*m)/12.0)
+		jd=p-int(3*int((year+4900+m)/100.0/4.0))      -32075.5+d
 		 
-		mjd=int((365.25*year))+int((year/400))-int((year/100))+int((30.59*(month-2)))+day-678912
+		mjd=int(365.25*year)+int(year/400)-int(year/100)+int(30.59*(month-2))+day-678912
 	
 		#print year,month,day,hour,min,sec,subsec
   		#print d,m,p,mjd,jd
