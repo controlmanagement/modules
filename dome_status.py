@@ -92,7 +92,7 @@ class dome_get_status():
 
 	def get_remote_status(self):
 		ret = self.dio_2.di_check(11, 1)
-		if ret == 0:
+		if ret[0] == 0:
 			status = 'REMOTE'
 		else:
 			status = 'LOCAL'
