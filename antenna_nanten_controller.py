@@ -220,15 +220,41 @@ class antenna_nanten_controller(object):
 		self.tracking.join()
 		return
 	
-	def otf_start(self, x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, temp = 0, pressure = 0, humid = 0, lamda = 0, hosei = 'hosei_230.txt', code_mode = 'J2000'):
+	def otf_start(self, x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, lamda, temp = 0, pressure = 0, humid = 0, hosei = 'hosei_230.txt', code_mode = 'J2000'):
 		self.otf_stop_thread = threading.Event()
 		self.otf_thread = threading.Thread(target = self.calc_otf, args = (x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, temp, pressure, humid, lamda, hosei, code_mode, ))
 		self.otf_thread.start()
 		return
 	
-	def otf_end(self):
+	def otf_stop(self):
 		self.otf_stop_thread.set()
 		self.otf_thread.join()
+		return
+	
+	def start_limit_check(self):
+		self.stop_limit_flag = threading.Event()
+		self.limit_thread = threading.Thread(target = self.limit_check)
+		self.limit_thread.start()
+		return
+	
+	def limit_check(self):
+		while not self.stop_limit_flag.is_set():
+			ret = self.nanten.antenna_limit_check()
+			if ret:
+				self.stop_limit_flag.set()
+			else:
+				time.sleep(3)
+		try:
+			self.stop_thread.set()
+		except: pass
+		try:
+			self.otf_stop_thread.set()
+		except: pass
+		return
+	
+	def stop_limit_check(self):
+		self.stop_limit_check.set()
+		self.limit_thread.join()
 		return
 
 
