@@ -30,7 +30,7 @@ class nanten_main_controller(object):
 	
 	
 	def __init__(self):
-		self.dio = pyinterface.create_gpg2000(1)
+		self.dio = pyinterface.create_gpg2000(3)
 		self.enc = antenna_enc.enc_controller()
 		pass
 
@@ -317,3 +317,50 @@ class nanten_main_controller(object):
 		elv_err_avg = sum_el/self.count
 		return [azv_err_avg, elv_err_avg]
 	"""
+	
+	
+	def antenna_limit_check(self):
+		stop_flag = 0
+		ret = [0]*3
+		ret[0] = self.dio.ctrl.in_byte('FBIDIO_IN1_8')
+		ret[1] = self.dio.ctrl.in_byte('FBIDIO_IN9_16')
+		ret[2] = self.dio.ctrl.in_byte('FBIDIO_IN17_24')
+		
+		if (ret[0]>>4 & 0x01) == 0:
+			print('!!!soft limit CW!!!')
+			stop_flag = 1
+		if (ret[0]>>5 & 0x01) == 0:
+			print('!!!soft limit CCW!!!')
+			stop_flag = 1
+		if (ret[0]>>6 & 0x01) == 0:
+			print('!!!soft limit UP!!!')
+			stop_flag = 1
+		if (ret[0]>>7 & 0x01) == 0:
+			print('!!!soft limit DOWN!!!')
+			stop_flag = 1
+		if (ret[1]>>0 & 0x01) == 0:
+			print('!!!1st limit CW!!!')
+			stop_flag = 1
+		if (ret[1]>>1 & 0x01) == 0:
+			print('!!!1st limit CCW!!!')
+			stop_flag = 1
+		if (ret[1]>>2 & 0x01) == 0:
+			print('!!!1st limit UP!!!')
+			stop_flag = 1
+		if (ret[1]>>3 & 0x01) == 0:
+			print('!!!1st limit DOWN!!!')
+			stop_flag = 1
+		if (ret[1]>>4 & 0x01) == 0:
+			print('!!!2nd limit CW!!!')
+			stop_flag = 1
+		if (ret[1]>>5 & 0x01) == 0:
+			print('!!!2nd limit CCW!!!')
+			stop_flag = 1
+		if (ret[1]>>6 & 0x01) == 0:
+			print('!!!2nd limit UP!!!')
+			stop_flag = 1
+		if (ret[1]>>7 & 0x01) == 0:
+			print('!!!2nd limit DOWN!!!')
+			stop_flag = 1
+	return stop_flag
+		
