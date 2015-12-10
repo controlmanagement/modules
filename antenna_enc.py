@@ -73,12 +73,19 @@ class enc_controller(object):
 		
 		portio.outb(2, 0x2006)
 		cntEl = portio.inl(0x2000)
+		b_num = bin(cntEl)
+		b_num = b_num.lstrip("0b")
+		if len(b_num) == 32:
+			if int(b_num[0]) == 1:
+				b_num = int(b_num, 2)
+				cntEl = -(~b_num & 0b01111111111111111111111111111111)
 		if cntEl > 0:
 			encEl = int((324*cntEl+295)/590)
 		else:
 			encEl = int((324*cntEl-295)/590)
 		self.El = encEl+45*3600      #arcsecond
-		
+		print(self.Az/3600.)
+		print(self.El/3600.)
 		return [self.Az, self.El]
 	
 	
@@ -102,22 +109,15 @@ class enc_controller(object):
 		"""
 		if sign == 1:
 			for i in range(nSize):
-				print('if') # for test
-				print('byte['+str(i)+']='+str(byte[i])) # for test
 				abs += ord*byte[i]
 				ord *= 256
-			print('abs='+str(abs)) # for test
 			abs += ord*byte[nSize-1] & (~0x80 & 0b01111111)
 			
 		else:
 			for i in range(nSize):
-				print('else') # for test
-				print('byte['+str(i)+']='+str(byte[i])) # for test
 				abs += ord*(~byte[i] & 0b11111111)
 				ord *= 256
-				print(abs)
 			abs += 1
-			print('abs='+str(abs)) # for test
 		
 		return abs*sign
 	
