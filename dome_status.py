@@ -1,6 +1,5 @@
 import time
 import math
-import threading
 import pyinterface
 
 
@@ -10,17 +9,24 @@ class dome_get_status():
 	dome_enc1loop = 2343
 	dome_enc_tel_offset = 1513*360
 	dome_enc2arcsec = (3600.0*360/dome_enc1loop)
-	error = []
+
 
 
 
 	def __init__(self):
 		pass
 	
-	def open(self, ndev1 = 1, ndev2 = 2):
+	def open(self, ndev1 = 5, ndev2 = 1):
 		self.dio_2 = pyinterface.create_gpg2000(ndev1)
 		self.dio_6 = pyinterface.create_gpg6204(ndev2)
 		return
+	
+	def dome_enc_initialize(self):
+		self.dio_6.ctrl.reset()
+		self.dio_6.ctrl.set_mode(4, 0, 1, 0)
+		#self.dio_6.ctrl.set_counter(self.dome_enc_offset)  ???
+		return
+		
 	
 	def print_msg(self,msg):
 		print(msg)
@@ -28,7 +34,7 @@ class dome_get_status():
 
 	def print_error(self,msg):
 		self.error.append(msg)
-		self.print_msg('!!!!ERROR!!!!'+ msg)
+		self.print_msg('!!!!ERROR!!!!')
 		return
 
 	def get_action(self):
@@ -86,7 +92,7 @@ class dome_get_status():
 
 	def get_remote_status(self):
 		ret = self.dio_2.di_check(11, 1)
-		if ret[0] == 0:
+		if ret == 0:
 			status = 'REMOTE'
 		else:
 			status = 'LOCAL'
@@ -108,38 +114,35 @@ class dome_get_status():
 			self.print_error('controll board inverter(of dome_door or membrane) error')
 		return
 
-	def limit_check(self,ret=13):
+	def limit_check(self):
 		limit = self.dio_2.di_check(12, 4)
-		if limit[0:4] == [0,0,0,0]:
+		ret = 0
+		if limit == [0,0,0,0]:
 			ret = 0
-		elif limit[0:4] == [1,0,0,0]:
+		elif limit == [1,0,0,0]:
 			ret = 1
-		elif limit[0:4] == [0,1,0,0]:
+		elif limit == [0,1,0,0]:
 			ret = 2
-		elif limit[0:4] == [1,1,0,0]:
+		elif limit == [1,1,0,0]:
 			ret = 3
-		elif limit[0:4] == [0,0,1,0]:
+		elif limit == [0,0,1,0]:
 			ret = 4
-		elif limit[0:4] == [1,0,1,0]:
+		elif limit == [1,0,1,0]:
 			ret = 5
-		elif limit[0:4] == [0,1,1,0]:
+		elif limit == [0,1,1,0]:
 			ret = 6
-		elif limit[0:4] == [1,1,1,0]:
+		elif limit == [1,1,1,0]:
 			ret = 7
-		elif limit[0:4] == [0,0,0,1]:
+		elif limit == [0,0,0,1]:
 			ret = 8
-		elif limit[0:4] == [1,0,0,1]:
+		elif limit == [1,0,0,1]:
 			ret = 9
-		elif limit[0:4] == [0,1,0,1]:
+		elif limit == [0,1,0,1]:
 			ret = 10
-		elif limit[0:4] == [1,1,0,1]:
+		elif limit == [1,1,0,1]:
 			ret = 11
-		elif limit[0:4] == [0,0,1,1]:
+		elif limit == [0,0,1,1]:
 			ret = 12
-		else :
-			self.print_error('at limit_check()')
-			return
-		
 		return ret
 
 	def dome_limit(self):
@@ -150,9 +153,9 @@ class dome_get_status():
 	
 	def dome_encoder_acq(self):
 		counter = self.dio_6.get_position()
-		dome_enc_arcsec = -((counter-self.dome_encoffset)*self.dome_enc2arcsec)-self.dome_enc_tel_offset
+		dome_enc_arcsec = -int(((counter-self.dome_encoffset)*self.dome_enc2arcsec)-self.dome_enc_tel_offset)
 		while(dome_enc_arcsec>1800.*360):
-			dome_enc_arcsec-=3600.*360;
+			dome_enc_arcsec-=3600.*360
 		while(dome_enc_arcsec<=-1800.*360):
 			dome_enc_arcsec+=3600.*360
 		return dome_enc_arcsec
