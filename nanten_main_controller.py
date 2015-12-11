@@ -362,5 +362,5 @@ class nanten_main_controller(object):
 		if (ret[1]>>7 & 0x01) == 0:
 			print('!!!2nd limit DOWN!!!')
 			stop_flag = 1
-	return stop_flag
+		return stop_flag
 		
