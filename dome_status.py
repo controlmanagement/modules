@@ -4,11 +4,12 @@ import pyinterface
 
 
 class dome_get_status():
-	touchsensor_pos = [0,-197,-391,-586,-780,-974,-1168,-1363,-1561,-1755,-1948,-2143]
+	touchsensor_pos = [-391,-586,-780,-974,-1168,-1363,-1561,-1755,-1948,-2143, 0, -197]
 	dome_encoffset = 10000
 	dome_enc1loop = 2343
 	dome_enc_tel_offset = 1513*360
 	dome_enc2arcsec = (3600.0*360/dome_enc1loop)
+	dome_position = 0
 
 
 
@@ -27,6 +28,13 @@ class dome_get_status():
 		#self.dio_6.ctrl.set_counter(self.dome_enc_offset)  ???
 		return
 		
+	
+	def dome_enc_correct(self):
+		ret = self.dome_limit()
+		while ret == 0:
+			ret = self.dome_limit()
+		print('ENCODER CORRECT AT LIMIT '+str(ret))
+		return
 	
 	def print_msg(self,msg):
 		print(msg)
@@ -117,31 +125,31 @@ class dome_get_status():
 	def limit_check(self):
 		limit = self.dio_2.di_check(12, 4)
 		ret = 0
-		if limit == [0,0,0,0]:
+		if limit[0:4] == [0,0,0,0]:
 			ret = 0
-		elif limit == [1,0,0,0]:
+		elif limit[0:4] == [1,0,0,0]:
 			ret = 1
-		elif limit == [0,1,0,0]:
+		elif limit[0:4] == [0,1,0,0]:
 			ret = 2
-		elif limit == [1,1,0,0]:
+		elif limit[0:4] == [1,1,0,0]:
 			ret = 3
-		elif limit == [0,0,1,0]:
+		elif limit[0:4] == [0,0,1,0]:
 			ret = 4
-		elif limit == [1,0,1,0]:
+		elif limit[0:4] == [1,0,1,0]:
 			ret = 5
-		elif limit == [0,1,1,0]:
+		elif limit[0:4] == [0,1,1,0]:
 			ret = 6
-		elif limit == [1,1,1,0]:
+		elif limit[0:4] == [1,1,1,0]:
 			ret = 7
-		elif limit == [0,0,0,1]:
+		elif limit[0:4] == [0,0,0,1]:
 			ret = 8
-		elif limit == [1,0,0,1]:
+		elif limit[0:4] == [1,0,0,1]:
 			ret = 9
-		elif limit == [0,1,0,1]:
+		elif limit[0:4] == [0,1,0,1]:
 			ret = 10
-		elif limit == [1,1,0,1]:
+		elif limit[0:4] == [1,1,0,1]:
 			ret = 11
-		elif limit == [0,0,1,1]:
+		elif limit[0:4] == [0,0,1,1]:
 			ret = 12
 		return ret
 
@@ -158,6 +166,10 @@ class dome_get_status():
 			dome_enc_arcsec-=3600.*360
 		while(dome_enc_arcsec<=-1800.*360):
 			dome_enc_arcsec+=3600.*360
+		self.dome_position = dome_enc_arcsec
 		return dome_enc_arcsec
+	
+	def read_dome_enc(self):
+		return self.dome_position
 
 
