@@ -24,9 +24,34 @@ class antenna_nanten_controller(object):
 	
 	
 	def __init__(self):
-		self.coord = coord.coord_calc()
+		#self.coord = coord.coord_calc() # for test <= MUST REMOVE [#]
 		self.nanten = nanten_main_controller.nanten_main_controller()
 		pass
+	
+	def open(self):
+		self.dio = pyinterface.create_gpg2000(4)
+		return
+	
+	def drive_on(self): # this fanction => clear_error and drive_on
+		# void motordrv_nanten2_drive_on(BOOL az_drive,BOOL el_drive) by [motordrv_nanten2.c]
+		self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 3)
+		return
+	
+	def drive_off(self):
+		self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0)
+		return
+	
+	def contactor_on(self):
+		self.dio.ctrl.out_byte("FBIDIO_OUT9_16", 15)
+		return
+	
+	def contactor_off(self):
+		self.dio.ctrl.out_byte("FBIDIO_OUT9_16", 0)
+		return
+	
+	def clear_error(self):
+		self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 8)
+		return
 	
 	def move_azel(self, real_az, real_el, dcos, hosei = 'hosei_230.txt', off_az = 0, off_el = 0):
 		if dcos == 0:
@@ -218,6 +243,8 @@ class antenna_nanten_controller(object):
 	def tracking_end(self):
 		self.stop_thread.set()
 		self.tracking.join()
+		self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+		self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
 		return
 	
 	def otf_start(self, x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, lamda, temp = 0, pressure = 0, humid = 0, hosei = 'hosei_230.txt', code_mode = 'J2000'):
