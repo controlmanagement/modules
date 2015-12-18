@@ -38,7 +38,7 @@ class m4_controller(object):
 		self.print_msg('!!!! ERROR !!!! ' + msg)
 		return
 	
-	def get_position(self):
+	def get_pos(self):
 		status = self.mtr.ctrl.get_status('MTR_LIMIT_STATUS')
 		if status == 0x0008:
 			self.position = 'SMART'
