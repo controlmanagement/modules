@@ -33,7 +33,30 @@ class nanten_main_controller(object):
 		self.dio = pyinterface.create_gpg2000(3)
 		self.enc = antenna_enc.enc_controller()
 		pass
-
+	
+	def azel_move(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
+		test_flag = 1
+		while test_flag:
+			hensa_flag = 1
+			ret = self.enc.get_azel()
+			if abs(az_arcsec-ret[0]) >= 1 or abs(el_arcsec-ret[1]) > 1:
+				while hensa_flag:
+					b_time = time.time()
+					self.move_azel(az_arcsec, el_arcsec, az_max_rate, el_max_rate)
+					ret = self.enc.get_azel()
+					if abs(az_arcsec-ret[0]) <= 1 and abs(el_arcsec-ret[1]) <= 1:
+						hensa_flag = 0
+						self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+						self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+						time.sleep(0.01)
+					else:
+						interval = time.time()-b_time
+						if interval <= 0.01:
+							time.sleep(0.01-interval)
+			else:
+				test_flag = 0
+		return
+	
 	def move_azel(self, az_arcsec, el_arcsec, az_max_rate = 16000, el_max_rate = 12000, m_bStop = 'FALSE'):
 		MOTOR_MAXSTEP = 10000
 		MOTOR_AZ_MAXRATE = 16000
@@ -112,11 +135,11 @@ class nanten_main_controller(object):
 		Del = 0.07
 		"""
 		# New parameter
-		p_az_coeff = 26.2
+		p_az_coeff = 3.8
 		i_az_coeff = 1.7
 		d_az_coeff = 0.
 		s_az_coeff = 0.
-		p_el_coeff = 26.2
+		p_el_coeff = 3.8
 		i_el_coeff = 0.8
 		d_el_coeff = 0.
 		
