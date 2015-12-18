@@ -38,9 +38,16 @@ class m4_controller(object):
 		self.print_msg('!!!! ERROR !!!! ' + msg)
 		return
 	
-	def get_count(self):
-		self.count = self.mtr.get_position()
-		return
+	def get_position(self):
+		status = self.mtr.ctrl.get_status('MTR_LIMIT_STATUS')
+		if status == 0x0008:
+			self.position = 'SMART'
+		elif status == 0x004:
+			self.position = 'NAGOYA'
+		else:
+			self.print_error('limit_error')
+			return
+		return self.position
 
 	def move(self, dist):
 		if dist == 'NAGOYA':
@@ -50,13 +57,13 @@ class m4_controller(object):
 		status = self.mtr.ctrl.get_status('MTR_LIMIT_STATUS')
 		self.print_msg(status)
 		if status:
-			if status == 0x0004:
+			if status == 0x0008:
 				pos = 'SMART'
 				if dist == pos:
 					self.print_msg('m4 is already out')
 					self.position = 'SMART'
 					return
-			elif status == 0x0008:
+			elif status == 0x0004:
 				pos = 'NAGOYA'
 				if dist == pos:
 					self.print_msg('m4 is already in')
@@ -174,9 +181,9 @@ class m4_controller(object):
 	
 	def start_thread(self, status):
 		if status == 'NAGOYA':
-			self.thread = threading.Thread(target = self.move, args = ('NAGOYA',))
+			self.thread = threading.Thread(target = self.move, args = ('NAGOYA', ))
 		else: # status == 'SMART'
-			self.thread = threading.Thread(target = self.move, args = ('SMART',))
+			self.thread = threading.Thread(target = self.move, args = ('SMART', ))
 		self.thread.start()
 		return
 
