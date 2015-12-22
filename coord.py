@@ -70,7 +70,7 @@ class coord_calc(object):
 		
 		# Spherical to x,y,z 
 		v = slalib.sla_dcs2c(gra, gdec)
-		for i in range[3]:
+		for i in range (3):
 			v[i] *= dist
   		
 		# Precession to date. 
