@@ -22,15 +22,14 @@ class antenna_nanten_controller(object):
 	instruction = ''
 	dx = dy = dt = n = rampt = delay = 0
 	
-	
+	target_az = 0
+	target_el = 0
+
 	def __init__(self):
-		#self.coord = coord.coord_calc() # for test <= MUST REMOVE [#]
+		self.coord = coord.coord_calc() # for test <= MUST REMOVE [#]
 		self.nanten = nanten_main_controller.nanten_main_controller()
-		pass
-	
-	def open(self):
 		self.dio = pyinterface.create_gpg2000(4)
-		return
+		pass
 	
 	def drive_on(self): # this fanction => clear_error and drive_on
 		# void motordrv_nanten2_drive_on(BOOL az_drive,BOOL el_drive) by [motordrv_nanten2.c]
@@ -73,6 +72,9 @@ class antenna_nanten_controller(object):
 		ret = self.coord.apply_kisa(real_az, real_el, hosei) # until define the set_coord
 		target_az = real_az+ret[0]
 		target_el = real_el+ret[1]
+		
+		self.target_az = target_az
+		self.target_el = target_el
 		
 		#track = self.nanten.move_azel(target_az, target_el, az_max_rate, el_max_rate)
 		track = self.nanten.move_azel(target_az, target_el) #until define the set_coord
@@ -122,6 +124,9 @@ class antenna_nanten_controller(object):
 		real_az = ret[0]
 		real_el = math.pi/2. - ret[1]
 		
+		real_az = real_az*180./math.pi
+		real_el = real_el*180./math.pi
+
 		track = self.move_azel(real_az, real_el, dcos, hosei)
 		return track
 	
@@ -284,16 +289,19 @@ class antenna_nanten_controller(object):
 		self.limit_thread.join()
 		return
 
+	def read_targetazel(self):
+		return [self.target_az, self.target_el]
+
 
 def antenna_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(antenna_nanten_controller, host, port)
 	return client
 
 def antenna_monitor_client(host, port):
-	client = pyinterface.server_client_wrapper.monitor_client_wrapper(antenna_nanten_controler, host, port)
+	client = pyinterface.server_client_wrapper.monitor_client_wrapper(antenna_nanten_controller, host, port)
 	return client
 
-def start_antenna_server(port1 = 5925, port2 = 5926):
+def start_antenna_server(port1 = 8003, port2 = 8004):
 	antenna = antenna_nanten_controller()
 	server = pyinterface.server_client_wrapper.server_wrapper(antenna, '', port1, port2)
 	server.start()
