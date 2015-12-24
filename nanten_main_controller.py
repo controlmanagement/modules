@@ -6,9 +6,6 @@ import pyinterface
 import antenna_enc
 
 
-
-
-
 class nanten_main_controller(object):
 	
 	MOTOR_SAMPLING = 10 #memo
@@ -28,14 +25,18 @@ class nanten_main_controller(object):
 	pre_hensa_az = pre_hensa_el = 0
 	pre_az_arcsec = pre_el_arcsec = 0
 	
+	indaz = 0
+	indel = 0
 	
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(3)
-		self.enc = antenna_enc.enc_controller()
+		self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
 		pass
 	
 	def azel_move(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
 		test_flag = 1
+		self.indaz = az_arcsec
+		self.indel = el_arcsec
 		while test_flag:
 			hensa_flag = 1
 			ret = self.enc.get_azel()
@@ -48,7 +49,7 @@ class nanten_main_controller(object):
 						hensa_flag = 0
 						self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
 						self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
-						time.sleep(0.01)
+						time.sleep(0.02)
 					else:
 						interval = time.time()-b_time
 						if interval <= 0.01:
@@ -386,4 +387,20 @@ class nanten_main_controller(object):
 			print('!!!2nd limit DOWN!!!')
 			stop_flag = 1
 		return stop_flag
-		
+	
+	def read_indazel(self):
+		return [self.indaz, self.indel]
+
+def nanten_main_client(host, port):
+	client = pyinterface.server_client_wrapper.control_client_wrapper(nanten_main_controller, host, port)
+	return client
+
+def nanten_main_monitor_client(host, port):
+	client = pyinterface.server_client_wrapper.monitor_client_wrapper(nanten_main_controller, host, port)
+	return client
+
+def start_nanten_main_server(port1 = 7003, port2 = 7004):
+	nanten_main = nanten_main_controller()
+	server = pyinterface.server_client_wrapper.server_wrapper(nanten_main, '', port1, port2)
+	server.start()
+	return server
