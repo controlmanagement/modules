@@ -11,12 +11,9 @@ class enc_controller(object):
 	
 	def __init__(self):
 		portio.iopl(3)
+		self.get_azel()
 		pass
-	
-	def start_server(self):
-		ret = self.start_enc_server()
-		return
-	
+
 	def print_msg(self, msg):
 		print(msg)
 		return
@@ -80,12 +77,13 @@ class enc_controller(object):
 				b_num = int(b_num, 2)
 				cntEl = -(~b_num & 0b01111111111111111111111111111111)
 		if cntEl > 0:
-			encEl = int((324*cntEl+295)/590)
+			encEl = int((324.*cntEl+295.)/590.)
 		else:
-			encEl = int((324*cntEl-295)/590)
-		self.El = encEl+45*3600      #arcsecond
-		print(self.Az/3600.)
-		print(self.El/3600.)
+			encEl = int((324.*cntEl-295.)/590.)
+		self.El = encEl+45.*3600.      #arcsecond
+		
+                #print(self.Az/3600.)
+		#print(self.El/3600.)
 		return [self.Az, self.El]
 	
 	
@@ -135,7 +133,7 @@ def enc_monitor_client(host, port):
 	client = pyinterface.server_client_wrapper.monitor_client_wrapper(enc_controller, host, port)
 	return client
 
-def start_enc_server(port1 = 9999, port2 = 9999):
+def start_enc_server(port1 = 8001, port2 = 8002):
 	enc = enc_controller()
 	server = pyinterface.server_client_wrapper.server_wrapper(enc, '', port1, port2)
 	server.start()
