@@ -24,7 +24,12 @@ class antenna_nanten_controller(object):
 	
 	target_az = 0
 	target_el = 0
-
+	drive_az = drive_el = "OFF"
+	az_track = el_track = "FALSE"
+	error_az = error_el = servo_error_az = servo_error_el = "FALSE"
+	az_v = el_v = 0
+	
+	
 	def __init__(self):
 		self.coord = coord.coord_calc() # for test <= MUST REMOVE [#]
 		self.nanten = nanten_main_controller.nanten_main_controller()
@@ -47,6 +52,26 @@ class antenna_nanten_controller(object):
 	def contactor_off(self):
 		self.dio.ctrl.out_byte("FBIDIO_OUT9_16", 0)
 		return
+	
+	def drive_check(self):
+		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN1_8")
+		if (ret>>2 & 0x01) == 1:
+			self.drive_az = "ON"
+		if (ret>>3 & 0x01) == 1:
+			self.drive_el = "ON"
+		return [self.drive_az, self.drive_el]
+	
+	def error_check(self):
+		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN17_24")
+		if (ret>>4 & 0x01) == 1:
+			self.error_az = "TRUE"
+		if (ret>>5 & 0x01) == 1:
+			self.error_el = "TRUE"
+		if (ret>>6 & 0x01) == 1:
+			self.servo_error_az = "TRUE"
+		if (ret>>7 & 0x01) == 1:
+			self.servo_error_el = "TRUE"
+		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el]
 	
 	def clear_error(self):
 		self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 8)
@@ -78,6 +103,10 @@ class antenna_nanten_controller(object):
 		
 		#track = self.nanten.move_azel(target_az, target_el, az_max_rate, el_max_rate)
 		track = self.nanten.move_azel(target_az, target_el) #until define the set_coord
+		self.az_track = ret[0]
+		self.el_track = ret[1]
+		self.az_v = ret[2]
+		self.el_v = ret[3]
 		return track
 	
 	def move_radec(self, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_x = 0, off_y = 0):
@@ -88,7 +117,7 @@ class antenna_nanten_controller(object):
 		tv_usec = tv - tv_sec
 		mjd = (tv_sec + tv_usec/1000000.)/24./3600. + 40587.0 # 40587.0 = MJD0
 		tai_utc = 36.0 # tai_utc=TAI-UTC  2015 July from ftp://maia.usno.navy.mil/ser7/tai-utc.dat
-
+		
 		# lamda is wavelength(not lambda)
 		if code_mode == "B1950":
 			ret = slalib.sla_fk425(gx, gy, gpx, gpy, 0, 0)
@@ -126,7 +155,7 @@ class antenna_nanten_controller(object):
 		
 		real_az = real_az*180./math.pi
 		real_el = real_el*180./math.pi
-
+	
 		track = self.move_azel(real_az, real_el, dcos, hosei)
 		return track
 	
@@ -288,9 +317,18 @@ class antenna_nanten_controller(object):
 		self.stop_limit_check.set()
 		self.limit_thread.join()
 		return
-
+	
 	def read_targetazel(self):
 		return [self.target_az, self.target_el]
+	
+	def read_track(self):
+		return [self.az_track, self.el_track]
+	
+	def read_error(self):
+		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el]
+	
+	def read_v(self): # [arcsec/s]
+		return [self.az_v, self.el_v]
 
 
 def antenna_client(host, port):
