@@ -28,7 +28,7 @@ class dome_controller(object):
 	def open(self):
 		self.status = dome_status.dome_get_status()
 		self.status.open()
-		self.dio = self.status.dio_2
+		self.dio = pyinterface.create_gpg2000(5)
 		self.enc = antenna_enc.enc_controller()
 		return
 	
@@ -129,50 +129,50 @@ class dome_controller(object):
 		return
 	
 	def dome_open(self):
-		ret = self.status.get_door_status()
+		ret = self.get_door_status()
 		if ret[1] != 'OPEN' and ret[3] != 'OPEN':
 			buff = [1, 1]
 			self.dio.do_output(buff, 5, 2)
-			d_door = self.status.get_door_status()
+			d_door = self.get_door_status()
 			while ret[1] != 'OPEN':
 				time.sleep(5)
-				ret = self.status.get_door_status()
+				ret = self.get_door_status()
 		buff = [0, 0]
 		self.dio.do_output(buff, 5, 2)
 		return
 	
 	def dome_close(self):
-		ret = self.status.get_door_status()
+		ret = self.get_door_status()
 		if ret[1] != 'CLOSE' and ret[3] != 'CLOSE':
 			buff = [0, 1]
 			self.dio.do_output(buff, 5, 2)
 			while ret[1] != 'CLOSE':
 				time.sleep(5)
-				ret = self.status.get_door_status()
+				ret = self.get_door_status()
 		buff = [0, 0]
 		self.dio.do_output(buff, 5, 2)
 		return
 	
 	def memb_open(self):
-		ret = self.status.get_memb_status()
+		ret = self.get_memb_status()
 		if ret[1] != 'OPEN':
 			buff = [1, 1]
 			self.dio.do_output(buff, 7, 2)
 			while ret[1] != 'OPEN':
 				time.sleep(5)
-				ret = self.status.get_memb_status()
+				ret = self.get_memb_status()
 		buff = [0, 0]
 		self.dio.do_output(buff, 7, 2)
 		return
 	
 	def memb_close(self):
-		ret = self.status.get_memb_status()
+		ret = self.get_memb_status()
 		if ret[1] != 'CLOSE':
 			buff = [0, 1]
 			self.dio.do_output(buff, 7, 2)
 			while ret[1] != 'CLOSE':
 				time.sleep(5)
-				ret = self.status.get_memb_status()
+				ret = self.get_memb_status()
 		buff = [0, 0]
 		self.dio.do_output(buff, 7, 2)
 		return
@@ -187,10 +187,10 @@ class dome_controller(object):
 	def dome_fan(self, fan):
 		if fan == 'on':
 			fan_bit = [1, 1]
-			self.status.dio.do_output(fan_bit, 9, 2)
+			self.dio.do_output(fan_bit, 9, 2)
 		else:
 			fan_bit = [0, 0]
-			self.status.dio.do_output(fan_bit, 9, 2)
+			self.dio.do_output(fan_bit, 9, 2)
 		return
 	
 	def read_count(self):
@@ -218,6 +218,121 @@ class dome_controller(object):
 		self.status.dome_limit()
 		self.get_count()
 		return
+	
+	def get_action(self):
+		ret = self.dio.di_check(1, 1)
+		if ret == 0:
+			move_status = 'OFF'
+		else:
+			move_status = 'DRIVE'
+		return move_status
+
+	def get_door_status(self):
+		ret = self.dio.di_check(2, 6)
+		if ret[0] == 0:
+			right_act = 'OFF'
+		else:
+			right_act = 'DRIVE'
+		
+		if ret[1] == 0:
+			if ret[2] == 0:
+				right_pos = 'MOVE'
+			else:
+				right_pos = 'CLOSE'
+		else:
+			right_pos = 'OPEN'
+		
+		if ret[3] == 0:
+			left_act = 'OFF'
+		else:
+			left_act = 'DRIVE'
+		
+		if ret[4] == 0:
+			if ret[5] == 0:
+				left_pos = 'MOVE'
+			else:
+				left_pos = 'CLOSE'
+		else:
+			left_pos = 'OPEN'
+		return [right_act, right_pos, left_act, left_pos]
+		
+	def get_memb_status(self):
+		ret = self.dio.di_check(8, 3)
+		if ret[0] == 0:
+			memb_act = 'OFF'
+		else:
+			memb_act = 'DRIVE'
+		
+		if ret[1] == 0:
+			if ret[2] == 0:
+				memb_pos = 'MOVE'
+			else:
+				memb_pos = 'CLOSE'
+		else:
+			memb_pos = 'OPEN'
+		return [memb_act, memb_pos]
+
+	def get_remote_status(self):
+		ret = self.dio.di_check(11, 1)
+		if ret[0] == 0:
+			status = 'REMOTE'
+		else:
+			status = 'LOCAL'
+		return status
+
+	def error_check(self):
+		ret = self.dio.di_check(16, 6)
+		if ret[0] == 1:
+			self.print_error('controll board sequencer error')
+		if ret[1] == 1:
+			self.print_error('controll board inverter error')
+		if ret[2] == 1:
+			self.print_error('controll board thermal error')
+		if ret[3] == 1:
+			self.print_error('controll board communication error')
+		if ret[4] == 1:
+			self.print_error('controll board sequencer(of dome_door or membrane) error')
+		if ret[5] == 1:
+			self.print_error('controll board inverter(of dome_door or membrane) error')
+		return
+	
+		def limit_check(self):
+		limit = self.dio.di_check(12, 4)
+		ret = 0
+		if limit[0:4] == [0,0,0,0]:
+			ret = 0
+		elif limit[0:4] == [1,0,0,0]:
+			ret = 1
+		elif limit[0:4] == [0,1,0,0]:
+			ret = 2
+		elif limit[0:4] == [1,1,0,0]:
+			ret = 3
+		elif limit[0:4] == [0,0,1,0]:
+			ret = 4
+		elif limit[0:4] == [1,0,1,0]:
+			ret = 5
+		elif limit[0:4] == [0,1,1,0]:
+			ret = 6
+		elif limit[0:4] == [1,1,1,0]:
+			ret = 7
+		elif limit[0:4] == [0,0,0,1]:
+			ret = 8
+		elif limit[0:4] == [1,0,0,1]:
+			ret = 9
+		elif limit[0:4] == [0,1,0,1]:
+			ret = 10
+		elif limit[0:4] == [1,1,0,1]:
+			ret = 11
+		elif limit[0:4] == [0,0,1,1]:
+			ret = 12
+		return ret
+	
+	def dome_limit(self):
+		limit = self.limit_check()
+		if limit != 0:
+			self.status.dio.ctrl.set_counter(self.touchsensor_pos[limit-1]+self.dome_encoffset)
+		return limit
+	
 
 
 def dome_client(host, port):
