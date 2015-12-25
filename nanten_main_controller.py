@@ -68,6 +68,8 @@ class nanten_main_controller(object):
 		el_rate_ref = ret[1]
 		Az_track_flag = ret[2]
 		El_track_flag = ret[3]
+		azv = ret[4]
+		elv = ret[5]
 		
 		# command value to target value
 		daz_rate = az_rate_ref - self.az_rate_d
@@ -123,7 +125,7 @@ class nanten_main_controller(object):
 		self.dio.ctrl.out_word("FBIDIO_OUT17_32", dummy)
 		#dioOutputWord(CONTROLER_BASE2,0x02,dummy);
 		self.el_rate_d = dummy
-		return [Az_track_flag, El_track_flag]
+		return [Az_track_flag, El_track_flag, azv, elv]
 
 	def calc_pid(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
 		# Default
@@ -316,7 +318,7 @@ class nanten_main_controller(object):
 		
 		az_rate_ref = int(self.az_rate) #??
 		el_rate_ref = int(self.el_rate) #??
-		return [az_rate_ref, el_rate_ref, m_bAzTrack, m_bElTrack]
+		return [az_rate_ref, el_rate_ref, m_bAzTrack, m_bElTrack, current_speed_az*100, current_speed_el*100]
 
 	"""
 	def err_avg_func(self, az_value, el_value):
