@@ -86,7 +86,7 @@ def handler(clientsocket, clientaddr):
         #    for line in ins:
         #      newdata += basename(file)+'-'+line
         # send the data back to the client
-        dic = ctrl.get_condition()
+        dic = ctrl.read_status()
         """
         newdata = "data_lst\t"+str(dic(""))+"\tFloat"\
                   "data_ut\t"+str(dic(""))+"\tFloat"\
@@ -178,12 +178,12 @@ def handler(clientsocket, clientaddr):
                   "data_Moon-position-El\t"+str(dic(""))+"\tFloat"\
                   "data_Moon-age\t"+str(dic(""))+"\tFloat"\
         """
-        newdata = "data_ut\t"+str(dic(""))+"\tFloat"\
-                  #Antenna
-                  "data_Current-position-Az\t"+str(dic(""))+"\tFloat"\
-                  "data_Current-position-El\t"+str(dic(""))+"\tFloat"\
-                  "data_Command-position-Az\t"+str(dic(""))+"\tFloat"\
-                  "data_Command-position-El\t"+str(dic(""))+"\tFloat"\
+        newdata = "data_ut\t"+str(dic("time"))+"\tFloat"\
+                  "data_Current-position-Az\t"+str(dic("current_az"))+"\tFloat"\
+                  "data_Current-position-El\t"+str(dic("current_el"))+"\tFloat"\
+                  "data_Command-position-Az\t"+str(dic("command_az"))+"\tFloat"\
+                  "data_Command-position-El\t"+str(dic("command_el"))+"\tFloat"\
+                  """
                   "data_Deviation-Az\t"+str(dic(""))+"\tFloat"\
                   "data_Deviation-El\t"+str(dic(""))+"\tFloat"\
                   "data_Drive-ready\t"+str(dic(""))+"\tString"\
@@ -227,7 +227,7 @@ def handler(clientsocket, clientaddr):
 
                   #Others
 
-
+                  """
         clientsocket.send(newdata)
         #sleep(1)
 
