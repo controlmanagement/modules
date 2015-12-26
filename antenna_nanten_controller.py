@@ -94,6 +94,9 @@ class antenna_nanten_controller(object):
 			target_az = real_az
 			target_el = real_el
 		"""
+		real_az = real_az*math.pi/180.
+		real_el = real_el*math.pi/180.
+		
 		ret = self.coord.apply_kisa(real_az, real_el, hosei) # until define the set_coord
 		target_az = real_az+ret[0]
 		target_el = real_el+ret[1]
