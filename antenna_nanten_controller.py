@@ -77,6 +77,16 @@ class antenna_nanten_controller(object):
 		self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 8)
 		return
 	
+	def azel_move(self, az_arcsec, el_arcsec, az_max_rate = 12000, el_max_rate = 12000):
+		try:
+			self.stop_thread.set()
+		except: pass
+		try:
+			self.otf_stop_thread.set()
+		except: pass
+		self.nanten.azel_move(az_arcsec, el_arcsec, az_max_rate, el_max_rate)
+		return
+	
 	def move_azel(self, real_az, real_el, dcos, hosei = 'hosei_230.txt', off_az = 0, off_el = 0):
 		if dcos == 0:
 			real_el += off_el
