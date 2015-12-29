@@ -126,9 +126,7 @@ class antenna_nanten_controller(object):
 		#lamda not equals lambda
 		# Calculate current MJD
 		tv = time.time()
-		tv_sec = int(tv)
-		tv_usec = tv - tv_sec
-		mjd = (tv_sec + tv_usec/1000000.)/24./3600. + 40587.0 # 40587.0 = MJD0
+		mjd = tv/24./3600. + 40587.0 # 40587.0 = MJD0
 		tai_utc = 36.0 # tai_utc=TAI-UTC  2015 July from ftp://maia.usno.navy.mil/ser7/tai-utc.dat
 		
 		# lamda is wavelength(not lambda)
