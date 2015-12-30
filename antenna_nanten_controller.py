@@ -25,11 +25,11 @@ class antenna_nanten_controller(object):
 	target_az = 0
 	target_el = 0
 	drive_az = drive_el = "OFF"
-	#az_track = el_track = "FALSE"
-	#error_az = error_el = servo_error_az = servo_error_el = "FALSE"
-	#az_v = el_v = 0
-
-
+	az_track = el_track = "FALSE"
+	error_az = error_el = servo_error_az = servo_error_el = "FALSE"
+	az_v = el_v = 0
+	
+	
 	def __init__(self):
 		self.coord = coord.coord_calc() # for test <= MUST REMOVE [#]
 		self.nanten = nanten_main_controller.nanten_main_controller()
@@ -52,7 +52,7 @@ class antenna_nanten_controller(object):
 	def contactor_off(self):
 		self.dio.ctrl.out_byte("FBIDIO_OUT9_16", 0)
 		return
-
+	
 	def drive_check(self):
 		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN1_8")
 		if (ret>>2 & 0x01) == 1:
@@ -60,19 +60,37 @@ class antenna_nanten_controller(object):
 		if (ret>>3 & 0x01) == 1:
 			self.drive_el = "ON"
 		return [self.drive_az, self.drive_el]
-
+	
 	def error_check(self):
 		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN17_24")
 		if (ret>>4 & 0x01) == 1:
 			self.error_az = "TRUE"
+		else:
+			self.error_az = "FALSE"
 		if (ret>>5 & 0x01) == 1:
 			self.error_el = "TRUE"
+		else:
+			self.error_el = "FALSE"
 		if (ret>>6 & 0x01) == 1:
 			self.servo_error_az = "TRUE"
+		else:
+			self.servo_error_az = "FALSE"
 		if (ret>>7 & 0x01) == 1:
 			self.servo_error_el = "TRUE"
-		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el]
-
+		else:
+			self.servo_errr_el = "TRUE"
+		
+		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN25_32")
+		if (ret>>0 & 0x01) == 1:
+			cable_cw = "TRUE"
+		if (ret>>1 & 0x01) == 1:
+			cable_ccw = "TRUE"
+		
+		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN33_40")
+		if (ret>>0 & 0x01) == 1:
+			emergency_switch = "TRUE"
+		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el, cable_cw, cable_ccw]
+	
 	def clear_error(self):
 		self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 8)
 		return
@@ -84,7 +102,7 @@ class antenna_nanten_controller(object):
 		try:
 			self.otf_stop_thread.set()
 		except: pass
-
+	
 		self.target_az = az_arcsec
 		self.target_el = el_arcsec
 		
@@ -140,9 +158,9 @@ class antenna_nanten_controller(object):
 		#tv_usec = tv - tv_sec
 		#mjd = (tv_sec + tv_usec/1000000.)/24./3600. + 40587.0 # 40587.0 = MJD0
 		
-
+		
 		tai_utc = 36.0 # tai_utc=TAI-UTC  2015 July from ftp://maia.usno.navy.mil/ser7/tai-utc.dat
-
+		
 		# lamda is wavelength(not lambda)
 		if code_mode == "B1950":
 			ret = slalib.sla_fk425(gx, gy, gpx, gpy, 0, 0)
