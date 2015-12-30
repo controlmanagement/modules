@@ -25,9 +25,9 @@ class antenna_nanten_controller(object):
 	target_az = 0
 	target_el = 0
 	drive_az = drive_el = "OFF"
-	az_track = el_track = "FALSE"
-	error_az = error_el = servo_error_az = servo_error_el = "FALSE"
-	az_v = el_v = 0
+	#az_track = el_track = "FALSE"
+	#error_az = error_el = servo_error_az = servo_error_el = "FALSE"
+	#az_v = el_v = 0
 
 
 	def __init__(self):
@@ -109,8 +109,8 @@ class antenna_nanten_controller(object):
 			target_el = real_el
 		"""
 
-		real_az_n = real_az/3600*math.pi/180.
-		real_el_n = real_el/3600*math.pi/180.
+		real_az_n = real_az/3600.*math.pi/180.
+		real_el_n = real_el/3600.*math.pi/180.
 		
 		ret = self.coord.apply_kisa(real_az_n, real_el_n, hosei) # until define the set_coord
 		target_az = real_az+ret[0]
@@ -120,11 +120,14 @@ class antenna_nanten_controller(object):
 		self.target_az = target_az
 		self.target_el = target_el
 		
+		#az_max_rate =3000
+		#el_max_rate =3000
+
 		track = self.nanten.move_azel(target_az, target_el) #until define the set_coord
-		self.az_track = ret[0]
-		self.el_track = ret[1]
-		self.az_v = ret[2]
-		self.el_v = ret[3]
+		#self.az_track = ret[0]
+		#self.el_track = ret[1]
+		#self.az_v = ret[2]
+		#self.el_v = ret[3]
 		return track
 	
 	def move_radec(self, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_x = 0, off_y = 0):
@@ -132,6 +135,12 @@ class antenna_nanten_controller(object):
 		# Calculate current MJD
 		tv = time.time()
 		mjd = tv/24./3600. + 40587.0 # 40587.0 = MJD0
+		#tv = time.time()
+		#tv_sec = int(tv)
+		#tv_usec = tv - tv_sec
+		#mjd = (tv_sec + tv_usec/1000000.)/24./3600. + 40587.0 # 40587.0 = MJD0
+		
+
 		tai_utc = 36.0 # tai_utc=TAI-UTC  2015 July from ftp://maia.usno.navy.mil/ser7/tai-utc.dat
 
 		# lamda is wavelength(not lambda)
