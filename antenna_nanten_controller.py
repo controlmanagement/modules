@@ -307,14 +307,25 @@ class antenna_nanten_controller(object):
 	def tracking_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y):
 		if coord_sys == 'EQUATRIAL':
 			while not self.stop_thread.is_set():
-				print('aaa')
+				b_time = time.time()
 				self.move_radec(gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y)
+				a_time = time.time()
+				if (a_time-b_time) < 0.01:
+					time.sleep(0.01-(a_time-b_time))
 		elif coord_sys == 'GALACTIC':
 			while not self.stop_thread.is_set():
+				b_time = time.time()
 				self.move_lb(gx, gy, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y)
+				a_time = time.time()
+				if (a_time-b_time) < 0.01:
+					time.sleep(0.01-(a_time-b_time))
 		else: # planet
 			while not self.stop_thread.is_set():
+				b_time = time.time()
 				self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_x, off_y)
+				a_time = time.time()
+				if (a_time-b_time) < 0.01:
+					time.sleep(0.01-(a_time-b_time))
 		return
 		
 	def tracking_end(self):
