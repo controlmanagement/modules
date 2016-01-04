@@ -28,11 +28,18 @@ class nanten_main_controller(object):
 	indaz = 0
 	indel = 0
 	
+	az_encmoni = 0
+	el_encmoni = 0
+	az_targetmoni = 0
+	el_targetmoni = 0
+
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(3)
-		self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
-		#self.enc = antenna_enc.enc_controller()
-		
+		#self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
+		self.enc = antenna_enc.enc_controller()
+		ret = self.enc.get_azel()
+		self.az_encmoni = ret[0]
+		self.el_encmoni = ret[1]
 		pass
 	
 	def azel_move(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
@@ -41,12 +48,14 @@ class nanten_main_controller(object):
 		self.indel = el_arcsec
 		while test_flag:
 			hensa_flag = 1
-			ret = self.enc.read_azel()
+			#ret = self.enc.read_azel()
+			ret = self.enc.get_azel()
 			if abs(az_arcsec-ret[0]) >= 1 or abs(el_arcsec-ret[1]) > 1:
 				while hensa_flag:
 					b_time = time.time()
 					self.move_azel(az_arcsec, el_arcsec, az_max_rate, el_max_rate)
-					ret = self.enc.read_azel()
+					#ret = self.enc.read_azel()
+					ret = self.enc.get_azel()
 					if abs(az_arcsec-ret[0]) <= 1 and abs(el_arcsec-ret[1]) <= 1:
 						hensa_flag = 0
 						self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
@@ -139,11 +148,11 @@ class nanten_main_controller(object):
 		"""
 		# New parameter
 		p_az_coeff = 3.7
-		i_az_coeff = 3.0
+		i_az_coeff = 0.0
 		d_az_coeff = 0.
 		s_az_coeff = 0.
 		p_el_coeff = 3.7
-		i_el_coeff = 3.0
+		i_el_coeff = 0.0
 		d_el_coeff = 0.
 		
 		
@@ -155,10 +164,15 @@ class nanten_main_controller(object):
 		else:
 			pass
 		
-		ret = self.enc.read_azel()
+		#ret = self.enc.read_azel()
+		ret = self.enc.get_azel()
 		az_enc = ret[0]
 		el_enc = ret[1]
-		
+		self.az_encmoni = ret[0]
+		self.el_encmoni = ret[1]
+		self.az_targetmoni = az_arcsec
+		self.el_targetmoni = el_arcsec
+
 		#calculate ichi_hensa
 		az_err = az_arcsec-az_enc
 		el_err = el_arcsec-el_enc
@@ -291,7 +305,7 @@ class nanten_main_controller(object):
 		#limit of dangerous zone
 		if (el_enc < 30.*DEG2ARCSEC and self.el_rate < 0 ) or (el_enc > 70.*DEG2ARCSEC and self.el_rate > 0):
 			el_max_rate = min(0, el_max_rate)
-		if (az_enc < -270.*DEG2ARCSEC and self.az_rate < 0) or (az_enc > 270.*DEG2ARCSEC and self.az_rate > 0): 
+		if (az_enc < -270.*DEG2ARCSEC and self.az_rate < 0) or (az_enc > 380.*DEG2ARCSEC and self.az_rate > 0): 
 			az_max_rate = min(1600, az_max_rate); #bug?
 		
 		#lmit of speed
@@ -305,9 +319,14 @@ class nanten_main_controller(object):
 			self.el_rate = -el_max_rate
 		
 		# arienai ryouiki deno gyakuunndou kinnsi //bug?
+		#if az_enc <= -90*DEG2ARCSEC and self.az_rate < 0:
+			#self.az_rate = 0
+		#if az_enc >= 380*DEG2ARCSEC and self.az_rate > 0:
+			#self.az_rate = 0
+		
 		if az_enc <= -270*DEG2ARCSEC and self.az_rate < 0:
 			self.az_rate = 0
-		if az_enc >= 270*DEG2ARCSEC and self.az_rate > 0:
+		if az_enc >= 380*DEG2ARCSEC and self.az_rate > 0:
 			self.az_rate = 0
 		
 		if el_enc <= 0*DEG2ARCSEC and self.el_rate < 0:
@@ -318,7 +337,7 @@ class nanten_main_controller(object):
 		
 		az_rate_ref = int(self.az_rate) #??
 		el_rate_ref = int(self.el_rate) #??
-		return [az_rate_ref, el_rate_ref, m_bAzTrack, m_bElTrack, current_speed_az*100, current_speed_el*100]
+		return [az_rate_ref, el_rate_ref, m_bAzTrack, m_bElTrack]
 
 	"""
 	def err_avg_func(self, az_value, el_value):
@@ -390,8 +409,8 @@ class nanten_main_controller(object):
 			stop_flag = 1
 		return stop_flag
 	
-	def read_indazel(self):
-		return [self.indaz, self.indel]
+	def read_azel(self):
+		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni]
 
 def nanten_main_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(nanten_main_controller, host, port)
