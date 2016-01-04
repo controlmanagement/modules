@@ -372,8 +372,12 @@ class antenna_nanten_controller(object):
 		self.limit_thread.join()
 		return
 
-	def read_targetazel(self):
-		return [self.target_az, self.target_el]
+	#def read_targetazel(self):
+		#return [self.target_az, self.target_el]
+
+	def read_azel(self):
+		ret = self.nanten.read_azel()
+		return ret
 
 	def read_track(self):
 		return [self.az_track, self.el_track]
