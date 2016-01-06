@@ -28,8 +28,6 @@ class antenna_nanten_controller(object):
 	az_track = el_track = "FALSE"
 	error_az = error_el = servo_error_az = servo_error_el = "FALSE"
 	az_v = el_v = 0
-	cable_cw = "FALSE"
-	cable_ccw = "FALSE"
 	
 	def __init__(self):
 		self.coord = coord.coord_calc() # for test <= MUST REMOVE [#]
@@ -66,8 +64,12 @@ class antenna_nanten_controller(object):
 		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN17_24")
 		if (ret>>0 & 0x01) == 1:
 			cable_cw = "TRUE"
+		else:
+			cable_ccw = "FALSE"
 		if (ret>>1 & 0x01) == 1:
 			cable_ccw = "TRUE"
+		else:
+			cable_ccw = "FALSE"
 		if (ret>>4 & 0x01) == 1:
 			self.error_az = "TRUE"
 		else:
