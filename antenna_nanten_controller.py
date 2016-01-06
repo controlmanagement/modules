@@ -64,6 +64,10 @@ class antenna_nanten_controller(object):
 	
 	def error_check(self):
 		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN17_24")
+		if (ret>>0 & 0x01) == 1:
+			cable_cw = "TRUE"
+		if (ret>>1 & 0x01) == 1:
+			cable_ccw = "TRUE"
 		if (ret>>4 & 0x01) == 1:
 			self.error_az = "TRUE"
 		else:
@@ -79,22 +83,12 @@ class antenna_nanten_controller(object):
 		if (ret>>7 & 0x01) == 1:
 			self.servo_error_el = "TRUE"
 		else:
-			self.servo_error_el = "FALSE"
+			self.servo_errr_el = "TRUE"
 		
 		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN25_32")
 		if (ret>>0 & 0x01) == 1:
-			self.cable_cw = "TRUE"
-		else:
-			self.cable_cw = "FALSE"
-
-		if (ret>>1 & 0x01) == 1:
-			self.cable_ccw = "TRUE"
-		else:
-			self.cable_ccw = "FALSE"
-		#ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN33_40")
-		#if (ret>>0 & 0x01) == 1:
-			#emergency_switch = "TRUE"
-		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el, self.cable_cw, self.cable_ccw]
+			emergency_switch = "TRUE"
+		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el, cable_cw, cable_ccw]
 	
 	def clear_error(self):
 		self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 8)
