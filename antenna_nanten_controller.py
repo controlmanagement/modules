@@ -28,8 +28,8 @@ class antenna_nanten_controller(object):
 	az_track = el_track = "FALSE"
 	error_az = error_el = servo_error_az = servo_error_el = "FALSE"
 	az_v = el_v = 0
-	cable_cw = ''
-	cable_ccw = ''
+	cable_cw = "FALSE"
+	cable_ccw = "FALSE"
 	
 	def __init__(self):
 		self.coord = coord.coord_calc() # for test <= MUST REMOVE [#]
