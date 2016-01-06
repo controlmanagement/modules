@@ -65,7 +65,7 @@ class antenna_nanten_controller(object):
 		if (ret>>0 & 0x01) == 1:
 			cable_cw = "TRUE"
 		else:
-			cable_ccw = "FALSE"
+			cable_cw = "FALSE"
 		if (ret>>1 & 0x01) == 1:
 			cable_ccw = "TRUE"
 		else:
