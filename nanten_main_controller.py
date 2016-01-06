@@ -22,6 +22,8 @@ class nanten_main_controller(object):
 	az_rate_d = el_rate_d = 0
 	m_stop_rate_az = m_stop_rate_el = 0
 	t1 = t2 = 0.0
+	t_az = t_el = 0.0
+	current_speed_az = current_speed_el = 0.0
 	pre_hensa_az = pre_hensa_el = 0
 	pre_az_arcsec = pre_el_arcsec = 0
 	
@@ -74,7 +76,7 @@ class nanten_main_controller(object):
 		return
 	
 	def move_azel(self, az_arcsec, el_arcsec, az_max_rate = 16000, el_max_rate = 12000, m_bStop = 'FALSE'):
-		MOTOR_MAXSTEP = 10000
+		MOTOR_MAXSTEP = 1000
 		MOTOR_AZ_MAXRATE = 16000
 		MOTOR_EL_MAXRATE = 12000
 		
@@ -154,10 +156,11 @@ class nanten_main_controller(object):
 		p_az_coeff = 3.7
 		i_az_coeff = 0.0
 		d_az_coeff = 0.
-		s_az_coeff = 0.
+		s_az_coeff = 0.5
 		p_el_coeff = 3.7
 		i_el_coeff = 0.0
 		d_el_coeff = 0.
+		s_el_coeff = 0.5
 		
 		
 		DEG2ARCSEC = 3600.
@@ -189,7 +192,7 @@ class nanten_main_controller(object):
 		az_err_integral_integral+=az_err_integral*dt;
 		el_err_integral_integral+=el_err_integral*dt;
 		
-		#deivative
+		#derivative
 		azv_err = azv-(az_enc-self.az_enc_before)/self.dt
 		elv_err = elv-(el_enc-self.el_enc_before)/self.dt
 		"""
@@ -240,8 +243,15 @@ class nanten_main_controller(object):
 			dhensa_el = 0
 		
 		self.t1 = time.time()
-		current_speed_az = (az_enc - self.az_enc_before) / (self.t1-self.t2)
-		current_speed_el = (el_enc - self.el_enc_before) / (self.t1-self.t2)
+		if self.t_az == 0.0 and self.t_el == 0.0:
+			self.t_az = self.t_el = self.t1
+		else:
+			if (az_enc - self.az_enc_before) != 0.0:
+				self.current_speed_az = (az_enc - self.az_enc_before) / (self.t1-self.t_az)
+				self.t_az = self.t1
+			if (el_enc - self.el_enc_before) != 0.0:
+				self.current_speed_el = (el_enc - self.el_enc_before) / (self.t1-self.t_el)
+				self.t_el = self.t1
 		
 		if self.pre_az_arcsec == 0: # for first move
 			target_speed_az = 0
@@ -276,8 +286,8 @@ class nanten_main_controller(object):
 		
 		#self.az_rate = target_speed_az * 20.9 + (current_speed_az*20.9 - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*ihensa_az*(self.t1-self.t2) + d_az_coeff*dhensa_az/(self.t1-self.t2)
 		#self.el_rate = target_speed_el * 20.9 + p_el_coeff*hensa_el + i_el_coeff*ihensa_el*(self.t1-self.t2) + d_el_coeff*dhensa_el/(self.t1-self.t2)
-		self.az_rate = target_speed_az  + (current_speed_az*20.9 - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*ihensa_az*(self.t1-self.t2) + d_az_coeff*dhensa_az/(self.t1-self.t2)
-		self.el_rate = target_speed_el + p_el_coeff*hensa_el + i_el_coeff*ihensa_el*(self.t1-self.t2) + d_el_coeff*dhensa_el/(self.t1-self.t2)
+		self.az_rate = target_speed_az + (self.current_speed_az - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*ihensa_az*(self.t1-self.t2) + d_az_coeff*dhensa_az/(self.t1-self.t2)
+		self.el_rate = target_speed_el + (self.current_speed_el - self.el_rate) * s_el_coeff + p_el_coeff*hensa_el + i_el_coeff*ihensa_el*(self.t1-self.t2) + d_el_coeff*dhensa_el/(self.t1-self.t2)
 		
 		self.az_targetspeedmoni = target_speed_az
 		self.el_targetspeedmoni = target_speed_el
@@ -423,7 +433,7 @@ class nanten_main_controller(object):
 		return stop_flag
 	
 	def read_azel(self):
-		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate, self.el_rate, self.az_targetspeedmoni, self.el_targetspeedmoni]
+		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate, self.el_rate, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el]
 
 def nanten_main_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(nanten_main_controller, host, port)
