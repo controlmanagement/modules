@@ -28,7 +28,8 @@ class antenna_nanten_controller(object):
 	az_track = el_track = "FALSE"
 	error_az = error_el = servo_error_az = servo_error_el = "FALSE"
 	az_v = el_v = 0
-	
+	cable_cw = ''
+	cable_ccw = ''
 	
 	def __init__(self):
 		self.coord = coord.coord_calc() # for test <= MUST REMOVE [#]
@@ -78,18 +79,22 @@ class antenna_nanten_controller(object):
 		if (ret>>7 & 0x01) == 1:
 			self.servo_error_el = "TRUE"
 		else:
-			self.servo_errr_el = "TRUE"
+			self.servo_error_el = "FALSE"
 		
 		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN25_32")
 		if (ret>>0 & 0x01) == 1:
-			cable_cw = "TRUE"
+			self.cable_cw = "TRUE"
+		else:
+			self.cable_cw = "FALSE"
+
 		if (ret>>1 & 0x01) == 1:
-			cable_ccw = "TRUE"
-		
-		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN33_40")
-		if (ret>>0 & 0x01) == 1:
-			emergency_switch = "TRUE"
-		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el, cable_cw, cable_ccw]
+			self.cable_ccw = "TRUE"
+		else:
+			self.cable_ccw = "FALSE"
+		#ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN33_40")
+		#if (ret>>0 & 0x01) == 1:
+			#emergency_switch = "TRUE"
+		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el, self.cable_cw, self.cable_ccw]
 	
 	def clear_error(self):
 		self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 8)
