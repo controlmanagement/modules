@@ -32,6 +32,10 @@ class nanten_main_controller(object):
 	el_encmoni = 0
 	az_targetmoni = 0
 	el_targetmoni = 0
+	az_targetspeedmoni = 0
+	el_targetspeedmoni = 0
+	az_hensamoni = 0
+	el_hensamoni = 0
 
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(3)
@@ -224,6 +228,10 @@ class nanten_main_controller(object):
 		target_el = el_arcsec
 		hensa_az = target_az - az_enc
 		hensa_el = target_el - el_enc
+
+		self.az_hensamoni = hensa_az
+		self.el_hensamoni = hensa_el
+
 		dhensa_az = hensa_az - self.pre_hensa_az
 		dhensa_el = hensa_el - self.pre_hensa_el
 		if math.fabs(dhensa_az) > 1:
@@ -271,6 +279,10 @@ class nanten_main_controller(object):
 		self.az_rate = target_speed_az  + (current_speed_az*20.9 - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*ihensa_az*(self.t1-self.t2) + d_az_coeff*dhensa_az/(self.t1-self.t2)
 		self.el_rate = target_speed_el + p_el_coeff*hensa_el + i_el_coeff*ihensa_el*(self.t1-self.t2) + d_el_coeff*dhensa_el/(self.t1-self.t2)
 		
+		self.az_targetspeedmoni = target_speed_az
+		self.el_targetspeedmoni = target_speed_el
+		
+
 		if math.fabs(az_err) < 8000 and self.az_rate > 10000:
 			self.az_rate = 10000
 		
@@ -411,7 +423,7 @@ class nanten_main_controller(object):
 		return stop_flag
 	
 	def read_azel(self):
-		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni]
+		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate, self.el_rate, self.az_targetspeedmoni, self.el_targetspeedmoni]
 
 def nanten_main_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(nanten_main_controller, host, port)
