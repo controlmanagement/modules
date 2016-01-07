@@ -433,7 +433,7 @@ class nanten_main_controller(object):
 		return stop_flag
 	
 	def read_azel(self):
-		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate, self.el_rate, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el]
+		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_d, self.el_rate_d, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el]
 
 def nanten_main_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(nanten_main_controller, host, port)
