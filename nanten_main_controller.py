@@ -39,6 +39,8 @@ class nanten_main_controller(object):
 	el_targetspeedmoni = 0
 	az_hensamoni = 0
 	el_hensamoni = 0
+	az_ihensamoni = 0
+	el_ihensamoni = 0
 
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(3)
@@ -154,12 +156,12 @@ class nanten_main_controller(object):
 		Del = 0.07
 		"""
 		# New parameter
-		p_az_coeff = 3.7
-		i_az_coeff = 8.0
+		p_az_coeff = 3.3
+		i_az_coeff = 5.0
 		d_az_coeff = 0.
 		s_az_coeff = 0.
-		p_el_coeff = 3.7
-		i_el_coeff = 8.0
+		p_el_coeff = 3.3
+		i_el_coeff = 5.0
 		d_el_coeff = 0.
 		s_el_coeff = 0.
 		
@@ -305,6 +307,8 @@ class nanten_main_controller(object):
 		
 		self.az_targetspeedmoni = target_speed_az
 		self.el_targetspeedmoni = target_speed_el
+		self.az_ihensamoni = ihensa_az
+		self.el_ihensamoni = ihensa_el
 		
 
 		if math.fabs(az_err) < 8000 and self.az_rate > 10000:
@@ -447,7 +451,7 @@ class nanten_main_controller(object):
 		return stop_flag
 	
 	def read_azel(self):
-		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_d, self.el_rate_d, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el]
+		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_d, self.el_rate_d, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el, self.az_ihensamoni ,self.el_ihensamoni]
 
 def nanten_main_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(nanten_main_controller, host, port)
@@ -462,3 +466,4 @@ def start_nanten_main_server(port1 = 7003, port2 = 7004):
 	server = pyinterface.server_client_wrapper.server_wrapper(nanten_main, '', port1, port2)
 	server.start()
 	return server
+
