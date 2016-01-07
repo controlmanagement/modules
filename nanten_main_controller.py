@@ -25,6 +25,7 @@ class nanten_main_controller(object):
 	t_az = t_el = 0.0
 	current_speed_az = current_speed_el = 0.0
 	pre_hensa_az = pre_hensa_el = 0
+	ihensa_az = ihensa_el = 0.0
 	pre_az_arcsec = pre_el_arcsec = 0
 	
 	indaz = 0
@@ -154,13 +155,13 @@ class nanten_main_controller(object):
 		"""
 		# New parameter
 		p_az_coeff = 3.7
-		i_az_coeff = 0.0
+		i_az_coeff = 8.0
 		d_az_coeff = 0.
-		s_az_coeff = 0.5
+		s_az_coeff = 0.
 		p_el_coeff = 3.7
-		i_el_coeff = 0.0
+		i_el_coeff = 8.0
 		d_el_coeff = 0.
-		s_el_coeff = 0.5
+		s_el_coeff = 0.
 		
 		
 		DEG2ARCSEC = 3600.
@@ -262,6 +263,18 @@ class nanten_main_controller(object):
 		else:
 			target_speed_el = (el_arcsec-self.pre_el_arcsec)/(self.t1-self.t2)
 		
+		self.ihensa_az += (hensa_az+self.pre_hensa_az)/2 
+		self.ihensa_el += (hensa_el+self.pre_hensa_el)/2
+		if math.fabs(hensa_az) > math.fabs(self.current_speed_az)/10.+10.:
+			self.ihensa_az = 0
+		if math.fabs(hensa_el) > math.fabs(self.current_speed_el)/10.+10.:
+			self.ihensa_el = 0
+		if math.fabs(hensa_az) > 150:
+			self.ihensa_az = 0
+		if math.fabs(hensa_el) > 150:
+			self.ihensa_el = 0
+		
+		"""Previous
 		if math.fabs(hensa_az) >= 0.00: # don't use ihensa?
 			ihensa_az = 0
 			#hensa_flag_az = 0;
@@ -278,6 +291,7 @@ class nanten_main_controller(object):
 			#  hensa_flag_el = 1;
 			#if(hensa_flag_el == 1)
 			ihensa_el += hensa_el
+		"""
 		
 		""" Original
 		self.az_rate = Paz*az_err + Iaz*az_err_integral + Daz*azv_err_avg +azv*1.57
@@ -286,8 +300,8 @@ class nanten_main_controller(object):
 		
 		#self.az_rate = target_speed_az * 20.9 + (current_speed_az*20.9 - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*ihensa_az*(self.t1-self.t2) + d_az_coeff*dhensa_az/(self.t1-self.t2)
 		#self.el_rate = target_speed_el * 20.9 + p_el_coeff*hensa_el + i_el_coeff*ihensa_el*(self.t1-self.t2) + d_el_coeff*dhensa_el/(self.t1-self.t2)
-		self.az_rate = target_speed_az + (self.current_speed_az - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*ihensa_az*(self.t1-self.t2) + d_az_coeff*dhensa_az/(self.t1-self.t2)
-		self.el_rate = target_speed_el + (self.current_speed_el - self.el_rate) * s_el_coeff + p_el_coeff*hensa_el + i_el_coeff*ihensa_el*(self.t1-self.t2) + d_el_coeff*dhensa_el/(self.t1-self.t2)
+		self.az_rate = target_speed_az + (self.current_speed_az - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*self.ihensa_az*(self.t1-self.t2) + d_az_coeff*dhensa_az/(self.t1-self.t2)
+		self.el_rate = target_speed_el + (self.current_speed_el - self.el_rate) * s_el_coeff + p_el_coeff*hensa_el + i_el_coeff*self.ihensa_el*(self.t1-self.t2) + d_el_coeff*dhensa_el/(self.t1-self.t2)
 		
 		self.az_targetspeedmoni = target_speed_az
 		self.el_targetspeedmoni = target_speed_el
