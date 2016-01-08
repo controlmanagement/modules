@@ -177,19 +177,24 @@ class nanten_main_controller(object):
 		ret = self.enc.get_azel()
 		az_enc = ret[0]
 		el_enc = ret[1]
+		
+		#for az >= 180*3600 and az <= -180*3600
+		if az_enc > 40*3600 and az_arcsec+360*3600 < 220*3600:
+			az_arcsec += 360*3600
+		elif az_enc < -40*3600 and az_arcsec-360*3600 > -220*3600:
+			az_arcsec -= 360*3600
+		
 		self.az_encmoni = ret[0]
 		self.el_encmoni = ret[1]
 		self.az_targetmoni = az_arcsec
 		self.el_targetmoni = el_arcsec
-
+		
 		#calculate ichi_hensa
 		az_err = az_arcsec-az_enc
 		el_err = el_arcsec-el_enc
 		
 		"""
 		#old ver(Unknown)
-		az_err_integral_integral = el_err_integral_integral = 0
-		
 		#integrate error
 		az_err_integral_integral+=az_err_integral*dt;
 		el_err_integral_integral+=el_err_integral*dt;
