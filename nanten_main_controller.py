@@ -2,6 +2,7 @@ import math
 import time
 import sys
 sys.path.append('/home/amigos/python/')
+import numpy as np
 import pyinterface
 import antenna_enc
 
@@ -12,10 +13,8 @@ class nanten_main_controller(object):
 	dt = MOTOR_SAMPLING/1000.
 	
 	count = 0
-	az_array = [0]*13
-	AZV_ERR_AVG_NUM = 13
-	el_array = [0]*13
-	ELV_ERR_AVG_NUM = 13 #AZV_ERR_AVG_NUM = ELV_ERR_AVG_NUM
+	target_az_array = []
+	target_el_array = []
 	#azv_before = elv_before = 0
 	az_enc_before = el_enc_before = 0
 	az_rate = el_rate = 0
@@ -264,6 +263,9 @@ class nanten_main_controller(object):
 			target_speed_el = 0
 		else:
 			target_speed_el = (el_arcsec-self.pre_el_arcsec)/(self.t1-self.t2)
+		ret = self.medi_calc(target_speed_az, target_speed_el)
+		target_speed_az = ret[0]
+		target_speed_el = ret[1]
 		
 		self.ihensa_az += (hensa_az+self.pre_hensa_az)/2 
 		self.ihensa_el += (hensa_el+self.pre_hensa_el)/2
@@ -307,8 +309,8 @@ class nanten_main_controller(object):
 		
 		self.az_targetspeedmoni = target_speed_az
 		self.el_targetspeedmoni = target_speed_el
-		self.az_ihensamoni = ihensa_az
-		self.el_ihensamoni = ihensa_el
+		self.az_ihensamoni = ihensa_az*(self.t1-self.t2)
+		self.el_ihensamoni = ihensa_el*(self.t1-self.t2)
 		
 
 		if math.fabs(az_err) < 8000 and self.az_rate > 10000:
@@ -379,31 +381,22 @@ class nanten_main_controller(object):
 		az_rate_ref = int(self.az_rate) #??
 		el_rate_ref = int(self.el_rate) #??
 		return [az_rate_ref, el_rate_ref, m_bAzTrack, m_bElTrack]
-
-	"""
-	def err_avg_func(self, az_value, el_value):
-		AZV_ERR_AVG_NUM = ELV_ERR_AVG_NUM = 13
-		if self.count < AZV_ERR_AVG_NUM:
-		 	 self.az_array[count] = az_value
-		 	 self.el_array[count] = el_value
-		 	 self.count += 1
-		else:
-			for i in range(AZV_ERR_AVG_NUM-1):
-				self.az_array[i] = self.az_array[i+1]
-				self.el_array[i] = self.el_array[i+1]
-			self.az_array[AZV_ERR_AVG_NUM-1] = az_value
-			self.el_array[ELV_ERR_AVG_NUM-1] = el_value
-		
-		sum_az = sum_el = 0
-		for i in range(self.count):
-			sum_az += self.az_array[i]
-			sum_el += self.el_array[i]
-		
-		azv_err_avg = sum_az/self.count
-		elv_err_avg = sum_el/self.count
-		return [azv_err_avg, elv_err_avg]
-	"""
 	
+	def medi_calc(self, target_az, target_el):
+		target_num = 13 # number of median array
+		if self.count < target_num:
+			self.target_az_array.insert(0, target_az)
+			self.target_el_array.insert(0, target_el)
+			self.count += 1
+		else:
+			self.target_az_array.insert(0, target_az)
+			self.target_el_array.insert(0, target_el)
+			self.target_az_array.pop(13)
+			self.target_el_array.pop(13)
+		
+		median_az = np.median(self.target_az_array)
+		median_el = np.median(self.target_el_array)
+		return [median_az, median_el]
 	
 	def antenna_limit_check(self):
 		stop_flag = 0
