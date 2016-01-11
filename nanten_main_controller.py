@@ -156,11 +156,11 @@ class nanten_main_controller(object):
 		"""
 		# New parameter
 		p_az_coeff = 3.3
-		i_az_coeff = 5.0
+		i_az_coeff = 2.0
 		d_az_coeff = 0.
 		s_az_coeff = 0.
 		p_el_coeff = 3.3
-		i_el_coeff = 5.0
+		i_el_coeff = 3.0
 		d_el_coeff = 0.
 		s_el_coeff = 0.
 		
@@ -314,8 +314,8 @@ class nanten_main_controller(object):
 		
 		self.az_targetspeedmoni = target_speed_az
 		self.el_targetspeedmoni = target_speed_el
-		self.az_ihensamoni = ihensa_az*(self.t1-self.t2)
-		self.el_ihensamoni = ihensa_el*(self.t1-self.t2)
+		self.az_ihensamoni = self.ihensa_az*(self.t1-self.t2)
+		self.el_ihensamoni = self.ihensa_el*(self.t1-self.t2)
 		
 
 		if math.fabs(az_err) < 8000 and self.az_rate > 10000:
@@ -353,7 +353,7 @@ class nanten_main_controller(object):
 		#limit of dangerous zone
 		if (el_enc < 30.*DEG2ARCSEC and self.el_rate < 0 ) or (el_enc > 70.*DEG2ARCSEC and self.el_rate > 0):
 			el_max_rate = min(0, el_max_rate)
-		if (az_enc < -270.*DEG2ARCSEC and self.az_rate < 0) or (az_enc > 380.*DEG2ARCSEC and self.az_rate > 0): 
+		if (az_enc < -270.*DEG2ARCSEC and self.az_rate < 0) or (az_enc > 270.*DEG2ARCSEC and self.az_rate > 0): 
 			az_max_rate = min(1600, az_max_rate); #bug?
 		
 		#lmit of speed
@@ -464,4 +464,5 @@ def start_nanten_main_server(port1 = 7003, port2 = 7004):
 	server = pyinterface.server_client_wrapper.server_wrapper(nanten_main, '', port1, port2)
 	server.start()
 	return server
+
 
