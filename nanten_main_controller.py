@@ -1,69 +1,82 @@
 import math
 import time
 import sys
-sys.path.append('/home/amigos/python/')
 import numpy as np
+
 import pyinterface
 import antenna_enc
 
-
 class nanten_main_controller(object):
-	
-	MOTOR_SAMPLING = 10 #memo
+
+	#memo
+	MOTOR_SAMPLING = 10 
 	dt = MOTOR_SAMPLING/1000.
+
+	# define parameter
+	m_stop_rate_az = 0
+	m_stop_rate_el = 0
+	MOTOR_MAXSTEP = 1000
+	MOTOR_AZ_MAXRATE = 16000
+	MOTOR_EL_MAXRATE = 12000
 	
+	DEG2ARCSEC = 3600.
+
+	# initialize
 	count = 0
 	target_az_array = []
 	target_el_array = []
-	#azv_before = elv_before = 0
-	az_enc_before = el_enc_before = 0
-	az_rate = el_rate = 0
-	az_rate_d = el_rate_d = 0
-	m_stop_rate_az = m_stop_rate_el = 0
-	t1 = t2 = 0.0
-	t_az = t_el = 0.0
-	current_speed_az = current_speed_el = 0.0
-	pre_hensa_az = pre_hensa_el = 0
-	ihensa_az = ihensa_el = 0.0
-	pre_az_arcsec = pre_el_arcsec = 0
 	
-	indaz = 0
-	indel = 0
+	az_rate = 0
+	el_rate = 0
+	az_rate_d = 0
+	el_rate_d = 0
+	t1 = 0.0
+	t2 = 0.0
+	t_az = 0.0
+	t_el = 0.0
+	pre_hensa_az = 0
+	pre_hensa_el = 0
+	pre_az_arcsec = 0
+	pre_el_arcsec = 0
+	az_enc_before = 0
+	el_enc_before = 0
+	ihensa_az = 0
+	ihensa_el = 0
+	ihensa_azt = 0
+	ihensa_elt = 0
 	
+	# for monitor
 	az_encmoni = 0
 	el_encmoni = 0
 	az_targetmoni = 0
 	el_targetmoni = 0
+	az_hensamoni = 0
+	el_hensa_moni = 0
+	az_rate_dmoni = 0
+	el_rate_dmoni = 0
 	az_targetspeedmoni = 0
 	el_targetspeedmoni = 0
-	az_hensamoni = 0
-	el_hensamoni = 0
+	az_currentspeedmoni = 0
+	el_currentspeendmoni = 0
 	az_ihensamoni = 0
 	el_ihensamoni = 0
+	limit_check_box = ["FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE"]
 
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(3)
-		#self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
-		self.enc = antenna_enc.enc_controller()
-		ret = self.enc.get_azel()
-		self.az_encmoni = ret[0]
-		self.el_encmoni = ret[1]
+		self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
 		pass
-	
+
 	def azel_move(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
 		test_flag = 1
-		self.indaz = az_arcsec
-		self.indel = el_arcsec
 		while test_flag:
 			hensa_flag = 1
-			#ret = self.enc.read_azel()
-			ret = self.enc.get_azel()
+			ret = self.enc.read_azel()
 			if abs(az_arcsec-ret[0]) >= 1 or abs(el_arcsec-ret[1]) > 1:
 				while hensa_flag:
 					b_time = time.time()
 					self.move_azel(az_arcsec, el_arcsec, az_max_rate, el_max_rate)
-					#ret = self.enc.read_azel()
-					ret = self.enc.get_azel()
+					ret = self.enc.read_azel()
 					if abs(az_arcsec-ret[0]) <= 1 and abs(el_arcsec-ret[1]) <= 1:
 						hensa_flag = 0
 						self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
@@ -76,72 +89,77 @@ class nanten_main_controller(object):
 			else:
 				test_flag = 0
 		return
-	
+
 	def move_azel(self, az_arcsec, el_arcsec, az_max_rate = 16000, el_max_rate = 12000, m_bStop = 'FALSE'):
-		MOTOR_MAXSTEP = 1000
-		MOTOR_AZ_MAXRATE = 16000
-		MOTOR_EL_MAXRATE = 12000
-		
 		ret = self.calc_pid(az_arcsec, el_arcsec, az_max_rate, el_max_rate)
 		az_rate_ref = ret[0]
 		el_rate_ref = ret[1]
 		Az_track_flag = ret[2]
 		El_track_flag = ret[3]
-		
+
 		# command value to target value
 		daz_rate = az_rate_ref - self.az_rate_d
 		del_rate = el_rate_ref - self.el_rate_d
 		
 		#limit of acc
-		if abs(daz_rate) < MOTOR_MAXSTEP:
-			self.az_rate_d = az_rate_ref
+		if abs(daz_rate) < self.MOTOR_MAXSTEP:
+			az_rate_ref = az_rate_ref
 		else:
 			if daz_rate < 0:
 				a = -1
 			else:
 				a = 1
-			self.az_rate_d += a*MOTOR_MAXSTEP
-		if abs(del_rate) < MOTOR_MAXSTEP:
-			self.el_rate_d = el_rate_ref
+			az_rate_ref = self.az_rate_d + a*self.MOTOR_MAXSTEP
+		if abs(del_rate) < self.MOTOR_MAXSTEP:
+			el_rate_ref = el_rate_ref
 		else:
 			if del_rate < 0:
 				a = -1
 			else:
 				a = 1
-			self.el_rate_d += a*MOTOR_MAXSTEP
+			el_rate_ref = self.az_rate_d + a*self.MOTOR_MAXSTEP
 		
 		#limit of max v
-		if self.az_rate_d > MOTOR_AZ_MAXRATE:
-			self.az_rate_d = MOTOR_AZ_MAXRATE
-		if self.az_rate_d < -MOTOR_AZ_MAXRATE:
-			self.az_rate_d = -MOTOR_AZ_MAXRATE
-		if self.el_rate_d > MOTOR_EL_MAXRATE:
-			self.el_rate_d = MOTOR_EL_MAXRATE
-		if self.el_rate_d < -MOTOR_EL_MAXRATE:
-			self.el_rate_d = -MOTOR_EL_MAXRATE
-		
-		# confirm limit of controll rack => forced outage
-		#if(0< motordrv_nanten2_cw_limit()+motordrv_nanten2_ccw_limit()+motordrv_nanten2_up_limit()+motordrv_nanten2_down_limit())
-		#	 motordrv_nanten2_drive_on(FALSE,FALSE);
-		
+		if az_rate_ref > self.MOTOR_AZ_MAXRATE:
+			az_rate_ref = self.MOTOR_AZ_MAXRATE
+		if az_rate_ref < -self.MOTOR_AZ_MAXRATE:
+			az_rate_ref = -self.MOTOR_AZ_MAXRATE
+		if el_rate_ref > self.MOTOR_EL_MAXRATE:
+			el_rate_ref = self.MOTOR_EL_MAXRATE
+		if el_rate_ref < -self.MOTOR_EL_MAXRATE:
+			el_rate_ref = -self.MOTOR_EL_MAXRATE
+
 		# output to port
 		if m_bStop == 'TRUE':
 			dummy = self.m_stop_rate_az
 		else:
-			dummy = int(self.az_rate_d)
-		#dummy=m_bStop==TRUE?m_stop_rate_az:motor_param.az_rate_ref;
+			dummy = int(az_rate_ref)
 		self.dio.ctrl.out_word("FBIDIO_OUT1_16", dummy)
-		#dioOutputWord(CONTROLER_BASE2,0x00,dummy)  output port is unreliable
 		self.az_rate_d = dummy
-		
+
 		if m_bStop == 'TRUE':
 			dummy = self.m_stop_rate_el
 		else:
-			dummy = int(self.el_rate_d)
-		#dummy=m_bStop==TRUE?m_stop_rate_el:motor_param.el_rate_ref;
+			dummy = int(el_rate_ref)
 		self.dio.ctrl.out_word("FBIDIO_OUT17_32", dummy)
-		#dioOutputWord(CONTROLER_BASE2,0x02,dummy);
 		self.el_rate_d = dummy
+
+		#for monitor
+		self.az_encmoni = self.az_enc_before
+		self.el_encmoni = self.el_enc_before
+		self.az_targetmoni = self.pre_az_arcsec
+		self.el_targetmoni = self.pre_el_arcsec
+		self.az_hensamoni = self.pre_hensa_az
+		self.el_hensamoni = self.pre_hensa_el
+		self.az_rate_dmoni = self.az_rate_d
+		self.el_rate_dmoni = self.el_rate_d
+		self.az_targetspeedmoni = self.target_speed_az
+		self.el_targetspeedmoni = self.target_speed_el
+		self.az_currentspeedmoni = self.current_speed_az
+		self.el_currentspeedmoni = self.current_speed_el
+		self.az_ihensamoni = self.ihensa_azt
+		self.el_ihensamoni = self.ihensa_elt
+
 		return [Az_track_flag, El_track_flag]
 
 	def calc_pid(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
@@ -163,63 +181,21 @@ class nanten_main_controller(object):
 		i_el_coeff = 3.0
 		d_el_coeff = 0.
 		s_el_coeff = 0.
-		
-		
-		DEG2ARCSEC = 3600.
+
 		m_bAzTrack = "FALSE"
 		m_bElTrack = "FALSE"
+
 		if self.t2 == 0.0:
 			self.t2 = time.time()
-		else:
-			pass
 		
-		#ret = self.enc.read_azel()
-		ret = self.enc.get_azel()
+		ret = self.enc.read_azel()
 		az_enc = ret[0]
 		el_enc = ret[1]
-		
-		#for az >= 180*3600 and az <= -180*3600
+
 		if az_enc > 40*3600 and az_arcsec+360*3600 < 220*3600:
 			az_arcsec += 360*3600
 		elif az_enc < -40*3600 and az_arcsec-360*3600 > -220*3600:
 			az_arcsec -= 360*3600
-		
-		self.az_encmoni = ret[0]
-		self.el_encmoni = ret[1]
-		self.az_targetmoni = az_arcsec
-		self.el_targetmoni = el_arcsec
-		
-		#calculate ichi_hensa
-		az_err = az_arcsec-az_enc
-		el_err = el_arcsec-el_enc
-		
-		"""
-		#old ver(Unknown)
-		#integrate error
-		az_err_integral_integral+=az_err_integral*dt;
-		el_err_integral_integral+=el_err_integral*dt;
-		
-		#derivative
-		azv_err = azv-(az_enc-self.az_enc_before)/self.dt
-		elv_err = elv-(el_enc-self.el_enc_before)/self.dt
-		"""
-		
-		"""
-		azv_acc = (azv-self.azv_before)
-		elv_acc = (elv-self.elv_before)
-		self.azv_before = azv
-		self.elv_before = elv
-		
-		if azv_acc > 50:
-			azv_acc = 50
-		elif azv_acc < -50:
-			azv_acc = -50
-		
-		if elv_acc > 50:
-			elv_acc = 50
-		elif elv_acc < -50:
-			elv_acc = -50
-		"""
 		
 		if 10000 < math.fabs(self.az_rate):
 			m_bAzTrack = "TRUE" #def Paz=2?
@@ -233,14 +209,10 @@ class nanten_main_controller(object):
 			#el_err_integral += (self.el_err_before+el_err)*self.dt/2.+elv_acc*0.0
 			m_bElTrack = 'FALSE'
 			pass
-		
-		target_az = az_arcsec
-		target_el = el_arcsec
-		hensa_az = target_az - az_enc
-		hensa_el = target_el - el_enc
 
-		self.az_hensamoni = hensa_az
-		self.el_hensamoni = hensa_el
+		#calculate ichi_hensa
+		hensa_az = az_arcsec-az_enc
+		hensa_el = el_arcsec-el_enc
 
 		dhensa_az = hensa_az - self.pre_hensa_az
 		dhensa_el = hensa_el - self.pre_hensa_el
@@ -260,83 +232,54 @@ class nanten_main_controller(object):
 				self.current_speed_el = (el_enc - self.el_enc_before) / (self.t1-self.t_el)
 				self.t_el = self.t1
 		
-		if self.pre_az_arcsec == 0: # for first move
-			target_speed_az = 0
+		# for first move
+		if self.pre_az_arcsec == 0:
+			self.target_speed_az = 0
 		else:
-			target_speed_az = (az_arcsec-self.pre_az_arcsec)/(self.t1-self.t2)
-		if self.pre_el_arcsec == 0: # for first move
-			target_speed_el = 0
+			self.target_speed_az = (az_arcsec-self.pre_az_arcsec)/(self.t1-self.t2)
+		if self.pre_el_arcsec == 0: 
+			self.target_speed_el = 0
 		else:
-			target_speed_el = (el_arcsec-self.pre_el_arcsec)/(self.t1-self.t2)
-		ret = self.medi_calc(target_speed_az, target_speed_el)
-		target_speed_az = ret[0]
-		target_speed_el = ret[1]
+			self.target_speed_el = (el_arcsec-self.pre_el_arcsec)/(self.t1-self.t2)
+		ret = self.medi_calc(self.target_speed_az, self.target_speed_el)
+		self.target_speed_az = ret[0]
+		self.target_speed_el = ret[1]
 		
 		self.ihensa_az += (hensa_az+self.pre_hensa_az)/2 
 		self.ihensa_el += (hensa_el+self.pre_hensa_el)/2
-		if math.fabs(hensa_az) > math.fabs(self.current_speed_az)/10.+10.:
-			self.ihensa_az = 0
-		if math.fabs(hensa_el) > math.fabs(self.current_speed_el)/10.+10.:
-			self.ihensa_el = 0
+		
+		#if math.fabs(hensa_az) > math.fabs(self.current_speed_az)/10.+10.:
+			#self.ihensa_az = 0
+		#if math.fabs(hensa_el) > math.fabs(self.current_speed_el)/10.+10.:
+			#self.ihensa_el = 0
 		if math.fabs(hensa_az) > 150:
 			self.ihensa_az = 0
 		if math.fabs(hensa_el) > 150:
 			self.ihensa_el = 0
 		
-		"""Previous
-		if math.fabs(hensa_az) >= 0.00: # don't use ihensa?
-			ihensa_az = 0
-			#hensa_flag_az = 0;
-		else:
-			#if(hensa_flag_az == 0 && hensa_az * pre_hensa_az <= 0)
-			#  hensa_flag_az = 1;
-			#if(hensa_flag_az == 1)
-			ihensa_az += hensa_az
-		if math.fabs(hensa_el) >= 0.000:
-			ihensa_el = 0
-			#hensa_flag_el = 0;
-		else:
-			#if(hensa_flag_el == 0 && hensa_el * pre_hensa_el <= 0)
-			#  hensa_flag_el = 1;
-			#if(hensa_flag_el == 1)
-			ihensa_el += hensa_el
-		"""
-		
-		""" Original
-		self.az_rate = Paz*az_err + Iaz*az_err_integral + Daz*azv_err_avg +azv*1.57
-		self.el_rate = Pel*el_err + Iel*el_err_integral + Del*elv_err_avg +elv*1.57
-		"""
-		
+		self.ihensa_azt = self.ihensa_az*(self.t1-self.t2)
+		self.ihensa_elt = self.ihensa_el*(self.t1-self.t2)
+
 		#self.az_rate = target_speed_az * 20.9 + (current_speed_az*20.9 - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*ihensa_az*(self.t1-self.t2) + d_az_coeff*dhensa_az/(self.t1-self.t2)
 		#self.el_rate = target_speed_el * 20.9 + p_el_coeff*hensa_el + i_el_coeff*ihensa_el*(self.t1-self.t2) + d_el_coeff*dhensa_el/(self.t1-self.t2)
-		self.az_rate = target_speed_az + (self.current_speed_az - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*self.ihensa_az*(self.t1-self.t2) + d_az_coeff*dhensa_az/(self.t1-self.t2)
-		self.el_rate = target_speed_el + (self.current_speed_el - self.el_rate) * s_el_coeff + p_el_coeff*hensa_el + i_el_coeff*self.ihensa_el*(self.t1-self.t2) + d_el_coeff*dhensa_el/(self.t1-self.t2)
+		self.az_rate = self.target_speed_az + (self.current_speed_az - self.az_rate) * s_az_coeff + p_az_coeff*hensa_az + i_az_coeff*self.ihensa_azt + d_az_coeff*dhensa_az/(self.t1-self.t2)
+		self.el_rate = self.target_speed_el + (self.current_speed_el - self.el_rate) * s_el_coeff + p_el_coeff*hensa_el + i_el_coeff*self.ihensa_elt + d_el_coeff*dhensa_el/(self.t1-self.t2)
 		
-		self.az_targetspeedmoni = target_speed_az
-		self.el_targetspeedmoni = target_speed_el
-		self.az_ihensamoni = self.ihensa_az*(self.t1-self.t2)
-		self.el_ihensamoni = self.ihensa_el*(self.t1-self.t2)
-		
-
-		if math.fabs(az_err) < 8000 and self.az_rate > 10000:
+		if math.fabs(hensa_az) < 8000 and self.az_rate > 10000:
 			self.az_rate = 10000
 		
-		if math.fabs(az_err) < 8000 and self.az_rate < -10000:
+		if math.fabs(hensa_az) < 8000 and self.az_rate < -10000:
 			self.az_rate = -10000
 		
-		if math.fabs(el_err) < 9000 and self.el_rate > 10000:
+		if math.fabs(hensa_el) < 9000 and self.el_rate > 10000:
 			self.el_rate = 10000
 		
-		if math.fabs(el_err) < 7000 and self.el_rate < -8000:
+		if math.fabs(hensa_el) < 7000 and self.el_rate < -8000:
 			self.el_rate = -8000
-		
 		
 		#update
 		self.az_enc_before = az_enc
 		self.el_enc_before = el_enc
-		self.az_err_before = az_err
-		self.el_err_before = el_err
-		
 		self.pre_hensa_az = hensa_az
 		self.pre_hensa_el = hensa_el
 		
@@ -348,12 +291,9 @@ class nanten_main_controller(object):
 		if el_max_rate > 12000:
 			el_max_rate = 12000
 		
-		#if(az_enc<5*DEG2ARCSEC) rate=min(1000, rate);
-		
-		#limit of dangerous zone
-		if (el_enc < 30.*DEG2ARCSEC and self.el_rate < 0 ) or (el_enc > 70.*DEG2ARCSEC and self.el_rate > 0):
+		if (el_enc < 30.*self.DEG2ARCSEC and self.el_rate < 0 ) or (el_enc > 70.*self.DEG2ARCSEC and self.el_rate > 0):
 			el_max_rate = min(0, el_max_rate)
-		if (az_enc < -270.*DEG2ARCSEC and self.az_rate < 0) or (az_enc > 270.*DEG2ARCSEC and self.az_rate > 0): 
+		if (az_enc < -270.*self.DEG2ARCSEC and self.az_rate < 0) or (az_enc > 270.*self.DEG2ARCSEC and self.az_rate > 0): 
 			az_max_rate = min(1600, az_max_rate); #bug?
 		
 		#lmit of speed
@@ -366,20 +306,14 @@ class nanten_main_controller(object):
 		if self.el_rate < -el_max_rate:
 			self.el_rate = -el_max_rate
 		
-		# arienai ryouiki deno gyakuunndou kinnsi //bug?
-		#if az_enc <= -90*DEG2ARCSEC and self.az_rate < 0:
-			#self.az_rate = 0
-		#if az_enc >= 380*DEG2ARCSEC and self.az_rate > 0:
-			#self.az_rate = 0
-		
-		if az_enc <= -270*DEG2ARCSEC and self.az_rate < 0:
+		if az_enc <= -270*self.DEG2ARCSEC and self.az_rate < 0:
 			self.az_rate = 0
-		if az_enc >= 380*DEG2ARCSEC and self.az_rate > 0:
+		if az_enc >= 380*self.DEG2ARCSEC and self.az_rate > 0:
 			self.az_rate = 0
 		
-		if el_enc <= 0*DEG2ARCSEC and self.el_rate < 0:
+		if el_enc <= 0*self.DEG2ARCSEC and self.el_rate < 0:
 			self.el_rate = 0 
-		if el_enc >= 90*DEG2ARCSEC and self.el_rate > 0:
+		if el_enc >= 90*self.DEG2ARCSEC and self.el_rate > 0:
 			self.el_rate = 0
 		self.t2 = self.t1
 		
@@ -412,44 +346,61 @@ class nanten_main_controller(object):
 		
 		if (ret[0]>>4 & 0x01) == 0:
 			print('!!!soft limit CW!!!')
+			self.limit_check_box[0] = "TRUE"
 			stop_flag = 1
 		if (ret[0]>>5 & 0x01) == 0:
 			print('!!!soft limit CCW!!!')
+			self.limit_check_box[1] = "TRUE"
 			stop_flag = 1
 		if (ret[0]>>6 & 0x01) == 0:
 			print('!!!soft limit UP!!!')
+			self.limit_check_box[2] = "TRUE"
 			stop_flag = 1
 		if (ret[0]>>7 & 0x01) == 0:
 			print('!!!soft limit DOWN!!!')
+			self.limit_check_box[3] = "TRUE"
 			stop_flag = 1
 		if (ret[1]>>0 & 0x01) == 0:
 			print('!!!1st limit CW!!!')
+			self.limit_check_box[4] = "TRUE"
 			stop_flag = 1
 		if (ret[1]>>1 & 0x01) == 0:
 			print('!!!1st limit CCW!!!')
+			self.limit_check_box[5] = "TRUE"
 			stop_flag = 1
 		if (ret[1]>>2 & 0x01) == 0:
 			print('!!!1st limit UP!!!')
+			self.limit_check_box[6] = "TRUE"
 			stop_flag = 1
 		if (ret[1]>>3 & 0x01) == 0:
 			print('!!!1st limit DOWN!!!')
+			self.limit_check_box[7] = "TRUE"
 			stop_flag = 1
 		if (ret[1]>>4 & 0x01) == 0:
 			print('!!!2nd limit CW!!!')
+			self.limit_check_box[8] = "TRUE"
 			stop_flag = 1
 		if (ret[1]>>5 & 0x01) == 0:
 			print('!!!2nd limit CCW!!!')
+			self.limit_check_box[9] = "TRUE"
 			stop_flag = 1
 		if (ret[1]>>6 & 0x01) == 0:
 			print('!!!2nd limit UP!!!')
+			self.limit_check_box[10] = "TRUE"
 			stop_flag = 1
 		if (ret[1]>>7 & 0x01) == 0:
 			print('!!!2nd limit DOWN!!!')
+			self.limit_check_box[11] = "TRUE"
 			stop_flag = 1
 		return stop_flag
 	
 	def read_azel(self):
-		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_d, self.el_rate_d, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el, self.az_ihensamoni ,self.el_ihensamoni]
+		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_dmoni, self.el_rate_dmoni,
+		self.az_targetspeedmoni, self.el_targetspeedmoni, self.az_currentspeedmoni, self.el_currentspeedmoni, self.az_ihensamoni ,self.el_ihensamoni]
+	
+	def read_limit(self):
+		# [0]=soft_cw,[1]=soft_ccw,[2]=soft_up,[3]=soft_down,[4]=1st_cw,[5]=1st_ccw,[6]=1st_up,[7]=1st_down,[8]=2nd_cw,[9]=2nd_ccw,[10]=2nd_up,[11]=2nd_down
+		return self.limit_check_box
 
 def nanten_main_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(nanten_main_controller, host, port)
@@ -464,5 +415,3 @@ def start_nanten_main_server(port1 = 7003, port2 = 7004):
 	server = pyinterface.server_client_wrapper.server_wrapper(nanten_main, '', port1, port2)
 	server.start()
 	return server
-
-
