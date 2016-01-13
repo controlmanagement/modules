@@ -44,17 +44,28 @@ class coord_calc(object):
 		k_to_au = 6.68459e-9
 		
 		jd_utc = self.calc_jd_utc()
-		jd = jd_utc + (self.tai_utc + 32.184) / (24. * 3600.)  # Convert UTC to Dynamical Time 
-		position = self.jpl[0, ntarg].compute(jd) # compute planet Barycenter
-		position -= self.jpl[0, 3].compute(jd) # compute Earth Barycenter
-		position -= self.jpl[3, 399].compute(jd) # compute Earth position
-		
-		dist = math.sqrt(position[0] ** 2 + position[1] ** 2 + position[2] ** 2) # [km]
-		position_1 = self.jpl[0, 3].compute(jd) #Earth position at jd
-		position_2 = self.jpl[0, ntarg].compute(jd - (dist / c) / (24. * 3600.)) # Target position when the light left
-		position = position_2 - position_1
-		position -= self.jpl[3, 399].compute(jd)
-		dist = math.sqrt(position[0] ** 2 + position[1] ** 2 + position[2] ** 2)
+		jd = jd_utc + (self.tai_utc + 32.184) / (24. * 3600.)  # Convert UTC to Dynamical Time
+		if ntarg != 10:
+			if ntarg == 11: #for Sun
+				n_ntarg = 10
+			else:
+				n_ntarg = ntarg
+			position = self.jpl[0, n_ntarg].compute(jd) # compute planet Barycenter
+			position -= self.jpl[0, 3].compute(jd) # compute Earth Barycenter
+			position -= self.jpl[3, 399].compute(jd) # compute Earth position
+			dist = math.sqrt(position[0] ** 2 + position[1] ** 2 + position[2] ** 2) # [km]
+			
+			position_1 = self.jpl[0, 3].compute(jd) #Earth position at jd
+			position_2 = self.jpl[0, n_ntarg].compute(jd - (dist / c) / (24. * 3600.)) # Target position when the light left
+			position = position_2 - position_1
+			position -= self.jpl[3, 399].compute(jd)
+			dist = math.sqrt(position[0] ** 2 + position[1] ** 2 + position[2] ** 2)
+		else: #for Moon
+			position = self.jpl[3, 301].compute(jd)
+			dist = math.sqrt(position[0] ** 2 + position[1] ** 2 + position[2] ** 2) # [km]
+			
+			position = self.jpl[3,301].compute(jd - (dist / c) / (24 * 3600.0))
+			dist = math.sqrt(position[0] ** 2 + position[1] ** 2 + position[2] ** 2)
 		ret = slalib.sla_dcc2s(position)
 		ra = ret[0] # radian
 		dec = ret[1] # radian
@@ -62,7 +73,7 @@ class coord_calc(object):
 		radi = math.asin(self.eqrau[ntarg] / dist)
 		dist = dist*k_to_au
 		return [ra, dec, dist, radi]
-
+	
 	def planet_J2000_geo_to_topo(gra, gdec, dist, radi, dut1, longitude, latitude, height):
 		jd_utc = self.calc_jd_utc()
 		date = jd_utc - 2400000.5 + dut1 / (24. * 3600.)
