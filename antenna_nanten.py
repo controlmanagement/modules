@@ -1,113 +1,84 @@
-#! /usr/bin/env python2.6
-#-*- coding: utf-8 -*-
+#! /usr/bin/env python
+# coding:utf-8
 
 """
-モーターの制御を行う
-
-================================================
-Radio Telescope Observing System
-------------------------------------------------
-
-------------------------------------------------
-[Detail Description]
-
-・構成
-
-　公開しているクラス
-　（１）antenna_nanten：モーターの制御を行う
-
-
-------------------------------------------------
+望遠鏡及びdomeの制御
+1/15現在 望遠鏡のみ
 """
 
-import telescope_nanten.motor
-import core.file_manager
+import math
+
 import core.controller
 
 class antenna_nanten(core.controller.antenna):
-    """モーターの制御を行う"""
-    coord_dict = {"J2000"     : telescope_nanten.motor.COORD_J2000,
-                  "B1950"     : telescope_nanten.motor.COORD_B1950,
-                  "LB"        : telescope_nanten.motor.COORD_LB,
-                  "GALACTIC"  : telescope_nanten.motor.COORD_LB,
-                  "APPARENT"  : telescope_nanten.motor.COORD_APP,
-                  "HORIZONTAL": telescope_nanten.motor.COORD_HORIZONTAL,
-                  "SAME"      : telescope_nanten.motor.COORD_SAME}
-
     def __init__(self):
- 
-        self.m = telescope_nanten.motor.motor_client(print_socket=False)
-        self.m.open()
-        self.dev = core.file_manager.dev_manager()
-        return
-
-    def use_radio(self):
-        """機差の補正、観測する周波数のセッティング(電波観測)"""
-        self.m.kisa()
-        self.m.set_radio()
-        self.m.set_lambda(float(self.dev["LIGHT_SPEED"]) / float(self.dev['1stLO1'])*1000.)
-        return
-
-
-    def use_opt(self):
-        """機差の補正、観測する周波数のセッティング(可視光観測)"""
-        self.m.kisa()
-        self.m.set_opt()
-        return
+        import telescope_nanten.antenna_nanten_controller
+        import pymeasure.weather
+        self.antenna = telescope_nanten.antenna_nanten_controller.antenna_client('172.20.0.11',8003)
+        self.weather = pymeasure.weather.weather_monitor_client('172.20.0.11',3002)
+        self.start_limit_check()
+        pass 
     
-
-    def set_condition(self, pressure, humidity, temperature_C):
-        """気圧、気温、湿度による大気屈折率の補正"""
-        self.m.set_pressure(pressure)
-        self.m.set_humidity(humidity)
-        self.m.set_temperature(temperature_C)
+    def drive_on(self):
+        """drive_on"""
+        self.antenna.contactor_on()
+        self.antenna.drive_on()
         return
 
-
-    def move(self, x, y, coord, offset_x, offset_y, offset_dcos, offset_coord, planet):
-        """offset値をセッティングし、指定したターゲットにアンテナを向ける(電波観測)"""
-        if offset_coord == "HORIZONTAL":
-            self.m.set_offset(0, 0, 1, self.coord_dict["SAME"])
-            self.m.set_offset_horizontal(offset_x, offset_y,  offset_dcos)
-        else:
-            self.m.set_offset_horizontal(0, 0, 1)
-            self.m.set_offset(offset_x, offset_y, offset_dcos, self.coord_dict[offset_coord.upper()])
-            pass
-        if planet == None:
-            if coord.upper()=='HORIZONTAL':
-                self.m.move_azel(x, y)
-            else:
-                self.m.move_radio(x, y, self.coord_dict[coord.upper()])
-                pass
-            pass
-        else:
-            self.m.move_planet(planet)
-            pass
-        return
-    
-    
-    def move_opt(self, x, y, px, py, coord, acc):
-        """指定したターゲットにアンテナを向ける(可視光観測)"""
-        self.m.move_opt(x, y, px, py, self.coord_dict[coord.upper()], acc)
+    def drive_off(self):
+        """drive_off"""
+        self.antenna.drive_off()
+        self.antenna.contactor_off()
         return
 
+    def azel_move(self, az_arcsec, el_arcsec, az_rate = 12000, el_rate =12000):
+        """antennaを(Az, El)に動かす"""
+        self.antenna.azel_move(az_arcsec, el_arcsec, az_rate, el_rate)
+        return
 
-    def scan(self, sx, sy, coord, scan_dcos, dx, dy, dt, n, ramp, delay):
-        """スキャン開始時刻を計算する"""
-        if coord == "HORIZONTAL":
-            stime = self.m.otf_horizontal_ramp(sx, sy, scan_dcos, dx, dy, dt, n, ramp, delay)
-        else:
-            stime = self.m.otf_ramp(sx, sy, scan_dcos, self.coord_dict[coord.upper()], dx, dy, dt, n, ramp, delay)
-        return stime
-
-
-    def get_status(self):
-        """現在の(az,el)を取得する"""
-        az, el = self.m.get_azel()
-        return az, el
+    def radec_move(self, ra, dec, code_mode, off_coord = "HORIZONTAL", off_x = 0, off_y = 0, hosei = 'hosei_230.txt'):
+        """antennaを(Ra, Dec)に動かす"""
+        """ra,dec は degreeで"""
+        """code_mode → 'J2000' or 'B1950'"""
         
-        
-    def finalize(self):
-        """トラッキングを終了する"""
-        self.m.stop_tracking()
+        gx = ra*math.pi/180.
+        gy = dec*math.pi/180.
+        condition = self.weather.read_weather()
+        temp = float(condition[6])+273.
+        press = float(condition[12])
+        humid = float(condition[9])/100.
+        self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, 2600, 0, hosei, off_coord, off_x, off_y)
         return
+
+    def planet_move(self, number, off_cord = "HORIZONTAL", off_x =0, off_y = 0, hosei = "hosei_230.txt"):
+        """antennaをplanetに動かす"""
+        """1.Mercury 2.Venus 3.Moon 4.Mars 5.Jupiter 6.Saturn 7.Uranus 8.Neptune, 9.Pluto, 10.Sun"""
+        condition = self.weather.read_weather()
+        temp = float(condition[6])+273.
+        press = float(condition[12])
+        humid = float(condition[9])/100.
+        self.antenna.thread_start('PLANET', 0, 0, 0, 0, 0, 0, temp, press, humid, 2600, 0, hosei, off_coord, off_x, off_y)
+        return
+
+
+    def tracking_end(self):
+        """trackingの終了"""
+        self.antenna.tracking_end()
+        return
+    
+    def clear_error(self):
+        """errorのclear"""
+        self.antenna.clear_error()
+        return
+
+    def start_limit_check(self):
+        self.antenna.start_limit_check()
+        return
+
+    def stop_limit_check(self):
+        self.antenna.stop_limit_check()
+        return
+    
+    def read_error(self):
+        ret = self.antenna.read_error()
+        return ret
