@@ -405,8 +405,13 @@ class antenna_nanten_controller(object):
 		return [self.az_track, self.el_track]
 	
 	def read_error(self):
-		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el]
-	
+		ret = self.nanten.read_error()
+		return ret
+
+	def read_limit(self):
+		ret = self.nanten.read_limit()
+		return ret
+		
 	def read_v(self): # [arcsec/s]
 		return [self.az_v, self.el_v]
 
