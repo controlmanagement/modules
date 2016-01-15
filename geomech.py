@@ -77,8 +77,8 @@ class geomech_controller(object):
 		for i in range(10):
 			X2[i] = X[i]-(X[i]-Y[i])+(X_ave-Y_ave)
 			Y2[i] = Y[i]-(X[i]-Y[i])+(X_ave-Y_ave)
-			X_ave2 += X[i]
-			Y_ave2 += Y[i]
+			X_ave2 += X2[i]
+			Y_ave2 += Y2[i]
 		
 		x = self.geo_x = X_ave2/10
 		y = self.geo_y = Y_ave2/10
