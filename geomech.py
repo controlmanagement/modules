@@ -37,7 +37,7 @@ class geomech_controller(object):
 		# int ret=AdInputAD(m_dnum,10,AD_INPUT_SINGLE,&m_Conf[0],AdData);
 		# m_dum = 1(device_number), 10(ulCh),   m_conf[0]
 		
-		AdInputAD = self.dio.input_ad(chs, ranges)
+		AdData = self.dio.ctr.input_ad(chs, ranges)
 		for i in range(10):
 			AdVoltage[i] = (AdData[i]-32768.)/3276.8
 		
