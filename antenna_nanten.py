@@ -13,10 +13,13 @@ import core.controller
 class antenna_nanten(core.controller.antenna):
     def __init__(self):
         import telescope_nanten.antenna_nanten_controller
+        import telescope_nanten.dome
         import pymeasure.weather
         self.antenna = telescope_nanten.antenna_nanten_controller.antenna_client('172.20.0.11',8003)
+        self.dome = telescope_nanten.dome.dome_client('172.20.0.11',8007)
         self.weather = pymeasure.weather.weather_monitor_client('172.20.0.11',3002)
         self.start_limit_check()
+        self.start_domestatus_check()
         pass 
     
     def drive_on(self):
@@ -36,7 +39,7 @@ class antenna_nanten(core.controller.antenna):
         self.antenna.azel_move(az_arcsec, el_arcsec, az_rate, el_rate)
         return
 
-    def radec_move(self, ra, dec, code_mode, off_coord = "HORIZONTAL", off_x = 0, off_y = 0, hosei = 'hosei_230.txt'):
+    def radec_move(self, ra, dec, code_mode, off_x = 0, off_y = 0, hosei = 'hosei_230.txt'):
         """antennaを(Ra, Dec)に動かす"""
         """ra,dec は degreeで"""
         """code_mode → 'J2000' or 'B1950'"""
@@ -47,17 +50,17 @@ class antenna_nanten(core.controller.antenna):
         temp = float(condition[6])+273.
         press = float(condition[12])
         humid = float(condition[9])/100.
-        self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, 2600, 0, hosei, off_coord, off_x, off_y)
+        self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, 2600, 0, hosei='hosei_230.txt', off_x = 0, off_y = 0)
         return
 
-    def planet_move(self, number, off_cord = "HORIZONTAL", off_x =0, off_y = 0, hosei = "hosei_230.txt"):
+    def planet_move(self, number, off_x =0, off_y = 0):
         """antennaをplanetに動かす"""
         """1.Mercury 2.Venus 3.Moon 4.Mars 5.Jupiter 6.Saturn 7.Uranus 8.Neptune, 9.Pluto, 10.Sun"""
         condition = self.weather.read_weather()
         temp = float(condition[6])+273.
         press = float(condition[12])
         humid = float(condition[9])/100.
-        self.antenna.thread_start('PLANET', 0, 0, 0, 0, 0, 0, temp, press, humid, 2600, 0, hosei, off_coord, off_x, off_y)
+        self.antenna.thread_start('PLANET', 0, 0, 0, 0, 0, 0, temp, press, humid, 2600, 0, hosei='hosei_230.txt', off_x = 0, off_y = 0)
         return
 
 
@@ -82,3 +85,14 @@ class antenna_nanten(core.controller.antenna):
     def read_error(self):
         ret = self.antenna.read_error()
         return ret
+
+# for dome
+    def start_domestatus_check(self):
+        self.dome.start_status_check()
+        return
+
+    def stop_domestatus_check(self):
+        self.dome.stop_status_check()
+        return
+
+
