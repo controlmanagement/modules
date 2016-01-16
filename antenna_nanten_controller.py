@@ -409,7 +409,7 @@ class antenna_nanten_controller(object):
 		return ret
 
 	def read_limit(self):
-		ret = self.nanten.read_limit()
+		ret = self.nanten.read_error()
 		return ret
 		
 	def read_v(self): # [arcsec/s]
