@@ -2,10 +2,9 @@ import time
 import math
 import threading
 import pyinterface
-import dome_status
 import sys
-import antenna_enc
-import threading
+
+import domepos
 import antenna_enc
 
 
@@ -16,21 +15,13 @@ class dome_controller(object):
 	stop = [0]
 	error = []
 	count = 0
-
+	status_box = []
 
 	def __init__(self):
-		pass
-	
-	def start_server(self):
-		ret = self.start_dome_server()
-		return
-	
-	def open(self):
-		self.status = dome_status.dome_get_status()
-		self.status.open()
+		self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
+		self.domepos = domepos.domepos_client('172.20.0.11',8006)
 		self.dio = pyinterface.create_gpg2000(5)
-		self.enc = antenna_enc.enc_controller()
-		return
+		pass
 	
 	def start_thread(self):
 		self.end_track_flag = threading.Event()
@@ -46,11 +37,11 @@ class dome_controller(object):
 		return
 
 	def move_track(self):
-		ret = self.status.dome_encoder_acq()
+		ret = self.domepos.dome_position()
 		while not self.end_track_flag.is_set():
-			ret = self.enc.get_azel()
+			ret = self.enc.read_azel()
 			ret[0] = ret[0]/3600. # ret[0] = antenna_az
-			dome_az = self.get_count()
+			dome_az = self.domepos.dome_position()
 			dome_az = dome_az/3600.
 			self.status.dome_limit()
 			if math.fabs(ret[0]-dome_az) >= 2.0:
@@ -74,11 +65,11 @@ class dome_controller(object):
 	def move_org(self):
 		dist = 90
 		self.move(dist)	#move_org
-		self.get_count()
+		self.domepos.dome_position()
 		return
 	
 	def move(self, dist):
-		pos_arcsec = self.status.dome_encoder_acq()
+		pos_arcsec = self.domepos.dome_position()
 		pos = pos_arcsec/3600.
 		pos = pos % 360.0
 		dist = dist % 360.0
@@ -106,7 +97,7 @@ class dome_controller(object):
 			self.buffer[1] = 1
 			self.do_output(turn, speed)
 			while dir != 0:
-				pos_arcsec = self.status.dome_encoder_acq()
+				pos_arcsec = self.domepos.dome_position()
 				pos = pos_arcsec/3600.
 				pos = pos % 360.0
 				dist = dist % 360.0
@@ -296,7 +287,7 @@ class dome_controller(object):
 			self.print_error('controll board inverter(of dome_door or membrane) error')
 		return
 	
-		def limit_check(self):
+	def limit_check(self):
 		limit = self.dio.di_check(12, 4)
 		ret = 0
 		if limit[0:4] == [0,0,0,0]:
@@ -326,12 +317,35 @@ class dome_controller(object):
 		elif limit[0:4] == [0,0,1,1]:
 			ret = 12
 		return ret
-	
+
 	def dome_limit(self):
 		limit = self.limit_check()
 		if limit != 0:
 			self.status.dio.ctrl.set_counter(self.touchsensor_pos[limit-1]+self.dome_encoffset)
 		return limit
+	
+	def start_status_check(self):
+		self.stop_status_flag = threading.Event()
+		self.status_thread = threading.Thread(target = self.status_check)
+		self.status_thread.start()
+		return
+	
+	def status_check(self):
+		while not self.stop_status_flag.is_set():
+			ret1 = self.get_action()
+			ret2 = self.get_door_status()
+			ret3 = self.get_memb_status()
+			ret4 = self.get_remote_status()
+			self.status_box = [ret1, ret2, ret3, ret4]
+		return
+	
+	def stop_status_check(self):
+		self.stop_staus_flag.set()
+		self.status_thread.join()
+		return
+
+	def read_status(self):
+		return self.status_box
 	
 
 
@@ -343,7 +357,7 @@ def dome_monitor_client(host, port):
 	client = pyinterface.server_client_wrapper.monitor_client_wrapper(dome_controller, host, port)
 	return client
 
-def start_dome_server(port1 = 9999, port2 = 9999):
+def start_dome_server(port1 = 8007, port2 = 8008):
 	dome = dome_controller()
 	server = pyinterface.server_client_wrapper.server_wrapper(dome,'', port1, port2)
 	server.start()
