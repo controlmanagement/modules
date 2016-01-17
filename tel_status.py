@@ -1,27 +1,35 @@
-import controller
-#import dome_status
+#import controller
+import antenna_nanten_controller
+import antenna_enc
+import dome
+import domepos
 
 import time
+from datetime import datetime as dt
 
-status = controller.read_status()
 
-"""
-dome.open()
-dome1 = dome.get_remote_status()
-dome2 = dome.get_door_status()
-dome3 = dome.get_memb_status()
-"""
+tel = antenna_nanten_controller.antenna_monitor_client('172.20.0.11',8004)
+enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
+dome = dome.dome_monitor_client('172.20.0.11',8008)
+domepos = domepos.domepos_monitor_client('172.20.0.11',8006)
 
 while(1):
-    data = status.read_status()
-    #dome1 = dome.get_remote_status()
-    #dome2 = dome.get_door_status()
-    #dome3 = dome.get_memb_status()
-    #dome4 = dome.dome_encoder_acq()
-    now = time.strftime('%H:%M:%S',time.gmtime())
+    telstatus = tel.read_limit()
+    encstatus = enc.read_azel()
+    domestatus = dome.read_status()
+    domeposstatus = domepos.read_dome_enc()
 
-    #print "TIME : %s  AZ : %3.2f  EL : %3.2f  DOME : %s  door : %s  membrane : %s  %3.2f" %(now,azel[0]/3600.,azel[1]/3600.,dome1,dome2[1],dome3[1],dome4/3600.)
-    print "TIME : %s  AZ_r: %3.2f  EL_r: %3.2f  AZ_i : %3.2f  EL_i: %3.2f" %(now,data['current_az']/3600.,data['current_el']/3600.,data['command_az']/3600.,data['command_el']/3600.,)
+    tv = time.time()
+    mjd = tv/24./3600. + 40587.0 # 40587.0 = MJD0
+    mjd = int(mjd)
+    ntime = dt.now()
+    secofday = ntime.hour*60*60 + ntime.minute*60 + ntime.second + ntime.microsecond*0.000001
     
+    #print "TIME : %s  AZ_r: %3.2f  EL_r: %3.2f  AZ_i : %3.2f  EL_i: %3.2f" %(now,data[0]/3600.,data[1]/3600.,data[2]/3600.,data[3]/3600.,)
+    #print domestatus
+    #print domeposstatus
+    log = 'telescope:' + str(telstatus[0]) + ' ' + str(telstatus[1]) + ' ' + str(telstatus[2])+ ' ' + str(telstatus[3])+ ' ' + str(mjd) + ' ' + str(secofday) + ' ' + str(encstatus[0]/3600.) + ' ' + str(encstatus[1]/3600.) + ' dome:door:' + str(domestatus[1][1]) + ' :membrane:' + str(domestatus[2][1])+ ' ' + str(domestatus[3]) + ' ' + str(domeposstatus/3600.)
+    print log
+
     time.sleep(1.)
 
