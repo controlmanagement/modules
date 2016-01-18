@@ -3,7 +3,7 @@ import math
 import pyinterface
 
 
-class domepos_controller(object):
+class dome_pos_controller(object):
 	touchsensor_pos = [-391,-586,-780,-974,-1168,-1363,-1561,-1755,-1948,-2143, 0, -197]
 	dome_encoffset = 10000
 	dome_enc1loop = 2343
