@@ -26,7 +26,8 @@ class antenna_nanten_controller(object):
 	target_el = 0
 	drive_az = drive_el = "OFF"
 	az_track = el_track = "FALSE"
-	error_az = error_el = servo_error_az = servo_error_el = "FALSE"
+	error_az = error_el = servo_error_az = servo_error_el = emergency_switch = "FALSE"
+	antenna_status = ""
 	az_v = el_v = 0
 	off_list = {"off_az":0, "off_el":0, "off_ra":0, "off_dec":0, "off_l":0, "off_b":0}
 	
@@ -90,8 +91,14 @@ class antenna_nanten_controller(object):
 		
 		ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN25_32")
 		if (ret>>0 & 0x01) == 1:
-			emergency_switch = "TRUE"
-		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el, cable_cw, cable_ccw]
+			self.emergency_switch = "TRUE"
+		else:
+			self.emergency_switch = "FALSE"
+		if (ret>>2 & 0x01) == 1:
+			self.antenna_status = "LOCAL"
+		else:
+			self.antenna_status = "REMOTE"
+		return [self.error_az, self.error_el, self.servo_error_az, self.servo_error_el, cable_cw, cable_ccw, self.emergency_switch, self.antenna_status]
 	
 	def clear_error(self):
 		self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 8)
@@ -414,6 +421,10 @@ class antenna_nanten_controller(object):
 		
 	def read_v(self): # [arcsec/s]
 		return [self.az_v, self.el_v]
+	
+	def read_status(self):
+		return self.antenna_status
+
 
 def antenna_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(antenna_nanten_controller, host, port)
