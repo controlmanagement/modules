@@ -2,7 +2,7 @@
 import antenna_nanten_controller
 import antenna_enc
 import dome
-import domepos
+import dome_pos
 
 import time
 from datetime import datetime as dt
@@ -11,13 +11,13 @@ from datetime import datetime as dt
 tel = antenna_nanten_controller.antenna_monitor_client('172.20.0.11',8004)
 enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
 dome = dome.dome_monitor_client('172.20.0.11',8008)
-domepos = domepos.domepos_monitor_client('172.20.0.11',8006)
+dome_pos = dome_pos.dome_pos_monitor_client('172.20.0.11',8006)
 
 while(1):
     telstatus = tel.read_limit()
     encstatus = enc.read_azel()
     domestatus = dome.read_status()
-    domeposstatus = domepos.read_dome_enc()
+    domeposstatus = dome_pos.read_dome_enc()
 
     tv = time.time()
     mjd = tv/24./3600. + 40587.0 # 40587.0 = MJD0
