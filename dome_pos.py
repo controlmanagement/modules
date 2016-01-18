@@ -52,17 +52,17 @@ class dome_pos_controller(object):
 	def read_dome_enc(self):
 		return self.dome_position
 
-def domepos_client(host, port):
-	client = pyinterface.server_client_wrapper.control_client_wrapper(domepos_controller, host, port)
+def dome_pos_client(host, port):
+	client = pyinterface.server_client_wrapper.control_client_wrapper(dome_pos_controller, host, port)
 	return client
 
-def domepos_monitor_client(host, port):
-	client = pyinterface.server_client_wrapper.monitor_client_wrapper(domepos_controller, host, port)
+def dome_pos_monitor_client(host, port):
+	client = pyinterface.server_client_wrapper.monitor_client_wrapper(dome_pos_controller, host, port)
 	return client
 
-def start_domepos_server(port1 = 8005, port2 = 8006):
-	domepos = domepos_controller()
-	server = pyinterface.server_client_wrapper.server_wrapper(domepos, '', port1, port2)
+def start_dome_pos_server(port1 = 8005, port2 = 8006):
+	dome_pos = dome_pos_controller()
+	server = pyinterface.server_client_wrapper.server_wrapper(dome_pos, '', port1, port2)
 	server.start()
 	return server
 
