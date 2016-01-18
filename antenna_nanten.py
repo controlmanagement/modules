@@ -39,7 +39,7 @@ class antenna_nanten(core.controller.antenna):
 		self.antenna.azel_move(az_arcsec, el_arcsec, az_rate, el_rate)
 		return
 	
-	def radec_move(self, ra, dec, code_mode, off_x = 0, off_y = 0, hosei = 'hosei_230.txt',offcoord):
+	def radec_move(self, ra, dec, code_mode, off_x = 0, off_y = 0, hosei = 'hosei_230.txt',offcoord = "HORIZONTAL"):
 		"""antennaを(Ra, Dec)に動かす"""
 		"""ra,dec は degreeで"""
 		"""code_mode → 'J2000' or 'B1950'"""
@@ -50,17 +50,21 @@ class antenna_nanten(core.controller.antenna):
 		temp = float(condition[6])+273.
 		press = float(condition[12])
 		humid = float(condition[9])/100.
-		self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, 2600, 0, hosei,offcoord, off_x, off_y)
+		self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, 2600, 0, hosei, offcoord, off_x, off_y)
 		return
 	
-	def planet_move(self, number,hosei,offcoorde, off_x =0, off_y = 0):
+	def planet_move(self, number,hosei,offcoorde = "HORIZONTAL", off_x =0, off_y = 0):
 		"""antennaをplanetに動かす"""
 		"""1.Mercury 2.Venus 3.Moon 4.Mars 5.Jupiter 6.Saturn 7.Uranus 8.Neptune, 9.Pluto, 10.Sun"""
 		condition = self.weather.read_weather()
 		temp = float(condition[6])+273.
 		press = float(condition[12])
 		humid = float(condition[9])/100.
-		self.antenna.thread_start('PLANET', 0, 0, 0, 0, 0, 0, temp, press, humid, 2600, 0, hosei,offcoorde, off_x, off_y)
+		self.antenna.thread_start('PLANET', 0, 0, 0, 0, 0, 0, temp, press, humid, 2600, 0, hosei, offcoorde, off_x, off_y)
+		return
+	
+	def set_offset(self, off_x, _off_y, off_coord = "HORIZONTAL"):
+		self.antenna.set_offset(off_coord, off_x, off_y)
 		return
 	
 	def tracking_end(self):
