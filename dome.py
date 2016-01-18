@@ -4,7 +4,7 @@ import threading
 import pyinterface
 import sys
 
-import domepos
+import dome_pos
 import antenna_enc
 
 
@@ -19,7 +19,7 @@ class dome_controller(object):
 
 	def __init__(self):
 		self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
-		self.domepos = domepos.domepos_client('172.20.0.11',8006)
+		self.dome_pos = dome_pos.dome_pos_client('172.20.0.11',8006)
 		self.dio = pyinterface.create_gpg2000(5)
 		pass
 	
@@ -37,11 +37,11 @@ class dome_controller(object):
 		return
 
 	def move_track(self):
-		ret = self.domepos.dome_position()
+		ret = self.dome_pos.dome_position()
 		while not self.end_track_flag.is_set():
 			ret = self.enc.read_azel()
 			ret[0] = ret[0]/3600. # ret[0] = antenna_az
-			dome_az = self.domepos.dome_position()
+			dome_az = self.dome_pos.dome_position()
 			dome_az = dome_az/3600.
 			self.status.dome_limit()
 			if math.fabs(ret[0]-dome_az) >= 2.0:
@@ -65,11 +65,11 @@ class dome_controller(object):
 	def move_org(self):
 		dist = 90
 		self.move(dist)	#move_org
-		self.domepos.dome_position()
+		self.dome_pos.dome_position()
 		return
 	
 	def move(self, dist):
-		pos_arcsec = self.domepos.dome_position()
+		pos_arcsec = self.dome_pos.dome_position()
 		pos = pos_arcsec/3600.
 		pos = pos % 360.0
 		dist = dist % 360.0
@@ -97,7 +97,7 @@ class dome_controller(object):
 			self.buffer[1] = 1
 			self.do_output(turn, speed)
 			while dir != 0:
-				pos_arcsec = self.domepos.dome_position()
+				pos_arcsec = self.dome_pos.dome_position()
 				pos = pos_arcsec/3600.
 				pos = pos % 360.0
 				dist = dist % 360.0
@@ -186,11 +186,11 @@ class dome_controller(object):
 	
 	def read_count(self):
 		return self.count
-
+	
 	def get_count(self):
 		self.count = self.status.dome_encoder_acq()
 		return self.count
-
+	
 	def do_output(self, turn, speed):
 		global buffer
 		global stop
@@ -217,7 +217,7 @@ class dome_controller(object):
 		else:
 			move_status = 'DRIVE'
 		return move_status
-
+	
 	def get_door_status(self):
 		ret = self.dio.di_check(2, 6)
 		if ret[0] == 0:
@@ -262,7 +262,7 @@ class dome_controller(object):
 		else:
 			memb_pos = 'OPEN'
 		return [memb_act, memb_pos]
-
+	
 	def get_remote_status(self):
 		ret = self.dio.di_check(11, 1)
 		if ret[0] == 0:
@@ -270,7 +270,7 @@ class dome_controller(object):
 		else:
 			status = 'LOCAL'
 		return status
-
+	
 	def error_check(self):
 		ret = self.dio.di_check(16, 6)
 		if ret[0] == 1:
@@ -317,7 +317,7 @@ class dome_controller(object):
 		elif limit[0:4] == [0,0,1,1]:
 			ret = 12
 		return ret
-
+	
 	def dome_limit(self):
 		limit = self.limit_check()
 		if limit != 0:
@@ -343,7 +343,7 @@ class dome_controller(object):
 		self.stop_staus_flag.set()
 		self.status_thread.join()
 		return
-
+	
 	def read_status(self):
 		return self.status_box
 	
