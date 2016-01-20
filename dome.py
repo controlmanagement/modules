@@ -11,12 +11,14 @@ import antenna_enc
 
 class dome_controller(object):
 	#speed = 3600 #[arcsec/sec]
+	touchsensor_pos = [-391,-586,-780,-974,-1168,-1363,-1561,-1755,-1948,-2143, 0, -197]
+	dome_encoffset = 10000
 	buffer = [0,0,0,0,0,0]
 	stop = [0]
 	error = []
 	count = 0
 	status_box = []
-
+	
 	def __init__(self):
 		self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
 		self.dome_pos = dome_pos.dome_pos_client('172.20.0.11',8006)
@@ -28,22 +30,22 @@ class dome_controller(object):
 		self.thread = threading.Thread(target = self.move_track)
 		self.thread.start()
 		return
-
+	
 	def end_thread(self):
 		self.end_track_flag.set()
 		self.thread.join()
 		buff = [0]
 		self.dio.do_output(buff, 2, 1)
 		return
-
+	
 	def move_track(self):
-		ret = self.dome_pos.dome_position()
+		ret = self.dome_pos.read_dome_enc()
 		while not self.end_track_flag.is_set():
 			ret = self.enc.read_azel()
 			ret[0] = ret[0]/3600. # ret[0] = antenna_az
-			dome_az = self.dome_pos.dome_position()
+			dome_az = self.dome_pos.read_dome_enc()
 			dome_az = dome_az/3600.
-			self.status.dome_limit()
+			self.dome_limit()
 			if math.fabs(ret[0]-dome_az) >= 2.0:
 				self.move(ret[0])
 	
@@ -52,29 +54,30 @@ class dome_controller(object):
 		time.sleep(num)
 		self.end_thread()
 		return
-
+	
 	def print_msg(self,msg):
 		print(msg)
 		return
-
+	
 	def print_error(self,msg):
 		self.error.append(msg)
 		self.print_msg('!!!!ERROR!!!!'+msg)
 		return
-
+	
 	def move_org(self):
 		dist = 90
 		self.move(dist)	#move_org
-		self.dome_pos.dome_position()
+		self.dome_pos.read_dome_enc()
 		return
 	
 	def move(self, dist):
-		pos_arcsec = self.dome_pos.dome_position()
+		pos_arcsec = self.dome_pos.read_dome_enc()
 		pos = pos_arcsec/3600.
 		pos = pos % 360.0
 		dist = dist % 360.0
 		diff = dist - pos
 		dir = diff % 360.0
+		"""
 		if pos == dist: return
 		if dir < 0:
 			if abs(dir) >= 180:
@@ -97,7 +100,7 @@ class dome_controller(object):
 			self.buffer[1] = 1
 			self.do_output(turn, speed)
 			while dir != 0:
-				pos_arcsec = self.dome_pos.dome_position()
+				pos_arcsec = self.dome_pos.read_dome_enc()
 				pos = pos_arcsec/3600.
 				pos = pos % 360.0
 				dist = dist % 360.0
@@ -114,6 +117,7 @@ class dome_controller(object):
 					else:
 						speed = 'mid'
 					self.do_output(turn, speed)
+		"""
 		buff = [0]
 		self.dio.do_output(buff, 2, 1)
 		self.get_count()
@@ -171,7 +175,7 @@ class dome_controller(object):
 	def emergency_stop(self):
 		global stop
 		dome_controller.stop = [1]
-		self.status.dio.do_output(self.stop, 11, 1)
+		self.pos.dio.do_output(self.stop, 11, 1)
 		self.print_msg('!!EMERGENCY STOP!!')
 		return
 	
@@ -188,7 +192,7 @@ class dome_controller(object):
 		return self.count
 	
 	def get_count(self):
-		self.count = self.status.dome_encoder_acq()
+		self.count = self.dome_pos.dome_encoder_acq()
 		return self.count
 	
 	def do_output(self, turn, speed):
@@ -206,8 +210,8 @@ class dome_controller(object):
 			self.buffer[1] = 0
 		else: self.buffer[1] = 1
 		self.dio.do_output(self.buffer, 1, 6)
-		self.status.dome_limit()
-		self.get_count()
+		self.dome_limit()
+		self.dome_pos.read_dome_enc()
 		return
 	
 	def get_action(self):
@@ -321,7 +325,7 @@ class dome_controller(object):
 	def dome_limit(self):
 		limit = self.limit_check()
 		if limit != 0:
-			self.status.dio.ctrl.set_counter(self.touchsensor_pos[limit-1]+self.dome_encoffset)
+			self.dome_pos.dio.ctrl.set_counter(self.touchsensor_pos[limit-1]+self.dome_encoffset)
 		return limit
 	
 	def start_status_check(self):
