@@ -3,7 +3,6 @@
 
 """
 望遠鏡及びdomeの制御
-1/15現在 望遠鏡のみ
 """
 
 import math
@@ -118,6 +117,10 @@ class antenna_nanten(core.controller.antenna):
 		self.dome.move(dome_az)
 		return
 	
+	def dome_stop(self):
+		self.dome.stop_dome(self):
+		return
+
 	def dome_track(self):
 		self.dome.start_thread()
 		return
@@ -125,5 +128,6 @@ class antenna_nanten(core.controller.antenna):
 	def dome_track_end(self):
 		self.dome.end_thread()
 		return
+
 
 
