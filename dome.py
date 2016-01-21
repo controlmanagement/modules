@@ -22,6 +22,7 @@ class dome_controller(object):
 	def __init__(self):
 		self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
 		self.dome_pos = dome_pos.dome_pos_client('172.20.0.11',8006)
+		#self.dome_pos = dome_pos.dome_pos_controller()
 		self.dio = pyinterface.create_gpg2000(5)
 		pass
 	
@@ -40,10 +41,12 @@ class dome_controller(object):
 	
 	def move_track(self):
 		ret = self.dome_pos.read_dome_enc()
+		#ret = self.dome_pos.dome_encoder_acq()
 		while not self.end_track_flag.is_set():
 			ret = self.enc.read_azel()
 			ret[0] = ret[0]/3600. # ret[0] = antenna_az
 			dome_az = self.dome_pos.read_dome_enc()
+			#dome_az = self.dome_pos.dome_encoder_acq()
 			dome_az = dome_az/3600.
 			self.dome_limit()
 			if math.fabs(ret[0]-dome_az) >= 2.0:
@@ -71,13 +74,14 @@ class dome_controller(object):
 		return
 	
 	def move(self, dist):
+		#pos_arcsec = self.dome_pos.dome_encoder_acq()
 		pos_arcsec = self.dome_pos.read_dome_enc()
 		pos = pos_arcsec/3600.
 		pos = pos % 360.0
 		dist = dist % 360.0
 		diff = dist - pos
 		dir = diff % 360.0
-		"""
+		
 		if pos == dist: return
 		if dir < 0:
 			if abs(dir) >= 180:
@@ -100,6 +104,7 @@ class dome_controller(object):
 			self.buffer[1] = 1
 			self.do_output(turn, speed)
 			while dir != 0:
+				#pos_arcsec = self.dome_pos.dome_encoder_acq()
 				pos_arcsec = self.dome_pos.read_dome_enc()
 				pos = pos_arcsec/3600.
 				pos = pos % 360.0
@@ -117,12 +122,16 @@ class dome_controller(object):
 					else:
 						speed = 'mid'
 					self.do_output(turn, speed)
-		"""
-		buff = [0]
-		self.dio.do_output(buff, 2, 1)
+		
+		self.stop_dome()
 		self.get_count()
 		return
 	
+	def stop_dome(self):
+		buff = [0]
+		self.dio.do_output(buff, 2, 1)
+		return
+
 	def dome_open(self):
 		ret = self.get_door_status()
 		if ret[1] != 'OPEN' and ret[3] != 'OPEN':
@@ -211,7 +220,8 @@ class dome_controller(object):
 		else: self.buffer[1] = 1
 		self.dio.do_output(self.buffer, 1, 6)
 		self.dome_limit()
-		self.dome_pos.read_dome_enc()
+		#pos_arcsec = self.dome_pos.dome_encoder_acq()
+		pos_arcsec = self.dome_pos.read_dome_enc()
 		return
 	
 	def get_action(self):
