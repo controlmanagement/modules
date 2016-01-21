@@ -383,6 +383,7 @@ class antenna_nanten_controller(object):
 	def limit_check(self):
 		while not self.stop_limit_flag.is_set():
 			ret = self.nanten.antenna_limit_check()
+			ret2 = self.error_check()
 			if ret:
 				self.stop_limit_flag.set()
 			else:
