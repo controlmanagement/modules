@@ -123,11 +123,11 @@ class dome_controller(object):
 						speed = 'mid'
 					self.do_output(turn, speed)
 		
-		self.stop_dome()
+		self.dome_stop()
 		self.get_count()
 		return
 	
-	def stop_dome(self):
+	def dome_stop(self):
 		buff = [0]
 		self.dio.do_output(buff, 2, 1)
 		return
