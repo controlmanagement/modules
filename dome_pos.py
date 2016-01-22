@@ -14,6 +14,7 @@ class dome_pos_controller(object):
 
 	def __init__(self, ndev2 = 1):
 		self.dio = pyinterface.create_gpg6204(ndev2)
+		self.dome_enc_initialize()
 		self.dome_encoder_acq()
 		pass
 	
@@ -22,18 +23,11 @@ class dome_pos_controller(object):
 		self.dio.ctrl.set_mode(4, 0, 1, 0)
 		#self.dio.ctrl.set_counter(self.dome_enc_offset)  ???
 		return
-		
-	def dome_enc_correct(self):
-		ret = self.dome_limit()
-		while ret == 0:
-			ret = self.dome_limit()
-		print('ENCODER CORRECT AT LIMIT '+str(ret))
-		return
 	
 	def print_msg(self,msg):
 		print(msg)
 		return
-
+	
 	def print_error(self,msg):
 		self.error.append(msg)
 		self.print_msg('!!!!ERROR!!!!')
