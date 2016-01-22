@@ -34,7 +34,7 @@ ret8 = antenna_enc.enc_client('172.20.0.11',8001)
 ret9 = dome_pos.dome_pos_client('172.20.0.11',8005)
 ret10 = weather.weather_client('172.20.0.11',3001)
 
-p = sub.Popen("/home/amigos/NECST/soft/server/server_stop.py", shell = "True")
+p = sub.Popen("python server_stop.py", shell = "True")
 
 ret10.get_weather()
 t = t_w = time.time()
