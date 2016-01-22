@@ -350,6 +350,7 @@ class dome_controller(object):
 			ret2 = self.get_door_status()
 			ret3 = self.get_memb_status()
 			ret4 = self.get_remote_status()
+			ret5 = self.dome_limit()
 			self.status_box = [ret1, ret2, ret3, ret4]
 		return
 	
