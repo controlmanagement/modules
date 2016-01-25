@@ -21,6 +21,7 @@ class dome_controller(object):
 	
 	def __init__(self):
 		self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
+		#self.enc = antenna_enc.enc_controller()
 		self.dome_pos = dome_pos.dome_pos_client('172.20.0.11',8006)
 		#self.dome_pos = dome_pos.dome_pos_controller()
 		self.dio = pyinterface.create_gpg2000(5)
@@ -124,7 +125,7 @@ class dome_controller(object):
 					self.do_output(turn, speed)
 		
 		self.dome_stop()
-		self.get_count()
+		#self.get_count()
 		return
 	
 	def dome_stop(self):
@@ -219,7 +220,7 @@ class dome_controller(object):
 			self.buffer[1] = 0
 		else: self.buffer[1] = 1
 		self.dio.do_output(self.buffer, 1, 6)
-		self.dome_limit()
+		#self.dome_limit()
 		#pos_arcsec = self.dome_pos.dome_encoder_acq()
 		pos_arcsec = self.dome_pos.read_dome_enc()
 		return
@@ -335,7 +336,11 @@ class dome_controller(object):
 	def dome_limit(self):
 		limit = self.limit_check()
 		if limit != 0:
-			self.dome_pos.dio.ctrl.set_counter(self.touchsensor_pos[limit-1]+self.dome_encoffset)
+			#self.dome_pos.dio.ctrl.set_counter(self.touchsensor_pos[limit-1]+self.dome_encoffset)
+			self.dome_pos.dome_set_counter(self.touchsensor_pos[limit-1]+self.dome_encoffset)
+		print (limit)
+		self.get_count()
+		print (self.count)
 		return limit
 	
 	def start_status_check(self):
