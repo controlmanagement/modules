@@ -18,7 +18,7 @@ class antenna_nanten(core.controller.antenna):
 		self.dome = telescope_nanten.dome.dome_client('172.20.0.11',8007)
 		self.weather = pymeasure.weather.weather_monitor_client('172.20.0.11',3002)
 		self.start_limit_check()
-		self.start_domestatus_check()
+		#self.start_domestatus_check()
 		pass 
 	
 	def drive_on(self):
@@ -89,6 +89,7 @@ class antenna_nanten(core.controller.antenna):
 		return ret
 	
 # for dome
+	
 	def start_domestatus_check(self):
 		self.dome.start_status_check()
 		return
@@ -118,7 +119,7 @@ class antenna_nanten(core.controller.antenna):
 		return
 	
 	def dome_stop(self):
-		self.dome.stop_dome(self):
+		self.dome.dome_stop()
 		return
 
 	def dome_track(self):
@@ -128,6 +129,7 @@ class antenna_nanten(core.controller.antenna):
 	def dome_track_end(self):
 		self.dome.end_thread()
 		return
+	
 
-
+	
 
