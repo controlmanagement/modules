@@ -18,13 +18,15 @@ class dome_controller(object):
 	error = []
 	count = 0
 	status_box = []
-	
+	dome_enc = 0
+
 	def __init__(self):
 		self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
 		#self.enc = antenna_enc.enc_controller()
-		self.dome_pos = dome_pos.dome_pos_client('172.20.0.11',8006)
-		#self.dome_pos = dome_pos.dome_pos_controller()
+		#self.dome_pos = dome_pos.dome_pos_client('172.20.0.11',8006)
+		self.dome_pos = dome_pos.dome_pos_controller()
 		self.dio = pyinterface.create_gpg2000(5)
+		self.start_status_check()
 		pass
 	
 	def start_thread(self):
@@ -41,13 +43,15 @@ class dome_controller(object):
 		return
 	
 	def move_track(self):
-		ret = self.dome_pos.read_dome_enc()
+		#ret = self.dome_pos.read_dome_enc()
 		#ret = self.dome_pos.dome_encoder_acq()
+		ret = self.read_domepos()
 		while not self.end_track_flag.is_set():
 			ret = self.enc.read_azel()
 			ret[0] = ret[0]/3600. # ret[0] = antenna_az
-			dome_az = self.dome_pos.read_dome_enc()
+			#dome_az = self.dome_pos.read_dome_enc()
 			#dome_az = self.dome_pos.dome_encoder_acq()
+			dome_az = self.read_domepos()
 			dome_az = dome_az/3600.
 			self.dome_limit()
 			if math.fabs(ret[0]-dome_az) >= 2.0:
@@ -71,12 +75,13 @@ class dome_controller(object):
 	def move_org(self):
 		dist = 90
 		self.move(dist)	#move_org
-		self.dome_pos.read_dome_enc()
+		#self.dome_pos.read_dome_enc()
 		return
 	
 	def move(self, dist):
 		#pos_arcsec = self.dome_pos.dome_encoder_acq()
-		pos_arcsec = self.dome_pos.read_dome_enc()
+		#pos_arcsec = self.dome_pos.read_dome_enc()
+		pos_arcsec = self.read_domepos()
 		pos = pos_arcsec/3600.
 		pos = pos % 360.0
 		dist = dist % 360.0
@@ -106,7 +111,8 @@ class dome_controller(object):
 			self.do_output(turn, speed)
 			while dir != 0:
 				#pos_arcsec = self.dome_pos.dome_encoder_acq()
-				pos_arcsec = self.dome_pos.read_dome_enc()
+				#pos_arcsec = self.dome_pos.read_dome_enc()
+				pos_arcsec = self.read_domepos()
 				pos = pos_arcsec/3600.
 				pos = pos % 360.0
 				dist = dist % 360.0
@@ -198,9 +204,6 @@ class dome_controller(object):
 			self.dio.do_output(fan_bit, 9, 2)
 		return
 	
-	def read_count(self):
-		return self.count
-	
 	def get_count(self):
 		self.count = self.dome_pos.dome_encoder_acq()
 		return self.count
@@ -222,7 +225,7 @@ class dome_controller(object):
 		self.dio.do_output(self.buffer, 1, 6)
 		#self.dome_limit()
 		#pos_arcsec = self.dome_pos.dome_encoder_acq()
-		pos_arcsec = self.dome_pos.read_dome_enc()
+		#pos_arcsec = self.dome_pos.read_dome_enc()
 		return
 	
 	def get_action(self):
@@ -343,6 +346,11 @@ class dome_controller(object):
 		print (self.count)
 		return limit
 	
+	def get_domepos(self):
+		limit = self.dome_limit()
+		self.dome_enc = self.dome_pos.dome_encoder_acq()
+		return self.dome_enc
+
 	def start_status_check(self):
 		self.stop_status_flag = threading.Event()
 		self.status_thread = threading.Thread(target = self.status_check)
@@ -355,7 +363,7 @@ class dome_controller(object):
 			ret2 = self.get_door_status()
 			ret3 = self.get_memb_status()
 			ret4 = self.get_remote_status()
-			ret5 = self.dome_limit()
+			ret5 = self.get_domepos()
 			self.status_box = [ret1, ret2, ret3, ret4]
 		return
 	
@@ -364,9 +372,14 @@ class dome_controller(object):
 		self.status_thread.join()
 		return
 	
+	def read_count(self):
+		return self.count
+	
 	def read_status(self):
 		return self.status_box
 	
+	def read_domepos(self):
+		return self.dome_enc
 
 
 def dome_client(host, port):
