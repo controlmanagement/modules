@@ -14,8 +14,9 @@ class dome_pos_controller(object):
 
 	def __init__(self, ndev2 = 1):
 		self.dio = pyinterface.create_gpg6204(ndev2)
-		self.dome_enc_initialize()
-		self.dome_encoder_acq()
+		#self.dome_enc_initialize()
+		#self.dio.ctrl.set_mode(4, 0, 1, 0)
+		#self.dome_encoder_acq()
 		pass
 	
 	def dome_enc_initialize(self):
@@ -41,8 +42,12 @@ class dome_pos_controller(object):
 		while(dome_enc_arcsec<=-1800.*360):
 			dome_enc_arcsec+=3600.*360
 		self.dome_position = dome_enc_arcsec
-		return dome_enc_arcsec
-	
+		return self.dome_position
+
+	def dome_set_counter(self, counter):
+		self.dio.ctrl.set_counter(counter)
+		return
+
 	def read_dome_enc(self):
 		return self.dome_position
 
