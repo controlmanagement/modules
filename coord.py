@@ -74,7 +74,7 @@ class coord_calc(object):
 		dist = dist*k_to_au
 		return [ra, dec, dist, radi]
 	
-	def planet_J2000_geo_to_topo(gra, gdec, dist, radi, dut1, longitude, latitude, height):
+	def planet_J2000_geo_to_topo(self, gra, gdec, dist, radi, dut1, longitude, latitude, height):
 		jd_utc = self.calc_jd_utc()
 		date = jd_utc - 2400000.5 + dut1 / (24. * 3600.)
 		jd = jd_utc - 2400000.5 + (self.tai_utc + 32.184) / (24. * 3600.) # reference => http://www.cv.nrao.edu/~rfisher/Ephemerides/times.html
