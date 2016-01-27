@@ -53,8 +53,8 @@ class antenna_nanten(core.controller.antenna):
 		return
 	
 	def planet_move(self, number, off_x =0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
-		"""antennaをplanetに動かす"""
-		"""1.Mercury 2.Venus 3.Moon 4.Mars 5.Jupiter 6.Saturn 7.Uranus 8.Neptune, 9.Pluto, 10.Sun"""
+		"""antennaをplanetに動かす
+		1.Mercury 2.Venus 3. 4.Mars 5.Jupiter 6.Saturn 7.Uranus 8.Neptune, 9.Pluto, 10.Moon, 11.Sun"""
 		condition = self.weather.read_weather()
 		temp = float(condition[6])+273.
 		press = float(condition[12])
