@@ -39,9 +39,9 @@ class antenna_nanten(core.controller.antenna):
 		return
 	
 	def radec_move(self, ra, dec, code_mode, off_x = 0, off_y = 0, hosei = 'hosei_230.txt',offcoord = "HORIZONTAL"):
-		"""antennaを(Ra, Dec)に動かす"""
-		"""ra,dec は degreeで"""
-		"""code_mode → 'J2000' or 'B1950'"""
+		"""antennaを(Ra, Dec)に動かす
+		ra,dec は degreeで
+		code_mode → 'J2000' or 'B1950'"""
 		
 		gx = ra*math.pi/180.
 		gy = dec*math.pi/180.
@@ -49,10 +49,21 @@ class antenna_nanten(core.controller.antenna):
 		temp = float(condition[6])+273.
 		press = float(condition[12])
 		humid = float(condition[9])/100.
-		self.antenna.thread_start('EQUATRIAL', number, gx, gy, 0, 0, code_mode, temp, press, humid, 2600, 0, hosei, offcoord, off_x, off_y)
+		self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, 2600, 0, hosei, offcoord, off_x, off_y)
 		return
 	
-	def planet_move(self, number, off_x =0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
+	def galactic_move(self, l, b, off_x = 0, off_y, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
+		"""antennaを(l, b)に動かす"""
+		gx = l*math.pi/180.
+		gy = b*math.pi/180.
+		condition = self.weather.read_weather()
+		temp = float(condition[6])+273.
+		press = float(condition[12])
+		humid = float(condition[9])/100.
+		self.antenna.thread_start('GLACTIC', 0, gx, gy, 0, 0, 0, temp, press, humid, 2600, 0, hosei, offcoord, off_x, off_y)
+		return
+	
+	def planet_move(self, number, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
 		"""antennaをplanetに動かす
 		1.Mercury 2.Venus 3. 4.Mars 5.Jupiter 6.Saturn 7.Uranus 8.Neptune, 9.Pluto, 10.Moon, 11.Sun"""
 		condition = self.weather.read_weather()
