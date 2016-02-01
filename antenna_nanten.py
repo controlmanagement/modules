@@ -82,6 +82,26 @@ class antenna_nanten(core.controller.antenna):
 		self.antenna.tracking_end()
 		return
 	
+	def otf_start(self, sx, sy, dcos, coord_sys, dx, dy, dt, n, rampt, delay, lamda, hosei, code_mode):
+		condition = self.weather.read_weather()
+		temp = float(condition[6])+273.
+		press = float(condition[12])
+		humid = float(condition[9])/100.
+		
+		start_x = sx-float(dx)/2.-float(dx)/float(dt)*rampt
+		start_y = sy-float(dy)/2.-float(dy)/float(dt)*rampt
+		total_t = rampt + dt * n
+		end_x = x + dx * (n - 0.5)
+		end_y = y + dy * (n - 0.5)
+		mjd = 40587 + time.time()/(24.*3600.)
+		
+		self.antenna.otf(mjd+delay/24./3600., start_x, start_y, mjd+(delay+total_t)/24./3600., end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode)
+		return mjd+(delay+rampt)/24./3600.
+	
+	def otf_end(self):
+		self.antenna.otf_stop()
+		return
+	
 	def clear_error(self):
 		"""errorのclear"""
 		self.antenna.clear_error()
