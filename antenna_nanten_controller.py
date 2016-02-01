@@ -260,6 +260,7 @@ class antenna_nanten_controller(object):
 		self.move_radec(ret[2], ret[3], 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
 		return
 	
+	"""
 	def calc_otf(self, x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, temp, pressure, humid, lamda, hosei, code_mode):
 		start_x = x-float(dx)/2.-float(dx)/float(dt)*rampt
 		start_y = y-float(dy)/2.-float(dy)/float(dt)*rampt
@@ -288,6 +289,7 @@ class antenna_nanten_controller(object):
 		mjd = 40587 + time.time()/(24.*3600.)
 		self.otf(mjd+delay/24./3600., start_x, start_y, mjd+(delay+total_t)/24./3600., end_x, end_y, dcos, coord_sys, hosei, temp, pressure, humid, lamda, code_mode)
 		return
+	"""
 	
 	def otf(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode):
 		otf_end_flag = 0
@@ -357,21 +359,68 @@ class antenna_nanten_controller(object):
 		return
 		
 	def tracking_end(self):
+		MOTOR_MAXSTEP = 1000
 		self.stop_thread.set()
 		self.tracking.join()
+		
+		while abs(self.nanten.az_rate_d) > MOTOR_MAXSTEP or abs(self.nanten.el_rate_d) > MOTOR_MAXSTEP:
+			if abs(self.nanten.az_rate_d) > MOTOR_MAXSTEP:
+				if self.nanten.az_rate_d < 0:
+					a = 1
+				else:
+					a = -1
+				self.nanten.az_rate_d += a*MOTOR_MAXSTEP
+			else:
+				self.nanten.az_rate_d = 0
+			dummy = int(self.nanten.az_rate_d)
+			self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", dummy)
+			
+			if abs(self.nanten.el_rate_d) > MOTOR_MAXSTEP:
+				if self.nanten.el_rate_d < 0:
+					a = 1
+				else:
+					a = -1
+				self.nanten.el_rate_d += a*MOTOR_MAXSTEP
+			dummy = int(self.nanten.el_rate_d)
+			self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", dummy)
+			time.sleep(0.01)
 		self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
 		self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
 		return
 	
+	"""
 	def otf_start(self, x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, lamda, temp = 0, pressure = 0, humid = 0, hosei = 'hosei_230.txt', code_mode = 'J2000'):
 		self.otf_stop_thread = threading.Event()
 		self.otf_thread = threading.Thread(target = self.calc_otf, args = (x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, temp, pressure, humid, lamda, hosei, code_mode, ))
 		self.otf_thread.start()
 		return
+	"""
 	
 	def otf_stop(self):
-		self.otf_stop_thread.set()
-		self.otf_thread.join()
+		MOTOR_MAXSTEP = 1000
+		while abs(self.nanten.az_rate_d) > MOTOR_MAXSTEP or abs(self.nanten.el_rate_d) > MOTOR_MAXSTEP:
+			if abs(self.nanten.az_rate_d) > MOTOR_MAXSTEP:
+				if self.nanten.az_rate_d < 0:
+					a = 1
+				else:
+					a = -1
+				self.nanten.az_rate_d += a*MOTOR_MAXSTEP
+			else:
+				self.nanten.az_rate_d = 0
+			dummy = int(self.nanten.az_rate_d)
+			self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", dummy)
+			
+			if abs(self.nanten.el_rate_d) > MOTOR_MAXSTEP:
+				if self.nanten.el_rate_d < 0:
+					a = 1
+				else:
+					a = -1
+				self.nanten.el_rate_d += a*MOTOR_MAXSTEP
+			dummy = int(self.nanten.el_rate_d)
+			self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", dummy)
+			time.sleep(0.01)
+		self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+		self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
 		return
 	
 	def start_limit_check(self):
