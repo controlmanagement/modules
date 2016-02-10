@@ -158,14 +158,30 @@ class nanten_main_controller(object):
 		Del = 0.07
 		"""
 		# New parameter
-		p_az_coeff = 3.3
+		"""
+		p_az_coeff = 3.0
 		i_az_coeff = 2.0
 		d_az_coeff = 0.
 		s_az_coeff = 0.
-		p_el_coeff = 3.3
+		p_el_coeff = 3.0
 		i_el_coeff = 3.0
 		d_el_coeff = 0.
 		s_el_coeff = 0.
+		"""
+		
+		f = open('/home/amigos/NECST/soft/obs/telescope_nanten/PID_param.txt')
+		param = f.read()
+		f.close()
+		line1=param.split('\n')
+		
+		p_az_coeff = float(line1[0])
+		i_az_coeff = float(line1[1])
+		d_az_coeff = float(line1[2])
+		s_az_coeff = float(line1[3])
+		p_el_coeff = float(line1[4])
+		i_el_coeff = float(line1[5])
+		d_el_coeff = float(line1[6])
+		s_el_coeff = float(line1[7])
 		
 		
 		DEG2ARCSEC = 3600.
@@ -281,9 +297,20 @@ class nanten_main_controller(object):
 			#self.ihensa_az = 0
 		#if math.fabs(hensa_el) > math.fabs(self.current_speed_el)/10.+10.:
 			#self.ihensa_el = 0
+		"""
 		if math.fabs(hensa_az) > 150:
 			self.ihensa_az = 0
 		if math.fabs(hensa_el) > 150:
+			self.ihensa_el = 0
+		
+		if math.fabs(hensa_az) > 100:
+			self.ihensa_az = 0
+		if math.fabs(hensa_el) > 100:
+			self.ihensa_el = 0
+		"""
+		if math.fabs(hensa_az) > 50:
+			self.ihensa_az = 0
+		if math.fabs(hensa_el) > 50:
 			self.ihensa_el = 0
 		
 		"""Previous
@@ -481,5 +508,3 @@ def start_nanten_main_server(port1 = 7003, port2 = 7004):
 	server = pyinterface.server_client_wrapper.server_wrapper(nanten_main, '', port1, port2)
 	server.start()
 	return server
-
-
