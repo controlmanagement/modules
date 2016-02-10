@@ -18,6 +18,7 @@ class m4_controller(object):
     
     def __init__(self, ndev=1):
         self.mtr = pyinterface.create_gpg7204(ndev)
+        self.mtr.ctrl.set_limit_config('MTR_LOGIC',0x000c)
         self.mtr.ctrl.off_inter_lock()
         self.get_pos()
         pass
@@ -37,6 +38,7 @@ class m4_controller(object):
     
     def get_pos(self):
         status = self.mtr.ctrl.get_status('MTR_LIMIT_STATUS')
+        """
         if status == 0x0008:
             #SMART
             self.position = 'OUT'
@@ -47,7 +49,19 @@ class m4_controller(object):
             self.position = 'MOVE'
         else:
             self.print_error('limit error')
+        """
+        if status == 0x0004:
+            #SMART
+            self.position = 'OUT'
+        elif status == 0x0008:
+            #NAGOYA
+            self.position = 'IN'
+        elif status == 0x0000:
+            self.position = 'MOVE'
+        else:
+            self.print_error('limit error')
             return
+        
         return self.position
 
     def move(self, dist):
@@ -68,7 +82,7 @@ class m4_controller(object):
 
         else:
             if dist == 'OUT':
-                nstep = 1000
+                nstep = -1000
                 self.print_msg('m4 move out')
             elif dist == 'IN':
                 nstep = 1000
