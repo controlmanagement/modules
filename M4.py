@@ -4,7 +4,7 @@ import threading
 import pyinterface
 
 class m4_controller(object):
-    speed = 1000
+    speed = 3000
     low_speed = 100
     acc = 500
     dec = 500
@@ -82,15 +82,16 @@ class m4_controller(object):
 
         else:
             if dist == 'OUT':
-                nstep = -1000
+                nstep = 60500
                 self.print_msg('m4 move out')
             elif dist == 'IN':
-                nstep = 1000
+                nstep = -60500
                 self.print_msg('m4 move in')
             else:
                 self.print_error('parameter error')
                 return
             self.mtr.move(self.speed, nstep, self.low_speed, self.acc,self.dec)
+            time.sleep(12.)
             count = self.get_count()
             pos= self.get_pos()
             return
