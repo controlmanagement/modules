@@ -1,26 +1,21 @@
+
 import time
 import threading
 import pyinterface
-import threading
 
 class abs_controller(object):
+	pro = 0x00
 	buff = 0x00
 	error = []
 	
 	position = ''
 	
 	
-	def __init__(self):
+	def __init__(self, ndev = 3):
+		self.dio = pyinterface.create_gpg2000(ndev)
+		self.get_pos()
 		pass
 	
-	def start_server(self):
-		ret = self.start_abs_server()
-		return
-	
-	def open(self, ndev=1):
-		self.dio = pyinterface.create_gpg2000(ndev)
-		return
-
 	def print_msg(self, msg):
 		print(msg)
 		return
@@ -36,36 +31,44 @@ class abs_controller(object):
 			self.position = 'IN'
 		elif ret == 0x01:
 			self.position = 'OUT'
-		else:
+		elif ret == 0x03:
 			self.position = 'MOVE'
-		return
+		else:
+			self.print_error('limit error')
+			return
+		return self.position
 
 	def move(self, dist):
-		self.get_pos()
-		if dist == self.position: return
+		pos = self.get_pos()
+		if pos == dist:
+			print('m4 siready ' + dist)
 		if dist == 'IN':
-			self.buff = 0x00
-			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
+			self.pro = 0x00
 			self.buff = 0x01
-			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
 		elif dist == 'OUT':
-			self.buff = 0x02
-			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
+			self.pro = 0x02
 			self.buff = 0x03
-			self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
-			self.get_pos()
+		self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.pro)
+		time.sleep(1)
+		self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
+		self.get_pos()
+		return
+	
+	def move_r(self):
+		self.move('IN')
+		return
+	
+	def move_sky(self):
+		self.move('OUT')
+		return
+		
+	def stop(self):
+		self.buff = 0x04
+		self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
 		return
 	
 	def read_pos(self):
 		return self.position
-	
-	def start_thread(self, dist):
-		if dist == 'IN':
-			self.thread = threading.Thread(target = self.move, args = ('IN', ))
-		else: # dist == 'OUT'
-			self.thread = threading.Thread(target = self.move, args = ('OUT', ))
-		self.thread.start()
-		return
 
 def abs_client(host, port):
 	client = pyinterface.server_client_wrapper.control_client_wrapper(abs_controller, host, port)
@@ -75,7 +78,7 @@ def abs_monitor_client(host, port):
 	client = pyinterface.server_client_wrapper.monitor_client_wrapper(abs_controller, host, port)
 	return client
 
-def start_abs_server(port1 = 5921, port2 = 5922):
+def start_abs_server(port1 = 6001, port2 = 6002):
 	abs = abs_controller()
 	server = pyinterface.server_client_wrapper.server_wrapper(abs,'', port1, port2)
 	server.start()
