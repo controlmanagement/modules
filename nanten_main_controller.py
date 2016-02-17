@@ -240,24 +240,26 @@ class nanten_main_controller(object):
 			elv_acc = -50
 		"""
 		
-		if 10000 < math.fabs(self.az_rate):
+		target_az = az_arcsec
+		target_el = el_arcsec
+		hensa_az = target_az - az_enc
+		hensa_el = target_el - el_enc
+		
+		if 3 > math.fabs(hensa_az):
 			m_bAzTrack = "TRUE" #def Paz=2?
 		else:
 			# az_err_integral += (self.az_err_before+az_err)*self.dt/2.+azv_acc*0.0
 			m_bAzTrack = 'FALSE'
 			pass
-		if 10000 < math.fabs(self.el_rate):
+		if 3 > math.fabs(hensa_el):
 			m_bElTrack = "TRUE" #def Pel=2?
 		else:
 			#el_err_integral += (self.el_err_before+el_err)*self.dt/2.+elv_acc*0.0
 			m_bElTrack = 'FALSE'
 			pass
 		
-		target_az = az_arcsec
-		target_el = el_arcsec
-		hensa_az = target_az - az_enc
-		hensa_el = target_el - el_enc
-
+		
+		
 		self.az_hensamoni = hensa_az
 		self.el_hensamoni = hensa_el
 
