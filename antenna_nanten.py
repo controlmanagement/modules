@@ -52,7 +52,7 @@ class antenna_nanten(core.controller.antenna):
 		self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, 2600, 0, hosei, offcoord, off_x, off_y)
 		return
 	
-	def galactic_move(self, l, b, off_x = 0, off_y, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
+	def galactic_move(self, l, b, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
 		"""antennaを(l, b)に動かす"""
 		gx = l*math.pi/180.
 		gy = b*math.pi/180.
