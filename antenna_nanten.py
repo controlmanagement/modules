@@ -102,6 +102,10 @@ class antenna_nanten(core.controller.antenna):
 		self.antenna.otf_stop()
 		return
 	
+	def read_track(self):
+		ret = self.antenna.read_track()
+		return ret
+	
 	def clear_error(self):
 		"""errorのclear"""
 		self.antenna.clear_error()
