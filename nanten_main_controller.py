@@ -42,6 +42,12 @@ class nanten_main_controller(object):
 	el_hensamoni = 0
 	az_ihensamoni = 0
 	el_ihensamoni = 0
+	
+	#for drive.py
+	t1_moni = 0
+	t2_moni = 0
+	az_pidihensamoni = 0
+	el_pidihensamoni = 0
 
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(3)
@@ -349,6 +355,12 @@ class nanten_main_controller(object):
 		self.az_ihensamoni = self.ihensa_az*(self.t1-self.t2)
 		self.el_ihensamoni = self.ihensa_el*(self.t1-self.t2)
 		
+		#for drive.py
+		self.t1_moni = self.t1
+		self.t2_moni = self.t2
+		self.az_pidihensamoni = self.ihensa_az
+		self.el_pidihensamoni = self.ihensa_el
+		
 
 		if math.fabs(az_err) < 8000 and self.az_rate > 10000:
 			self.az_rate = 10000
@@ -492,7 +504,9 @@ class nanten_main_controller(object):
 		return stop_flag
 	
 	def read_azel(self):
-		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_d, self.el_rate_d, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el, self.az_ihensamoni ,self.el_ihensamoni]
+		#return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_d, self.el_rate_d, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el, self.az_ihensamoni ,self.el_ihensamoni]
+		#for drive.py
+		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_d, self.el_rate_d, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el, self.az_ihensamoni ,self.el_ihensamoni ,self.t1_moni ,self.t2_moni ,self.az_pidihensamoni ,self.el_pidihensamoni]
 
 	def read_error(self):
 		return self.error_box
