@@ -75,7 +75,7 @@ def handler(clientsocket, clientaddr):
     print "Accepted connection from: ", clientaddr
 
     while 1:
-        data = clientsocket.recv(4096)
+        data = clientsocket.recv(1024)
         data = data.strip()
         if data == "bye":
           # bye was sent, close the connection
