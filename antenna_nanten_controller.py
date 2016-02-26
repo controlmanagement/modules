@@ -166,8 +166,8 @@ class antenna_nanten_controller(object):
 		
 		print("az:"+str(target_az)+" el:"+str(target_el))
 		track = self.nanten.move_azel(target_az, target_el) #until define the set_coord
-		#self.az_track = ret[0]
-		#self.el_track = ret[1]
+		self.az_track = ret[0]
+		self.el_track = ret[1]
 		#self.az_v = ret[2]
 		#self.el_v = ret[3]
 		return track
@@ -386,6 +386,11 @@ class antenna_nanten_controller(object):
 			time.sleep(0.01)
 		self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
 		self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+		return
+	
+	def otf_tracking_end(self):
+		self.stop_thread.set()
+		self.tracking.join()
 		return
 	
 	"""
