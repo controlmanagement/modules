@@ -24,19 +24,20 @@ hoge = open(argvs[1],'r')
 file = re.split(r'[ ,\n]+',hoge.read())
 
 size = len(file)
-new = np.zeros((20,size/20))
-#new = np.zeros((16,size/16))
+#new = np.zeros((20,size/20))
+new = np.zeros((16,size/16))
 #new = np.zeros((11,size/11))
 
+"""
 for i in range(0,20):
     for j in range(0,size/20):
         new[i,j] = file[i+j*20];
-
 """
+
 for i in range(0,16):
     for j in range(0,size/16):
         new[i,j] = file[i+j*16];
-"""
+
 #for i in range(0,11):
     #for j in range(0,size/11):
         #new[i,j] = file[i+j*11];
