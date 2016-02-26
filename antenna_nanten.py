@@ -38,7 +38,7 @@ class antenna_nanten(core.controller.antenna):
 		self.antenna.azel_move(az_arcsec, el_arcsec, az_rate, el_rate)
 		return
 	
-	def radec_move(self, ra, dec, code_mode, off_x = 0, off_y = 0, hosei = 'hosei_230.txt',offcoord = "HORIZONTAL"):
+	def radec_move(self, ra, dec, code_mode, lamda = 2600, off_x = 0, off_y = 0, hosei = 'hosei_230.txt',offcoord = "HORIZONTAL"):
 		"""antennaを(Ra, Dec)に動かす
 		ra,dec は degreeで
 		code_mode → 'J2000' or 'B1950'"""
@@ -49,10 +49,10 @@ class antenna_nanten(core.controller.antenna):
 		temp = float(condition[6])+273.
 		press = float(condition[12])
 		humid = float(condition[9])/100.
-		self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, 2600, 0, hosei, offcoord, off_x, off_y)
+		self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y)
 		return
 	
-	def galactic_move(self, l, b, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
+	def galactic_move(self, l, b, lamda = 2600, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
 		"""antennaを(l, b)に動かす"""
 		gx = l*math.pi/180.
 		gy = b*math.pi/180.
@@ -60,7 +60,7 @@ class antenna_nanten(core.controller.antenna):
 		temp = float(condition[6])+273.
 		press = float(condition[12])
 		humid = float(condition[9])/100.
-		self.antenna.thread_start('GALACTIC', 0, gx, gy, 0, 0, 0, temp, press, humid, 2600, 0, hosei, offcoord, off_x, off_y)
+		self.antenna.thread_start('GALACTIC', 0, gx, gy, 0, 0, 0, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y)
 		return
 	
 	def planet_move(self, number, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
