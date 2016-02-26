@@ -313,10 +313,10 @@ class antenna_nanten_controller(object):
 					self.move_azel(off_x, off_y, dcos)
 					#self.move_azel(off_x,off_y, dcos, geomech_flag)
 				elif coord_sys == 'EQUATORIAL':
-					self.move_radec(off_x, off_y, 0, 0, code_mode, temp, pressure, humid, lamda, hosei)
+					self.move_radec(off_x*math.pi/180., off_y*math.pi/180., 0, 0, code_mode, temp, pressure, humid, lamda, hosei)
 					#self.move_radec(off_x, off_y, 0, 0, code_mode, temp, pressure, humid, lamda, hosei, geomech_flag)
 				elif coord_sys == 'GALACTIC':
-					self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos)
+					self.move_lb(off_x*math.pi/180., off_y*math.pi/180., temp, pressure, humid, lamda, dcos)
 					#self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos, geomech_flag)
 			
 			if mjd > mjd_end:
