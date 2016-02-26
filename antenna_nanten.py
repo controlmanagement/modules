@@ -63,14 +63,14 @@ class antenna_nanten(core.controller.antenna):
 		self.antenna.thread_start('GALACTIC', 0, gx, gy, 0, 0, 0, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y)
 		return
 	
-	def planet_move(self, number, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
+	def planet_move(self, number, lamda = 2600, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL"):
 		"""antennaをplanetに動かす
 		1.Mercury 2.Venus 3. 4.Mars 5.Jupiter 6.Saturn 7.Uranus 8.Neptune, 9.Pluto, 10.Moon, 11.Sun"""
 		condition = self.weather.read_weather()
 		temp = float(condition[6])+273.
 		press = float(condition[12])
 		humid = float(condition[9])/100.
-		self.antenna.thread_start('PLANET', number, 0, 0, 0, 0, 0, temp, press, humid, 2600, 0, hosei, offcoord, off_x, off_y)
+		self.antenna.thread_start('PLANET', number, 0, 0, 0, 0, 0, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y)
 		return
 	
 	def set_offset(self, off_x, _off_y, off_coord = "HORIZONTAL"):
