@@ -104,7 +104,7 @@ def handler(clientsocket, clientaddr):
                   "data_Door-Current-position-Az\t"+str(dic1["None"])+"\tFloat"+" "\
                   "data_Door\t"+str(dic1["Door_Dome"])+"\tString"+" "\
                   "data_Membrane\t"+str(dic1["Door_Membrane"])+"\tString"+" "\
-                  "data_Az-Speed\t"+str(dic1["None"])+"\tString"+" "\
+                  "data_Dome-Speed\t"+str(dic1["Dome-Speed"])+"\tString"+" "\
                   "data_Door-Authority\t"+str(dic1["Door_Authority"])+"\tString"+" "\
                   "data_Synchronous-with-Antenna\t"+str(dic1["None"])+"\tString"+" "\
                   "data_Emergency-switch\t"+str(dic1["None"])+"\tString"+" "\
