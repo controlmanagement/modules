@@ -111,7 +111,8 @@ def handler(clientsocket, clientaddr):
                   "data_Current-position-M4\t"+str(dic1["Current_M4"])+"\tString"+" "\
                   "data_Current-position-HOT\t"+str(dic1["Current_Hot"])+"\tString"+" "\
                   "data_Motion-status\t"+str(dic1["None"])+"\tString"+" "\
-                  "data_Deviation-error\t"+str(dic1["None"])+"\tString"+" "\
+                  "data_Deviation-error-Az\t"+str(dic1["Deviation-error-Az"])+"\tString"+" "\
+                  "data_Deviation-error-El\t"+str(dic1["Deviation-error-El"])+"\tString"+" "\
                   "data_Limit-switch-ON\t"+str(dic1["None"])+"\tString"+" "\
                   "data_Emergency-switch-ON\t"+str(dic1["None"])+"\tString"+" "\
                   "data_Deviation-error\t"+str(dic1["None"])+"\tString"+" "\
