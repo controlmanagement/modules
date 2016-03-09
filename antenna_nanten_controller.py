@@ -206,11 +206,11 @@ class antenna_nanten_controller(object):
 		ret[1] = apparent_dec
 		"""
 		if dcos == 0:
-			new_dec = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
-			new_ra = ret[0] + float(self.off_list["off_ra"])/3600.*math.pi/180
+			ret[1] = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
+			ret[0] = ret[0] + float(self.off_list["off_ra"])/3600.*math.pi/180
 		else:
-			new_dec = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
-			new_ra = ret[0] + (float(self.off_list["off_ra"])/3600.*math.pi/180)/math.cos(new_dec)
+			ret[1] = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
+			ret[0] = ret[0] + (float(self.off_list["off_ra"])/3600.*math.pi/180)/math.cos(ret[1])
 			dcos = 0
 		
 		ret = slalib.sla_aop(ret[0], ret[1], mjd, self.dut1, self.longitude, self.latitude, self.height, 0, 0, temp, pressure, humid, lamda, tlr=0.0065)
