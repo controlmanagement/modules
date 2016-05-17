@@ -101,7 +101,7 @@ def handler(clientsocket, clientaddr):
                   "data_Drive-ready_El\t"+str(dic1["Drive_ready_El"])+"\tString"+" "\
                   "data_Authority\t"+str(dic1["Authority"])+"\tString"+" "\
                   "data_Emergency-switch\t"+str(dic1["Emergency"])+"\tString"+" "\
-                  "data_Door-Current-position-Az\t"+str(dic1["None"])+"\tFloat"+" "\
+                  "data_Door-Current-position-Az\t"+str(dic1["Current_Dome"])+"\tFloat"+" "\
                   "data_Door\t"+str(dic1["Door_Dome"])+"\tString"+" "\
                   "data_Membrane\t"+str(dic1["Door_Membrane"])+"\tString"+" "\
                   "data_Dome-Speed\t"+str(dic1["Dome-Speed"])+"\tString"+" "\
