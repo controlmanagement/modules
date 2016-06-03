@@ -44,8 +44,8 @@ class m2_controller(object):
         buff = []
         buff2 = []
         
-        bin  = dio.???.inb()
-        bin2 = dio.???.inb(+1)
+        bin  = dio.ctrl.inb()
+        bin2 = dio.ctrl.inb(+1)
         
         if bin2 & 0x40:
             self.m_limit_up = 1
@@ -89,17 +89,17 @@ class m2_controller(object):
     
     def Strobe(self):
         time.sleep(0.001)
-        dio.???.outb(0x01, PCI2724_PORT + 1)
+        dio.ctrl.out_byte(0x01, PCI2724_PORT + 1)
         time.sleep(0.001)
-        dio.???.outb(0x00, PCI2724_PORT + 1)
+        dio.ctrl.out_byte(0x00, PCI2724_PORT + 1)
         time.sleep(0.001)
         return
     
     def Strobe_HOFF(self):
         time.sleep(0.001)
-        dio.???.outb(0x05, PCI2724_PORT + 1)
+        dio.ctrl.out_byte(0x05, PCI2724_PORT + 1)
         time.sleep(0.001)
-        dio.???.outb(0x04, PCI2724_PORT + 1)
+        dio.ctrl.out_byte(0x04, PCI2724_PORT + 1)
         time.sleep(0.001)
         return
     
@@ -122,80 +122,80 @@ class m2_controller(object):
     def InitIndexFF(void):
         #initialization?
         
-        dio.???.outb(0x08, PCI2724_PORT)
+        dio.ctrl.out_byte(0x08, PCI2724_PORT)
         StrobeHOff()
         #step no.
-        dio.???.outb(0xff, PCI2724_PORT)
+        dio.ctrl.out_byte(0xff, PCI2724_PORT)
         StrobeHOff()
         #vs set
-        dio.???.outb(0x48, PCI2724_PORT)
+        dio.ctrl.out_byte(0x48, PCI2724_PORT)
         StrobeHOff()
         #5(*10=50)
-        dio.???.outb(0, PCI2724_PORT)
+        dio.ctrl.out_byte(0, PCI2724_PORT)
         StrobeHOff()
-        dio.???.outb(5, PCI2724_PORT)
+        dio.ctrl.out_byte(5, PCI2724_PORT)
         StrobeHOff()
         #vr set
-        dio.???.outb(0x40, PCI2724_PORT)
+        dio.ctrl.out_byte(0x40, PCI2724_PORT)
         StrobeHOff()
         
-        dio.???.outb(0, PCI2724_PORT)
+        dio.ctrl.out_byte(0, PCI2724_PORT)
         StrobeHOff()
-        dio.???.outb(MOTOR_SPEED, PCI2724_PORT)
+        dio.ctrl.out_byte(MOTOR_SPEED, PCI2724_PORT)
         StrobeHOff()
         #su-sd set
-        dio.???.outb(0x50, PCI2724_PORT)
+        dio.ctrl.out_byte(0x50, PCI2724_PORT)
         StrobeHOff()
         #100(/10=10)
-        dio.???.outb(0, PCI2724_PORT)
+        dio.ctrl.out_byte(0, PCI2724_PORT)
         StrobeHOff()
-        dio.???.outb(100, PCI2724_PORT)
+        dio.ctrl.out_byte(100, PCI2724_PORT)
         StrobeHOff()
         #position set
-        dio.???.outb(0xc0, PCI2724_PORT)
+        dio.ctrl.out_byte(0xc0, PCI2724_PORT)
         StrobeHOff()
         #cw
-        dio.???.outb(CW, PCI2724_PORT)
+        dio.ctrl.out_byte(CW, PCI2724_PORT)
         StrobeHOff()
         #0
-        dio.???.outb(0, PCI2724_PORT)
+        dio.ctrl.out_byte(0, PCI2724_PORT)
         StrobeHOff()
-        dio.???.outb(0, PCI2724_PORT)
+        dio.ctrl.out_byte(0, PCI2724_PORT)
         StrobeHOff()
-        dio.???.outb(0, PCI2724_PORT)
+        dio.ctrl.out_byte(0, PCI2724_PORT)
         StrobeHOff()
         #start
-        dio.???.outb(0x18, PCI2724_PORT)
+        dio.ctrl.out_byte(0x18, PCI2724_PORT)
         StrobeHOff()
         return
     
     def MoveIndexFF(self, puls):
         if puls >= -65535 and puls <= 65535):
             #index mode
-            dio.???.outb(0x08, PCI2724_PORT)
+            dio.ctrl.out_byte(0x08, PCI2724_PORT)
             Strobe()
             #step no.
-            dio.???.outb(0xff, PCI2724_PORT)
+            dio.ctrl.out_byte(0xff, PCI2724_PORT)
             Strobe()
             #position set
-            dio.???.outb(0xc0, PCI2724_PORT)
+            dio.ctrl.out_byte(0xc0, PCI2724_PORT)
             Strobe()
             #direction
             if puls >= 0:
-                dio.???.outb(CW, PCI2724_PORT)
+                dio.ctrl.out_byte(CW, PCI2724_PORT)
                 Strobe()
             else:
-                dio.???.outb(CCW, PCI2724_PORT)
+                dio.ctrl.out_byte(CCW, PCI2724_PORT)
                 Strobe()
             #displacement
-            dio.???.outb(0, PCI2724_PORT)
+            dio.ctrl.out_byte(0, PCI2724_PORT)
             Strobe()
-            dio.???.outb((abs(puls) / 256), PCI2724_PORT)
+            dio.ctrl.out_byte((abs(puls) / 256), PCI2724_PORT)
             Strobe()
-            dio.???.outb((abs(puls) % 256), PCI2724_PORT)
+            dio.ctrl.out_byte((abs(puls) % 256), PCI2724_PORT)
             Strobe()
             #start
-            dio.???.outb(0x18, PCI2724_PORT)
+            dio.ctrl.out_byte(0x18, PCI2724_PORT)
             Strobe()
             sleep((abs(puls) / MOTOR_SPEED / 10.) + 1.)
             print_msg("Motor stopped")
@@ -217,7 +217,7 @@ def m2_monitor_client(host, port):
     client = pyinterface.server_client_wrapper.monitor_client_wrapper(m2controller, host, port)
     return client
 
-def start_m2_server(port1 = ????, port2 = ????):
+def start_m2_server(port1 = ctrl?, port2 = ctrl?):
     m2 = m2_controller()
     server = pyinterface.server_client_wrapper.server_wrapper(m2,'', port1, port2)
     server.start()
