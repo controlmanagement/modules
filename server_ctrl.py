@@ -46,5 +46,6 @@ while(1):
 		ret = ret10.get_weather()
 		t_w = time.time()
 	t = time.time()
+	time.sleep(0.5)
 # necrx
 
