@@ -116,6 +116,17 @@ class antenna_nanten_controller(object):
 			self.off_list["off_b"] = off_y
 		return
 	
+	def test_move(self,az_speed,el_speed,dist_arcsec = 15 * 3600):
+		try:
+			self.stop_thread.set()
+		except: pass
+		try:
+			self.otf_stop_thread.set()
+		except: pass
+		
+		self.nanten.test_move(az_speed,el_speed,dist_arcsec)
+		return
+	
 	def azel_move(self, az_arcsec, el_arcsec, az_max_rate = 10000, el_max_rate = 10000):
 		try:
 			self.stop_thread.set()
