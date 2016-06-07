@@ -153,6 +153,42 @@ class nanten_main_controller(object):
 		self.el_rate_d = dummy
 		return [Az_track_flag, El_track_flag]
 
+	def test_move(self,az_speed,el_speed,dist_arcsec = 15 * 3600):
+		# get current position
+		pos = self.enc.read_azel()
+		# max speed limit
+		if az_speed > 10000:
+			az_speed = 10000
+		if el_speed > 10000:
+			el_speed = 10000
+		# speed set
+		self.dio.ctrl.out_word("FBIDIO_OUT1_16", az_speed)
+		self.dio.ctrl.out_word("FBIDIO_OUT17_32", el_speed)
+		if az_speed == 0 and el_speed == 0:
+			dist_flag = 0
+		else:
+			dist_flag = 1
+		while dist_flag:
+			b_time = time.time()
+			ret = self.enc.read_azel()
+			if ret[0] < -265 * 3600 or ret[0] > 265 * 3600 or ret[1] < -0.1 * 3600 or ret[1] > 90.1 *3600:
+				dist_flag = 0
+				self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+				self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+				time.sleep(0.02)
+			else:
+				if abs(ret[0] - pos[0]) + abs(ret[1] - pos[1]) >= dist_arcsec:
+					dist_flag = 0
+					self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+					self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+					time.sleep(0.02)
+				else:
+					interval = time.time()-b_time
+					if interval <= 0.01:
+						time.sleep(0.01-interval)
+
+		return
+
 	def calc_pid(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
 		# Default
 		"""
