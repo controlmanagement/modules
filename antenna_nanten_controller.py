@@ -42,14 +42,6 @@ class antenna_nanten_controller(object):
 		return
 	
 	def drive_off(self):
-		try:
-			self.tracking_end()
-		except:
-			pass
-		try:
-			self.otf_stop()
-		except:
-			pass
 		self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0)
 		return
 	
@@ -123,7 +115,7 @@ class antenna_nanten_controller(object):
 			self.off_list["off_l"] = off_x
 			self.off_list["off_b"] = off_y
 		return
-
+	
 	def test_move(self,az_speed,el_speed,dist_arcsec = 15 * 3600):
 		try:
 			self.stop_thread.set()
@@ -184,10 +176,12 @@ class antenna_nanten_controller(object):
 		#el_max_rate =3000
 		
 		print("az:"+str(target_az)+" el:"+str(target_el))
-		ret = self.nanten.move_azel(target_az, target_el) #until define the set_coord
+		track = self.nanten.move_azel(target_az, target_el) #until define the set_coord
 		self.az_track = ret[0]
 		self.el_track = ret[1]
-		return
+		#self.az_v = ret[2]
+		#self.el_v = ret[3]
+		return track
 	
 	def move_radec(self, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0):
 		if off_x != 0 or off_y != 0: #for test
@@ -223,11 +217,11 @@ class antenna_nanten_controller(object):
 		ret[1] = apparent_dec
 		"""
 		if dcos == 0:
-			new_dec = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
-			new_ra = ret[0] + float(self.off_list["off_ra"])/3600.*math.pi/180
+			ret[1] = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
+			ret[0] = ret[0] + float(self.off_list["off_ra"])/3600.*math.pi/180
 		else:
-			new_dec = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
-			new_ra = ret[0] + (float(self.off_list["off_ra"])/3600.*math.pi/180)/math.cos(new_dec)
+			ret[1] = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
+			ret[0] = ret[0] + (float(self.off_list["off_ra"])/3600.*math.pi/180)/math.cos(ret[1])
 			dcos = 0
 		
 		ret = slalib.sla_aop(ret[0], ret[1], mjd, self.dut1, self.longitude, self.latitude, self.height, 0, 0, temp, pressure, humid, lamda, tlr=0.0065)
@@ -242,8 +236,8 @@ class antenna_nanten_controller(object):
 		real_az = real_az*180./math.pi*3600.
 		real_el = real_el*180./math.pi*3600.
 
-		self.move_azel(real_az, real_el, dcos, hosei)
-		return
+		track = self.move_azel(real_az, real_el, dcos, hosei)
+		return track
 	
 	def move_lb(self, gx, gy, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0):
 		if off_x != 0 or off_y != 0: # for test
@@ -262,8 +256,8 @@ class antenna_nanten_controller(object):
 		gpaJ2000 = gpdJ2000 = 0
 		"""
 		
-		self.move_radec(ret[0], ret[1], 0, 0, "J2000", temp, pressure, humid, lamda, dcos, hosei)
-		return
+		track = self.move_radec(ret[0], ret[1], 0, 0, "J2000", temp, pressure, humid, lamda, dcos, hosei)
+		return track
 	
 	def move_planet(self, ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0):
 		ret = self.coord.calc_planet_coordJ2000(ntarg)
@@ -277,8 +271,6 @@ class antenna_nanten_controller(object):
 		self.move_radec(ret[2], ret[3], 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
 		return
 	
-	
-	
 	"""
 	def calc_otf(self, x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, temp, pressure, humid, lamda, hosei, code_mode):
 		start_x = x-float(dx)/2.-float(dx)/float(dt)*rampt
@@ -288,8 +280,6 @@ class antenna_nanten_controller(object):
 		end_y = y + dy * (n - 0.5)
 		
 		Az_track_flag = El_track_flag = 'TRUE'
-		
-		#move to on position
 		while Az_track_flag == 'TRUE' or El_track_flag == 'TRUE':
 			if coord_sys == 'HORIZONTAL':
 				ret = self.move_azel(start_x, start_y,dcos)
@@ -300,7 +290,7 @@ class antenna_nanten_controller(object):
 				# gpx,gpy => 0 for radio observation or planet observation
 				# change this when you do optical observation
 				ret = self.move_radec(start_x, start_y, 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei)
-				
+
 				Az_track_flag = ret[0]
 				El_track_flag = ret[1]
 			else:
@@ -310,9 +300,7 @@ class antenna_nanten_controller(object):
 		mjd = 40587 + time.time()/(24.*3600.)
 		self.otf(mjd+delay/24./3600., start_x, start_y, mjd+(delay+total_t)/24./3600., end_x, end_y, dcos, coord_sys, hosei, temp, pressure, humid, lamda, code_mode)
 		return
-		"""
-	
-	
+	"""
 	
 	def otf(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode):
 		otf_end_flag = 0
@@ -336,10 +324,10 @@ class antenna_nanten_controller(object):
 					self.move_azel(off_x, off_y, dcos)
 					#self.move_azel(off_x,off_y, dcos, geomech_flag)
 				elif coord_sys == 'EQUATORIAL':
-					self.move_radec(off_x, off_y, 0, 0, code_mode, temp, pressure, humid, lamda, hosei)
+					self.move_radec(off_x*math.pi/180., off_y*math.pi/180., 0, 0, code_mode, temp, pressure, humid, lamda, hosei)
 					#self.move_radec(off_x, off_y, 0, 0, code_mode, temp, pressure, humid, lamda, hosei, geomech_flag)
 				elif coord_sys == 'GALACTIC':
-					self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos)
+					self.move_lb(off_x*math.pi/180., off_y*math.pi/180., temp, pressure, humid, lamda, dcos)
 					#self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos, geomech_flag)
 			
 			if mjd > mjd_end:
@@ -416,8 +404,6 @@ class antenna_nanten_controller(object):
 		self.tracking.join()
 		return
 	
-	
-	
 	"""
 	def otf_start(self, x, y, dcos, coord_sys, dx, dy, dt, n, rampt, delay, lamda, temp = 0, pressure = 0, humid = 0, hosei = 'hosei_230.txt', code_mode = 'J2000'):
 		self.otf_stop_thread = threading.Event()
@@ -425,8 +411,6 @@ class antenna_nanten_controller(object):
 		self.otf_thread.start()
 		return
 	"""
-	
-	
 	
 	def otf_stop(self):
 		MOTOR_MAXSTEP = 1000
