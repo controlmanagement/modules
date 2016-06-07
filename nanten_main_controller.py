@@ -397,7 +397,7 @@ class nanten_main_controller(object):
 		#limit of dangerous zone
 		if (el_enc < -0.1*DEG2ARCSEC and self.el_rate < 0 ) or (el_enc > 90.1*DEG2ARCSEC and self.el_rate > 0):
 			el_max_rate = min(0, el_max_rate)
-		if (az_enc < -270.*DEG2ARCSEC and self.az_rate < 0) or (az_enc > 270.*DEG2ARCSEC and self.az_rate > 0): 
+		if (az_enc < -265.*DEG2ARCSEC and self.az_rate < 0) or (az_enc > 265.*DEG2ARCSEC and self.az_rate > 0): 
 			az_max_rate = min(1600, az_max_rate); #bug?
 		
 		#lmit of speed
