@@ -42,12 +42,6 @@ class nanten_main_controller(object):
 	el_hensamoni = 0
 	az_ihensamoni = 0
 	el_ihensamoni = 0
-	
-	#for drive.py
-	t1_moni = 0
-	t2_moni = 0
-	az_pidihensamoni = 0
-	el_pidihensamoni = 0
 
 	def __init__(self):
 		self.dio = pyinterface.create_gpg2000(3)
@@ -57,6 +51,42 @@ class nanten_main_controller(object):
 		self.az_encmoni = ret[0]
 		self.el_encmoni = ret[1]
 		pass
+	
+	def test_move(self,az_speed,el_speed,dist_arcsec = 15 * 3600):
+		# get current position
+		pos = self.enc.read_azel()
+		# max speed limit
+		if az_speed > 10000:
+			az_speed = 10000
+		if el_speed > 10000:
+			el_speed = 10000
+		# speed set
+		self.dio.ctrl.out_word("FBIDIO_OUT1_16", az_speed)
+		self.dio.ctrl.out_word("FBIDIO_OUT17_32", el_speed)
+		if az_speed == 0 and el_speed == 0:
+			dist_flag = 0
+		else:
+			dist_flag = 1
+		while dist_flag:
+			b_time = time.time()
+			ret = self.enc.read_azel()
+			if ret[0] < -265 * 3600 or ret[0] > 265 * 3600 or ret[1] < -0.1 * 3600 or ret[1] > 90.1 *3600:
+				dist_flag = 0
+				self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+				self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+				time.sleep(0.02)
+			else:
+				if abs(ret[0] - pos[0]) + abs(ret[1] - pos[1]) >= dist_arcsec:
+					dist_flag = 0
+					self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+					self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+					time.sleep(0.02)
+				else:
+					interval = time.time()-b_time
+					if interval <= 0.01:
+						time.sleep(0.01-interval)
+
+		return
 	
 	def azel_move(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
 		test_flag = 1
@@ -152,42 +182,6 @@ class nanten_main_controller(object):
 		#dioOutputWord(CONTROLER_BASE2,0x02,dummy);
 		self.el_rate_d = dummy
 		return [Az_track_flag, El_track_flag]
-
-	def test_move(self,az_speed,el_speed,dist_arcsec = 15 * 3600):
-		# get current position
-		pos = self.enc.read_azel()
-		# max speed limit
-		if az_speed > 10000:
-			az_speed = 10000
-		if el_speed > 10000:
-			el_speed = 10000
-		# speed set
-		self.dio.ctrl.out_word("FBIDIO_OUT1_16", az_speed)
-		self.dio.ctrl.out_word("FBIDIO_OUT17_32", el_speed)
-		if az_speed == 0 and el_speed == 0:
-			dist_flag = 0
-		else:
-			dist_flag = 1
-		while dist_flag:
-			b_time = time.time()
-			ret = self.enc.read_azel()
-			if ret[0] < -265 * 3600 or ret[0] > 265 * 3600 or ret[1] < -0.1 * 3600 or ret[1] > 90.1 *3600:
-				dist_flag = 0
-				self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
-				self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
-				time.sleep(0.02)
-			else:
-				if abs(ret[0] - pos[0]) + abs(ret[1] - pos[1]) >= dist_arcsec:
-					dist_flag = 0
-					self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
-					self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
-					time.sleep(0.02)
-				else:
-					interval = time.time()-b_time
-					if interval <= 0.01:
-						time.sleep(0.01-interval)
-
-		return
 
 	def calc_pid(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
 		# Default
@@ -391,12 +385,6 @@ class nanten_main_controller(object):
 		self.az_ihensamoni = self.ihensa_az*(self.t1-self.t2)
 		self.el_ihensamoni = self.ihensa_el*(self.t1-self.t2)
 		
-		#for drive.py
-		self.t1_moni = self.t1
-		self.t2_moni = self.t2
-		self.az_pidihensamoni = self.ihensa_az
-		self.el_pidihensamoni = self.ihensa_el
-		
 
 		if math.fabs(az_err) < 8000 and self.az_rate > 10000:
 			self.az_rate = 10000
@@ -431,9 +419,9 @@ class nanten_main_controller(object):
 		#if(az_enc<5*DEG2ARCSEC) rate=min(1000, rate);
 		
 		#limit of dangerous zone
-		if (el_enc < -0.1*DEG2ARCSEC and self.el_rate < 0 ) or (el_enc > 90.1*DEG2ARCSEC and self.el_rate > 0):
+		if (el_enc < 30.*DEG2ARCSEC and self.el_rate < 0 ) or (el_enc > 70.*DEG2ARCSEC and self.el_rate > 0):
 			el_max_rate = min(0, el_max_rate)
-		if (az_enc < -265.*DEG2ARCSEC and self.az_rate < 0) or (az_enc > 265.*DEG2ARCSEC and self.az_rate > 0): 
+		if (az_enc < -270.*DEG2ARCSEC and self.az_rate < 0) or (az_enc > 270.*DEG2ARCSEC and self.az_rate > 0): 
 			az_max_rate = min(1600, az_max_rate); #bug?
 		
 		#lmit of speed
@@ -540,9 +528,7 @@ class nanten_main_controller(object):
 		return stop_flag
 	
 	def read_azel(self):
-		#return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_d, self.el_rate_d, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el, self.az_ihensamoni ,self.el_ihensamoni]
-		#for drive.py
-		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_d, self.el_rate_d, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el, self.az_ihensamoni ,self.el_ihensamoni ,self.t1_moni ,self.t2_moni ,self.az_pidihensamoni ,self.el_pidihensamoni]
+		return [self.az_encmoni, self.el_encmoni, self.az_targetmoni, self.el_targetmoni, self.az_hensamoni, self.el_hensamoni, self.az_rate_d, self.el_rate_d, self.az_targetspeedmoni, self.el_targetspeedmoni, self.current_speed_az, self.current_speed_el, self.az_ihensamoni ,self.el_ihensamoni]
 
 	def read_error(self):
 		return self.error_box
