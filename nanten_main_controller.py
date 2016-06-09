@@ -153,18 +153,24 @@ class nanten_main_controller(object):
    	 self.el_rate_d = dummy
    	 return [Az_track_flag, El_track_flag]
 
-    def test_move(self,az_speed,el_speed,dist_arcsec = 15 * 3600):
-   	 # get current position
-   	 pos = self.enc.read_azel()
-   	 # max speed limit
-   	 if az_speed > 10000:
-   		 az_speed = 10000
-   	 if el_speed > 10000:
-   		 el_speed = 10000
-   	 # speed set
-   	 self.dio.ctrl.out_word("FBIDIO_OUT1_16", az_speed)
-   	 self.dio.ctrl.out_word("FBIDIO_OUT17_32", el_speed)
-   	 if az_speed == 0 and el_speed == 0:
+    def test_move(self,az_speed,el_speed,dist_arcsec = 5 * 3600):
+   	 # type check
+   	 if isinstance(az_speed,int) and isinstance(el_speed,int) and isinstance(dist_arcsec,int):
+   	     type_flag = 1
+   	     # get current position
+   	     pos = self.enc.read_azel()
+   	     # max speed limit
+   	     if az_speed > 10000:
+   		     az_speed = 10000
+   	     if el_speed > 10000:
+   		    el_speed = 10000
+   	     # speed set
+   	     self.dio.ctrl.out_word("FBIDIO_OUT1_16", az_speed)
+   	     self.dio.ctrl.out_word("FBIDIO_OUT17_32", el_speed)
+   	 else:
+   	     type_flag = 0
+   	     print("Please input Int.")
+   	 if (az_speed == 0 and el_speed == 0) or type_flag == 0:
    		 dist_flag = 0
    	 else:
    		 dist_flag = 1
