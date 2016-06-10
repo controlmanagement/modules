@@ -429,6 +429,10 @@ class nanten_main_controller(object):
    	 self.pre_az_arcsec = az_arcsec
    	 self.pre_el_arcsec = el_arcsec
    	 
+   	 #for negative value of az|el_max_rate
+   	 az_max_rate = math.fabs(az_max_rate)
+   	 el_max_rate = math.fabs(el_max_rate)
+   	 
    	 if az_max_rate > 16000:
    		 az_max_rate = 16000
    	 if el_max_rate > 12000:
