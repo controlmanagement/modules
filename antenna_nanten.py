@@ -33,7 +33,7 @@ class antenna_nanten(core.controller.antenna):
 		self.antenna.contactor_off()
 		return
 
-	def test_move(self,az_speed,el_speed,dist_arcsec = 15 * 3600):
+	def test_move(self,az_speed,el_speed,dist_arcsec = 5 * 3600):
 		self.antenna.test_move(az_speed,el_speed,dist_arcsec)
 		return		
 	
