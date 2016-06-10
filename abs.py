@@ -41,7 +41,8 @@ class abs_controller(object):
 	def move(self, dist):
 		pos = self.get_pos()
 		if pos == dist:
-			print('m4 siready ' + dist)
+			print('m4 is already ' + dist)
+			return
 		if dist == 'IN':
 			self.pro = 0x00
 			self.buff = 0x01
@@ -51,6 +52,7 @@ class abs_controller(object):
 		self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.pro)
 		time.sleep(1)
 		self.dio.ctrl.out_byte('FBIDIO_OUT1_8', self.buff)
+		time.sleep(5)
 		self.get_pos()
 		return
 	
