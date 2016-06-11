@@ -189,6 +189,19 @@ class nanten_main_controller(object):
    				 self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
    				 time.sleep(0.02)
    			 else:
+   			     ret = self.enc.read_azel()
+   	             az_enc = ret[0]
+   	             el_enc = ret[1]
+   	             #for az >= 180*3600 and az <= -180*3600
+   	             if az_enc > 40*3600 and az_arcsec+360*3600 < 220*3600:
+   	                 az_arcsec += 360*3600
+   	             elif az_enc < -40*3600 and az_arcsec-360*3600 > -220*3600:
+   	                 az_arcsec -= 360*3600
+   	             self.az_encmoni = ret[0]
+   	             self.el_encmoni = ret[1]
+   	             #for drive.py
+   	             self.t1_moni = self.t1
+   	             self.t2_moni = self.t2    
    				 interval = time.time()-b_time
    				 if interval <= 0.01:
    					 time.sleep(0.01-interval)
