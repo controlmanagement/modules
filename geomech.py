@@ -97,7 +97,7 @@ def geomech_monitor_client(host, port):
 	client = pyinterface.server_client_wrapper.monitor_client_wrapper(geomech_controller, host, port)
 	return client
 
-def start_geomech_server(port1 = ????, port2 = ????):
+def start_geomech_server(port1 = 8100, port2 = 8101):
 	geomech = geomech_controller()
 	server = pyinterface.server_client_wrapper.server_wrapper(geomech, '', port1, port2)
 	server.start()
