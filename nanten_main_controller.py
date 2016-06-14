@@ -154,57 +154,57 @@ class nanten_main_controller(object):
    	 return [Az_track_flag, El_track_flag]
 
     def test_move(self,az_speed,el_speed,dist_arcsec = 5 * 3600):
-   	 # type check
-   	 if isinstance(az_speed,int) and isinstance(el_speed,int) and isinstance(dist_arcsec,int):
-   	     type_flag = 1
-   	     # get current position
-   	     pos = self.enc.read_azel()
-   	     # max speed limit
-   	     if az_speed > 10000:
-   		     az_speed = 10000
-   	     if el_speed > 10000:
-   		    el_speed = 10000
-   	     # speed set
-   	     self.dio.ctrl.out_word("FBIDIO_OUT1_16", az_speed)
-   	     self.dio.ctrl.out_word("FBIDIO_OUT17_32", el_speed)
-   	 else:
-   	     type_flag = 0
-   	     print("Please input Int.")
-   	 if (az_speed == 0 and el_speed == 0) or type_flag == 0:
-   		 dist_flag = 0
-   	 else:
-   		 dist_flag = 1
-   	 while dist_flag:
-   		 b_time = time.time()
-   		 ret = self.enc.read_azel()
-   		 if ret[0] < -265 * 3600 or ret[0] > 265 * 3600 or ret[1] < -0.1 * 3600 or ret[1] > 90.1 *3600:
-   			 dist_flag = 0
-   			 self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
-   			 self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
-   			 time.sleep(0.02)
-   		 else:
-   			 if abs(ret[0] - pos[0]) + abs(ret[1] - pos[1]) >= dist_arcsec:
-   				 dist_flag = 0
-   				 self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
-   				 self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
-   				 time.sleep(0.02)
-   			 else:
-   			     ret = self.enc.read_azel()
-   	             az_enc = ret[0]
-   	             el_enc = ret[1]
-   	             #for az >= 180*3600 and az <= -180*3600
-   	             if az_enc > 40*3600 and az_arcsec+360*3600 < 220*3600:
-   	                 az_arcsec += 360*3600
-   	             elif az_enc < -40*3600 and az_arcsec-360*3600 > -220*3600:
-   	                 az_arcsec -= 360*3600
-   	             self.az_encmoni = ret[0]
-   	             self.el_encmoni = ret[1]
-   	             #for drive.py
-   	             self.t1_moni = self.t1
-   	             self.t2_moni = self.t2    
-   				 interval = time.time()-b_time
-   				 if interval <= 0.01:
-   					 time.sleep(0.01-interval)
+        # type check
+        if isinstance(az_speed,int) and isinstance(el_speed,int) and isinstance(dist_arcsec,int):
+   	    type_flag = 1
+   	    # get current position
+   	    pos = self.enc.read_azel()
+   	    # max speed limit
+   	    if az_speed > 10000:
+                az_speed = 10000
+   	    if el_speed > 10000:
+                el_speed = 10000
+            # speed set
+            self.dio.ctrl.out_word("FBIDIO_OUT1_16", az_speed)
+            self.dio.ctrl.out_word("FBIDIO_OUT17_32", el_speed)
+        else:
+            type_flag = 0
+            print("Please input Int.")
+        if (az_speed == 0 and el_speed == 0) or type_flag == 0:
+            dist_flag = 0
+        else:
+            dist_flag = 1
+        while dist_flag:
+            b_time = time.time()
+            ret = self.enc.read_azel()
+            if ret[0] < -265 * 3600 or ret[0] > 265 * 3600 or ret[1] < -0.1 * 3600 or ret[1] > 90.1 *3600:
+                dist_flag = 0
+                self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+                self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+                time.sleep(0.02)
+            else:
+                if abs(ret[0] - pos[0]) + abs(ret[1] - pos[1]) >= dist_arcsec:
+                    dist_flag = 0
+                    self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+                    self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+                    time.sleep(0.02)
+                else:
+                    ret = self.enc.read_azel()
+                    az_enc = ret[0]
+                    el_enc = ret[1]
+                    #for az >= 180*3600 and az <= -180*3600
+                    if az_enc > 40*3600 and az_arcsec+360*3600 < 220*3600:
+                        az_arcsec += 360*3600
+                    elif az_enc < -40*3600 and az_arcsec-360*3600 > -220*3600:
+                        az_arcsec -= 360*3600
+                    self.az_encmoni = ret[0]
+                    self.el_encmoni = ret[1]
+                    #for drive.py
+                    self.t1_moni = self.t1
+                    self.t2_moni = self.t2    
+                    interval = time.time()-b_time
+                    if interval <= 0.01:
+                        time.sleep(0.01-interval)
 
    	 return
 
