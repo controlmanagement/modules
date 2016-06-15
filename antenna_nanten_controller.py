@@ -145,6 +145,8 @@ class antenna_nanten_controller(object):
 		if off_az != 0 or off_el != 0: #for test
 			self.set_offset("HORIZONTAL", off_az, off_el)
 		if dcos == 0:
+			#print(real_az, real_el, type(real_az), type(real_el))
+			#print(self.off_list)
 			real_el += self.off_list["off_el"]
 			real_az += self.off_list["off_az"]
 		else:
@@ -184,6 +186,9 @@ class antenna_nanten_controller(object):
 		return track
 	
 	def move_radec(self, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0):
+		##debug
+		#print('moving!!!, {gx}, {gy}, {code_mode}'.format(**locals()))
+		##debug-end
 		if off_x != 0 or off_y != 0: #for test
 			self.set_offset(off_coord, off_x, off_y)
 		#lamda not equals lambda
@@ -212,11 +217,13 @@ class antenna_nanten_controller(object):
 			gpdJ2000 = gpy # for check
 		
 		ret = slalib.sla_map(gaJ2000, gdJ2000, gpaJ2000, gpdJ2000, 0, 0, 2000, mjd + (tai_utc + 32.184)/(24.*3600.))
+		ret = list(ret)
 		"""
 		ret[0] = apparent_ra
 		ret[1] = apparent_dec
 		"""
 		if dcos == 0:
+			#print(type(ret), ret[1], self.off_list['off_dec'])
 			ret[1] = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
 			ret[0] = ret[0] + float(self.off_list["off_ra"])/3600.*math.pi/180
 		else:
