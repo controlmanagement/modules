@@ -30,7 +30,9 @@ ret8 = antenna_enc.enc_client('172.20.0.11',8001)
 #ret9 = dome.dome_client('172.20.0.11',8007)
 
 while(1):
+	time.sleep(0.1)
+	print('server_ctrl.py : main_loop')
 	ret = ret8.get_azel()
 	#ret = ret9.dome_encoder_acq()
-	time.sleep(0.005)
 # necrx
+
