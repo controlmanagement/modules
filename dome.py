@@ -341,9 +341,9 @@ class dome_controller(object):
 		if limit != 0:
 			#self.dome_pos.dio.ctrl.set_counter(self.touchsensor_pos[limit-1]+self.dome_encoffset)
 			self.dome_pos.dome_set_counter(self.touchsensor_pos[limit-1]+self.dome_encoffset)
-		print (limit)
+		#print (limit)
 		self.get_count()
-		print (self.count)
+		#print (self.count)
 		return limit
 	
 	def get_domepos(self):
@@ -365,6 +365,7 @@ class dome_controller(object):
 			ret4 = self.get_remote_status()
 			ret5 = self.get_domepos()
 			self.status_box = [ret1, ret2, ret3, ret4]
+			time.sleep(0.1)
 		return
 	
 	def stop_status_check(self):
