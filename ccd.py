@@ -20,7 +20,7 @@ class ccd_controller(object):
 		self.print_msg('!!!!ERROR!!!!' + msg)
 		return
 
-	def oneshot(self, filename, frame_no = 1, size=640*480, Bufformat='IFIMG_COLOR_RGB24', StartMode = 'IFIMG_DMACAPTURE_START', framenum = 1):
+	def oneshot(self, filename, frame_no = 1, size=640*480, Bufferformat='IFIMG_COLOR_RGB24', StartMode = 'IFIMG_DMACAPTURE_START', framenum = 1):
 		# set buffer
 		self.img.set_format(self, frame_no, size, Bufferformat)
 		#start cap
