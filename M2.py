@@ -27,8 +27,8 @@ class m2_controller(object):
     
     def open(self, ndev = 1)
         self.dio = pyinterface.create_gpg2000(ndev)
-        InitIndexFF()
-        get_pos()
+        self.InitIndexFF()
+        self.get_pos()
         pass
     
     def print_msg(self, msg):
@@ -108,13 +108,13 @@ class m2_controller(object):
         puls = int(dist) * PULSLRTE
         
         if self.m_limit_up == 0 and puls < 0:
-            print_error("can't move up direction")
+            self.print_error("can't move up direction")
             return
         if self.m_limit_down == 0 and puls > 0:
-            print_error("can't move down direction")
+            self.print_error("can't move down direction")
             return
         
-        MoveIndexFF(puls)
+        self.MoveIndexFF(puls)
         return
     
     
@@ -123,84 +123,84 @@ class m2_controller(object):
         #initialization?
         
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x08)
-        StrobeHOff()
+        self.StrobeHOff()
         #step no.
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0xff)
-        StrobeHOff()
+        self.StrobeHOff()
         #vs set
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x48)
-        StrobeHOff()
+        self.StrobeHOff()
         #5(*10=50)
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x00)
-        StrobeHOff()
+        self.StrobeHOff()
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x05)
-        StrobeHOff()
+        self.StrobeHOff()
         #vr set
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x40)
-        StrobeHOff()
+        self.StrobeHOff()
         
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x00)
-        StrobeHOff()
+        self.StrobeHOff()
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", self.MOTOR_SPEED)
-        StrobeHOff()
+        self.StrobeHOff()
         #su-sd set
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x50)
-        StrobeHOff()
+        self.StrobeHOff()
         #100(/10=10)
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x00)
-        StrobeHOff()
+        self.StrobeHOff()
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 100)
-        StrobeHOff()
+        self.StrobeHOff()
         #position set
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0xc0)
-        StrobeHOff()
+        self.StrobeHOff()
         #cw
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", self.CW)
-        StrobeHOff()
+        self.StrobeHOff()
         #0
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x00)
-        StrobeHOff()
+        self.StrobeHOff()
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x00)
-        StrobeHOff()
+        self.StrobeHOff()
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x00)
-        StrobeHOff()
+        self.StrobeHOff()
         #start
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x18)
-        StrobeHOff()
+        self.StrobeHOff()
         return
     
     def MoveIndexFF(self, puls):
         if puls >= -65535 and puls <= 65535):
             #index mode
             self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x08)
-            Strobe()
+            self.Strobe()
             #step no.
             self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0xff)
-            Strobe()
+            self.Strobe()
             #position set
             self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0xc0)
-            Strobe()
+            self.Strobe()
             #direction
             if puls >= 0:
                 self.dio.ctrl.out_byte("FBIDIO_OUT1_8", self.CW)
-                Strobe()
+                self.Strobe()
             else:
                 self.dio.ctrl.out_byte("FBIDIO_OUT1_8", self.CCW)
-                Strobe()
+                self.Strobe()
             #displacement
             self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x00)
-            Strobe()
+            self.Strobe()
             self.dio.ctrl.out_byte("FBIDIO_OUT1_8", (abs(puls) / 256))
-            Strobe()
+            self.Strobe()
             self.dio.ctrl.out_byte("FBIDIO_OUT1_8", (abs(puls) % 256))
-            Strobe()
+            self.Strobe()
             #start
             self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x18)
-            Strobe()
+            self.Strobe()
             sleep((abs(puls) / self.MOTOR_SPEED / 10.) + 1.)
-            print_msg("Motor stopped")
+            self.print_msg("Motor stopped")
         else:
-            print_msg("Puls number is over.")
+            self.print_msg("Puls number is over.")
             return false
         return true
 
