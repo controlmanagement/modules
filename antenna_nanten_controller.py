@@ -141,7 +141,7 @@ class antenna_nanten_controller(object):
 		self.nanten.azel_move(az_arcsec, el_arcsec, az_max_rate, el_max_rate)
 		return
 	
-	def move_azel(self, real_az, real_el, dcos, hosei = 'hosei_230.txt', off_az = 0, off_el = 0):
+	def move_azel(self, real_az, real_el, dcos, hosei = 'hosei_230.txt', off_az = 0, off_el = 0, az_max_rate=16000, el_max_rate=12000):
 		if off_az != 0 or off_el != 0: #for test
 			self.set_offset("HORIZONTAL", off_az, off_el)
 		if dcos == 0:
@@ -178,14 +178,14 @@ class antenna_nanten_controller(object):
 		#el_max_rate =3000
 		
 		print("az:"+str(target_az)+" el:"+str(target_el))
-		track = self.nanten.move_azel(target_az, target_el) #until define the set_coord
+		track = self.nanten.move_azel(target_az, target_el, az_max_rate, el_max_rate) #until define the set_coord
 		self.az_track = ret[0]
 		self.el_track = ret[1]
 		#self.az_v = ret[2]
 		#self.el_v = ret[3]
 		return track
 	
-	def move_radec(self, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0):
+	def move_radec(self, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0, az_max_rate=16000, el_max_rate=12000):
 		##debug
 		#print('moving!!!, {gx}, {gy}, {code_mode}'.format(**locals()))
 		##debug-end
@@ -243,10 +243,10 @@ class antenna_nanten_controller(object):
 		real_az = real_az*180./math.pi*3600.
 		real_el = real_el*180./math.pi*3600.
 
-		track = self.move_azel(real_az, real_el, dcos, hosei)
+		track = self.move_azel(real_az, real_el, dcos, hosei, az_max_rate=az_max_rate, el_max_rate=el_max_rate)
 		return track
 	
-	def move_lb(self, gx, gy, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0):
+	def move_lb(self, gx, gy, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0, az_max_rate=16000, el_max_rate=12000):
 		if off_x != 0 or off_y != 0: # for test
 			self.set_offset(off_coord, off_x, off_y)
 		if dcos == 0:
@@ -263,10 +263,10 @@ class antenna_nanten_controller(object):
 		gpaJ2000 = gpdJ2000 = 0
 		"""
 		
-		track = self.move_radec(ret[0], ret[1], 0, 0, "J2000", temp, pressure, humid, lamda, dcos, hosei)
+		track = self.move_radec(ret[0], ret[1], 0, 0, "J2000", temp, pressure, humid, lamda, dcos, hosei, az_max_rate=az_max_rate, el_max_rate=el_max_rate)
 		return track
 	
-	def move_planet(self, ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0):
+	def move_planet(self, ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0, az_max_rate=16000, el_max_rate=12000):
 		ret = self.coord.calc_planet_coordJ2000(ntarg)
 		if len(ret) == 1:
 			print(ret) #error
@@ -275,7 +275,7 @@ class antenna_nanten_controller(object):
 		ret = self.coord.planet_J2000_geo_to_topo(ret[0], ret[1], ret[2], ret[3], self.dut1, self.longitude, self.latitude, self.height)
 		
 		#ret[2] = ra, ret[3] = dec
-		self.move_radec(ret[2], ret[3], 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
+		self.move_radec(ret[2], ret[3], 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate=az_max_rate, el_max_rate=el_max_rate)
 		return
 	
 	"""
@@ -346,31 +346,31 @@ class antenna_nanten_controller(object):
 				time.sleep(0.01-interval)
 		return
 	
-	def thread_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0):
+	def thread_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0, az_max_rate=16000, el_max_rate=12000):
 		self.stop_thread = threading.Event()
-		self.tracking = threading.Thread(target = self.tracking_start, args = (coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y,))
+		self.tracking = threading.Thread(target = self.tracking_start, args = (coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate))
 		self.tracking.start()
 		return
 	
-	def tracking_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y):
+	def tracking_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate):
 		if coord_sys == 'EQUATRIAL':
 			while not self.stop_thread.is_set():
 				b_time = time.time()
-				self.move_radec(gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
+				self.move_radec(gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate)
 				a_time = time.time()
 				if (a_time-b_time) < 0.01:
 					time.sleep(0.01-(a_time-b_time))
 		elif coord_sys == 'GALACTIC':
 			while not self.stop_thread.is_set():
 				b_time = time.time()
-				self.move_lb(gx, gy, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
+				self.move_lb(gx, gy, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate)
 				a_time = time.time()
 				if (a_time-b_time) < 0.01:
 					time.sleep(0.01-(a_time-b_time))
 		else: # planet
 			while not self.stop_thread.is_set():
 				b_time = time.time()
-				self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
+				self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate)
 				a_time = time.time()
 				if (a_time-b_time) < 0.01:
 					time.sleep(0.01-(a_time-b_time))
