@@ -42,7 +42,7 @@ class antenna_nanten(core.controller.antenna):
 		self.antenna.azel_move(az_arcsec, el_arcsec, az_rate, el_rate)
 		return
 	
-	def radec_move(self, ra, dec, code_mode, off_x = 0, off_y = 0, hosei = 'hosei_230.txt',offcoord = "HORIZONTAL", lamda=2600):
+	def radec_move(self, ra, dec, code_mode, off_x = 0, off_y = 0, hosei = 'hosei_230.txt',offcoord = "HORIZONTAL", lamda=2600, az_max_rate=16000, el_max_rate=12000):
 		"""antennaを(Ra, Dec)に動かす
 		ra,dec は degreeで
 		code_mode → 'J2000' or 'B1950'"""
@@ -53,10 +53,10 @@ class antenna_nanten(core.controller.antenna):
 		temp = float(condition[6])+273.
 		press = float(condition[12])
 		humid = float(condition[9])/100.
-		self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y)
+		self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
 		return
 	
-	def galactic_move(self, l, b, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL", lamda=2600):
+	def galactic_move(self, l, b, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL", lamda=2600, az_max_rate=16000, el_max_rate=12000):
 		"""antennaを(l, b)に動かす"""
 		gx = l*math.pi/180.
 		gy = b*math.pi/180.
@@ -64,10 +64,10 @@ class antenna_nanten(core.controller.antenna):
 		temp = float(condition[6])+273.
 		press = float(condition[12])
 		humid = float(condition[9])/100.
-		self.antenna.thread_start('GALACTIC', 0, gx, gy, 0, 0, 0, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y)
+		self.antenna.thread_start('GALACTIC', 0, gx, gy, 0, 0, 0, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
 		return
 	
-	def planet_move(self, number, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL", lamda=2600):
+	def planet_move(self, number, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL", lamda=2600, az_max_rate=16000, el_max_rate=12000):
 		"""antennaをplanetに動かす
 		1.Mercury 2.Venus 3. 4.Mars 5.Jupiter 6.Saturn 7.Uranus 8.Neptune, 9.Pluto, 10.Moon, 11.Sun"""
 		##debug
@@ -78,7 +78,7 @@ class antenna_nanten(core.controller.antenna):
 		temp = float(condition[6])+273.
 		press = float(condition[12])
 		humid = float(condition[9])/100.
-		self.antenna.thread_start('PLANET', number, 0, 0, 0, 0, 0, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y)
+		self.antenna.thread_start('PLANET', number, 0, 0, 0, 0, 0, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
 		return
 	
 	def set_offset(self, off_x, _off_y, off_coord = "HORIZONTAL"):
