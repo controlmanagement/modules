@@ -19,6 +19,7 @@ class dome_controller(object):
 	count = 0
 	status_box = []
 	dome_enc = 0
+	limit = 0
 
 	def __init__(self):
 		self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
@@ -56,6 +57,7 @@ class dome_controller(object):
 			self.dome_limit()
 			if math.fabs(ret[0]-dome_az) >= 2.0:
 				self.move(ret[0])
+			time.sleep(0.01)
 	
 	def test(self, num): #for track_test
 		self.start_thread()
@@ -306,6 +308,16 @@ class dome_controller(object):
 		return
 	
 	def limit_check(self):
+		while True:
+			limit1 = self._limit_check()
+			time.sleep(0.002)
+			limit2 = self._limit_check()
+			if limit1 == limit2:
+				return limit1
+			continue
+		pass
+		
+	def _limit_check(self):
 		limit = self.dio.di_check(12, 4)
 		ret = 0
 		if limit[0:4] == [0,0,0,0]:
@@ -347,9 +359,12 @@ class dome_controller(object):
 		return limit
 	
 	def get_domepos(self):
-		limit = self.dome_limit()
+		self.limit = self.dome_limit()
 		self.dome_enc = self.dome_pos.dome_encoder_acq()
 		return self.dome_enc
+	
+	def read_limit(self):
+		return self.limit
 
 	def start_status_check(self):
 		self.stop_status_flag = threading.Event()
