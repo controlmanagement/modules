@@ -15,7 +15,7 @@ class antenna_nanten_controller(object):
 	latitude = -22.96995611*math.pi/180
 	height = 4863.85
 	#temporary dut1
-	dut1 = 0.14708  #delta UT:  UT1-UTC (UTC seconds)
+	dut1 = -0.20489  #delta UT:  UT1-UTC (UTC seconds)
 	
 	# for socket
 	instruction = ''
