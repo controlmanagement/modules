@@ -25,7 +25,7 @@ class m2_controller(object):
     def __init__(self):
         pass
     
-    def open(self, ndev = 1)
+    def open(self, ndev = 2):
         self.dio = pyinterface.create_gpg2000(ndev)
         self.InitIndexFF()
         self.get_pos()
@@ -76,7 +76,7 @@ class m2_controller(object):
         
         #calculate each digit
         total = (buff[0]*1+buff[1]*2+buff[2]*pow(2.,2.)+buff[3]*pow(2.,3.))/100.0
-        total = total + (buff[4]*1+buff[5]*2+buff[6]*pow(2.,2.)+buff[7]*pow2.,3.)/10.0
+        total = total + (buff[4]*1+buff[5]*2+buff[6]*pow(2.,2.)+buff[7]*pow(2.,3.))/10.0
         total2 = buff2[0]*1+buff2[1]*2+buff2[2]*pow(2.,2.)+buff2[3]*pow(2.,3.)
         total2 = total2 + (buff2[4]*1)*10
         
@@ -95,7 +95,7 @@ class m2_controller(object):
         time.sleep(0.001)
         return
     
-    def Strobe_HOFF(self):
+    def StrobeHOff(self):
         time.sleep(0.001)
         self.dio.ctrl.out_byte("FBIDIO_OUT9_16", 0x05)
         time.sleep(0.001)
@@ -119,7 +119,7 @@ class m2_controller(object):
     
     
     
-    def InitIndexFF(void):
+    def InitIndexFF(self):
         #initialization?
         
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x08)
@@ -170,7 +170,7 @@ class m2_controller(object):
         return
     
     def MoveIndexFF(self, puls):
-        if puls >= -65535 and puls <= 65535):
+        if puls >= -65535 and puls <= 65535:
             #index mode
             self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x08)
             self.Strobe()
@@ -217,7 +217,7 @@ def m2_monitor_client(host, port):
     client = pyinterface.server_client_wrapper.monitor_client_wrapper(m2controller, host, port)
     return client
 
-def start_m2_server(port1 = ctrl?, port2 = ctrl?):
+def start_m2_server(port1 = 9999, port2 = 9998):
     m2 = m2_controller()
     server = pyinterface.server_client_wrapper.server_wrapper(m2,'', port1, port2)
     server.start()
