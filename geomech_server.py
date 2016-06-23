@@ -12,4 +12,4 @@ while(1):
     geomech_col = ret1.read_geomech()
     tv = time.time()
     pritnt (tv, geomech_col)
-time.sleep(0.1)
+    time.sleep(0.1)
