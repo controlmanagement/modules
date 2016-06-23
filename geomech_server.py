@@ -11,4 +11,5 @@ while(1):
     ret = ret1.get_geomech_col()
     geomech_col = ret1.read_geomech()
     tv = time.time()
+    pritnt (tv, geomech_col)
 time.sleep(0.1)
