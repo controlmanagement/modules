@@ -18,6 +18,7 @@ class geomech_controller(object):
 	
 	
 	def __init__(self):
+		self.open()
 		pass
 	
 	def open(self, ndev = 1):
