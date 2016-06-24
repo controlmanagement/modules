@@ -5,6 +5,7 @@ import time
 import geomech
 
 ret0 = geomech.start_geomech_server()
+time.sleep(1)
 ret1 = geomech.geomech_client('172.20.0.12',8100)
 
 while(1):
