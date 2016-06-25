@@ -105,7 +105,7 @@ class m2_controller(object):
     
     def move(self, dist):
         #move subref
-        puls = int(dist) * PULSLRTE
+        puls = int(dist) * self.PULSRATE
         
         if self.m_limit_up == 0 and puls < 0:
             self.print_error("can't move up direction")
@@ -197,12 +197,12 @@ class m2_controller(object):
             #start
             self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 0x18)
             self.Strobe()
-            sleep((abs(puls) / self.MOTOR_SPEED / 10.) + 1.)
+            time.sleep((abs(puls) / self.MOTOR_SPEED / 10.) + 1.)
             self.print_msg("Motor stopped")
         else:
             self.print_msg("Puls number is over.")
-            return false
-        return true
+            return False
+        return True
 
 
 
