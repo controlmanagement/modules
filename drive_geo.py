@@ -35,8 +35,9 @@ while(1):
   data3 = status.read_geomech_temp()
   ntime2 = dt.now()
   secofday2 = ntime2.hour*60*60 + ntime2.minute*60 + ntime2.second + ntime2.microsecond*0.000001
-
+  
   log = str(mjd) + ' ' + str(secofday) + ' ' + str(data1[0])+ ' ' + str(data1[1] + ' ' + str(data2[0])+ ' ' + str(data2[1] + ' ' + str(data3[0])+ ' ' + str(data3[1])
+  
   f.write(log + "\n")
   print log
 	
