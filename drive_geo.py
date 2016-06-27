@@ -38,7 +38,7 @@ while(1):
   
   log = str(mjd) + ' ' + str(secofday) + ' ' + str(data1[0])+ ' ' + str(data1[1] + ' ' + str(data2[0])+ ' ' + str(data2[1] + ' ' + str(data3[0])+ ' ' + str(data3[1])
   
-  f.write(log + "\n")
+  f.write(log + '\n')
   print log
 	
 time.sleep(0.1)
