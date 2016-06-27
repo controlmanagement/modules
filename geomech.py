@@ -55,6 +55,9 @@ class geomech_controller(object):
 		y2 = (AdVoltage[7]-AdVoltage[8])*1000*self.GAIN_Y2*self.URAD2ARCSEC
 		t2 = (AdVoltage[9]*100)
 		
+		self.t1 = t1
+		self.t2 = t2
+		
 		# thermal correction
 		self.x1 = x1-self.GAIN_T_X1*t1
 		self.y1 = y1-self.GAIN_T_Y1*t1
