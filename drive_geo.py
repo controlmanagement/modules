@@ -27,12 +27,16 @@ while(1):
   mid = int(mjd)
   ntime = dt.now()
   secofday = ntime.hour*60*60 + ntime.minute*60 + ntime.second + ntime.microsecond*0.000001
-  #data = [geo_x, geo_y]
-  data = status.read_geomech_col()
+  #data1 = [x1, ,y1, x2, y2]
+  data1 = status.read_geomech()
+  #data2 = [geo_x, geo_y]
+  data2 = status.read_geomech_col()
+  #data3 = [t1, t2]
+  data3 = status.read_geomech_temp()
   ntime2 = dt.now()
   secofday2 = ntime2.hour*60*60 + ntime2.minute*60 + ntime2.second + ntime2.microsecond*0.000001
 
-  log = str(mjd) + ' ' + str(secofday) + ' ' + str(data[0])+ ' ' + str(data[1])
+  log = str(mjd) + ' ' + str(secofday) + ' ' + str(data1[0])+ ' ' + str(data1[1] + ' ' + str(data2[0])+ ' ' + str(data2[1] + ' ' + str(data3[0])+ ' ' + str(data3[1])
   f.write(log + "\n")
   print log
 	
