@@ -13,6 +13,12 @@ class geomech_controller(object):
 	GAIN_T_X2 = -0.5
 	GAIN_T_Y2 = 0.5
 	URAD2ARCSEC = 0.206264
+	x1 = 0
+	y1 = 0
+	x2 = 0
+	y2 = 0
+	t1 = 0
+	t2 = 0
 	geo_x = 0
 	geo_y = 0
 	
@@ -50,11 +56,11 @@ class geomech_controller(object):
 		t2 = (AdVoltage[9]*100)
 		
 		# thermal correction
-		x1 = x1-self.GAIN_T_X1*t1
-		y1 = y1-self.GAIN_T_Y1*t1
-		x2 = x2-self.GAIN_T_X2*t2
-		y2 = y2-self.GAIN_T_Y2*t2
-		return [x1, x2, y1, y2]
+		self.x1 = x1-self.GAIN_T_X1*t1
+		self.y1 = y1-self.GAIN_T_Y1*t1
+		self.x2 = x2-self.GAIN_T_X2*t2
+		self.y2 = y2-self.GAIN_T_Y2*t2
+		return [self.x1, self.x2, self.y1, self.y2]
 	
 	
 	
@@ -81,12 +87,18 @@ class geomech_controller(object):
 			X_ave2 += X2[i]
 			Y_ave2 += Y2[i]
 		
-		x = self.geo_x = X_ave2/10
-		y = self.geo_y = Y_ave2/10
-		return [x, y]
+		self.geo_x = X_ave2/10
+		self.geo_y = Y_ave2/10
+		return [self.geo_x, self.geo_y]
 		
+	def read_geomech(self):
+		return [self.x1, self.y1, self.x2, self.y2]
+
 	def read_geomech_col(self):
 		return [self.geo_x, self.geo_y]
+
+	def read_geomech_temp(self):
+		return [self.t1, self.t2]
 
 
 
