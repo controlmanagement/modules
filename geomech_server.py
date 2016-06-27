@@ -9,8 +9,10 @@ time.sleep(1)
 ret1 = geomech.geomech_client('172.20.0.12',8100)
 
 while(1):
-    re1 = ret1.get_geomech_col()
-    re2 = ret1.read_geomech_col()
     tv = time.time()
-    print (tv, re2)
+    re1 = ret1.get_geomech_col()
+    re2 = ret1.read_geomech()
+    re3 = ret1.read_geomech_col()
+    re4 = ret1.read_geomech_temp()
+    print (tv, re2, re3, re4)
     time.sleep(0.1)
