@@ -5,7 +5,7 @@ import pyinterface
 import numpy as np
 from PIL import Image
 from PIL import ImageOps
-#improt geomech
+improt geomech
 import os
 from pyslalib import slalib
 
@@ -21,7 +21,7 @@ class ccd_controller(object):
     def __init__(self):
         #open
         #self.img = pyinterface.create_gpg5520(1)
-        #self.geo = 
+        self.geo = geomech.geomech_monitor_client("172.20.0.12",8101)
         return
     
     def print_msg(self,msg):
@@ -64,8 +64,8 @@ class ccd_controller(object):
             os.mkdir(str(data_name))
         f = open("./"+str(data_name)+"/process.log", "a")
         
-        #geo_status = [0,0,0,0] #for test
-        #geo_status = 
+        #geo_status = [x1,x2,y1,y2] #for test
+        geo_status = self.geo.read_geomech()
         geo_x = (geo_status[0]-geo_status[1])/2
         geo_y = (geo_status[2]-geo_status[3])/2
         
