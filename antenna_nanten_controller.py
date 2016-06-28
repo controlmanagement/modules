@@ -179,8 +179,8 @@ class antenna_nanten_controller(object):
 		
 		print("az:"+str(target_az)+" el:"+str(target_el))
 		track = self.nanten.move_azel(target_az, target_el, az_max_rate, el_max_rate) #until define the set_coord
-		self.az_track = ret[0]
-		self.el_track = ret[1]
+		self.az_track = track[0]
+		self.el_track = track[1]
 		#self.az_v = ret[2]
 		#self.el_v = ret[3]
 		return track
@@ -355,6 +355,9 @@ class antenna_nanten_controller(object):
 	def tracking_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate):
 		if coord_sys == 'EQUATRIAL':
 			while not self.stop_thread.is_set():
+				print('~~~~~~~~~~~~~')
+				print('coord_sys : %s, gx : %.1f, gy : %.1f, gpx : %.1f, gpy : %.1f'%(coord_sys, gx, gy, gpx, gpy))
+				print('~~~~~~~~~~~~~')
 				b_time = time.time()
 				self.move_radec(gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate)
 				a_time = time.time()
@@ -377,11 +380,18 @@ class antenna_nanten_controller(object):
 		return
 		
 	def tracking_end(self):
+		print('DEBUG : tracking_end start')
 		MOTOR_MAXSTEP = 1000
+		print('DEBUG : tracking_end stop_thread.set()')
 		self.stop_thread.set()
+		print('DEBUG : tracking_end tracking.join()')
 		self.tracking.join()
+		print('DEBUG : start while')
 		
 		while abs(self.nanten.az_rate_d) > MOTOR_MAXSTEP or abs(self.nanten.el_rate_d) > MOTOR_MAXSTEP:
+			print('==========================================')
+			print('az_rate_d : %.1f, el_rate_d : %.1f, MOTOR_MAXSTEP : %.1f'%(self.nanten.az_rate_d, self.nanten.el_rate_d, MOTOR_MAXSTEP))
+			print('==========================================')
 			if abs(self.nanten.az_rate_d) > MOTOR_MAXSTEP:
 				if self.nanten.az_rate_d < 0:
 					a = 1
@@ -402,6 +412,9 @@ class antenna_nanten_controller(object):
 			dummy = int(self.nanten.el_rate_d)
 			self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", dummy)
 			time.sleep(0.01)
+		print('==========================================')
+		print('az_rate_d : %.1f, el_rate_d : %.1f, MOTOR_MAXSTEP : %.1f'%(self.nanten.az_rate_d, self.nanten.el_rate_d, MOTOR_MAXSTEP))
+		print('------------------------------------------')
 		self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
 		self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
 		return
