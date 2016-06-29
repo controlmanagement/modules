@@ -5,7 +5,7 @@ import pyinterface
 import numpy as np
 from PIL import Image
 from PIL import ImageOps
-improt geomech
+import geomech
 import os
 from pyslalib import slalib
 
