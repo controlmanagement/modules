@@ -53,6 +53,9 @@ class ccd_controller(object):
         print(com)
         ret = commands.getoutput(com)
         print(ret)
+        com = "mv /home/amigos/NECST/soft/core/"+str(filename)+".png /home/amigos/NECST/soft/data/"+str(filename)+".png"
+        ret = commands.getoutput(com)
+        print(ret)
         return
         
         
