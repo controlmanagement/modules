@@ -303,21 +303,19 @@ class nanten_main_controller(object):
             elv_acc = -50
         """
         
-        ret = self.ave_calc(az_enc, el_enc) #average of az(ret[0]) and el(ret[1])
         target_az = az_arcsec
         target_el = el_arcsec
         hensa_az = target_az - az_enc
         hensa_el = target_el - el_enc
-        track_az = target_az - ret[0]
-        track_el = target_el - ret[1]
+        ret = self.ave_calc(hensa_az, hensa_el) #average of hensa_az(ret[0]) and hensa_el(ret[1])
         
-        if 3 > math.fabs(track_az):
+        if 3 > math.fabs(ret[0]):
             m_bAzTrack = "TRUE" #def Paz=2?
         else:
             # az_err_integral += (self.az_err_before+az_err)*self.dt/2.+azv_acc*0.0
             m_bAzTrack = 'FALSE'
             pass
-        if 3 > math.fabs(track_el):
+        if 3 > math.fabs(ret[1]):
             m_bElTrack = "TRUE" #def Pel=2?
         else:
             #el_err_integral += (self.el_err_before+el_err)*self.dt/2.+elv_acc*0.0
