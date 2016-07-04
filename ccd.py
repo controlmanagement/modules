@@ -155,6 +155,11 @@ class ccd_controller(object):
                 xx += (x+j-10)*image[y+i-10][x+j-10]
                 yy += (y+i-10)*image[y+i-10][x+j-10]
                 f += image[y+i-10][x+j-10]
+        
+        if f == 0: #two or three stars
+            print("MANY STARS ARE PHOTOGRAPHED")
+            return
+        
         xx = xx/f
         yy = yy/f
         
