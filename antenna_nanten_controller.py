@@ -309,6 +309,12 @@ class antenna_nanten_controller(object):
 		return
 	"""
 	
+	def otf_thread_start(self,  mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode)
+		self.stop_thread = threading.Event()
+		self.tracking = threading.Thread(target = self.otf, args = (mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode))
+		self.tracking.start()
+		return
+	
 	def otf(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode):
 		otf_end_flag = 0
 		geomech_flag = 0
