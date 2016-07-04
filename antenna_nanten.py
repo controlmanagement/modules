@@ -103,7 +103,7 @@ class antenna_nanten(core.controller.antenna):
 		end_y = sy + dy * (n - 0.5)
 		mjd = 40587 + time.time()/(24.*3600.)
 		
-		self.antenna.otf(mjd+delay/24./3600., start_x, start_y, mjd+(delay+total_t)/24./3600., end_x, end_y, dcos, coord_sys, hosei,temp, press, humid, lamda, code_mode)
+		self.antenna.otf_thread_start(mjd+delay/24./3600., start_x, start_y, mjd+(delay+total_t)/24./3600., end_x, end_y, dcos, coord_sys, hosei,temp, press, humid, lamda, code_mode)
 		return mjd+(delay+rampt)/24./3600.
 	
 	def otf_tracking_end(self):
