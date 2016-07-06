@@ -53,19 +53,14 @@ class ccd_controller(object):
         print(com)
         ret = commands.getoutput(com)
         print(ret)
-        com = "mv /home/amigos/NECST/soft/core/"+str(filename)+".png /home/amigos/NECST/soft/data/"+str(filename)+".png"
-        ret = commands.getoutput(com)
-        print(ret)
         return
-        
-        
     
     def save_status(self, x, y, number, magnitude, az_star, el_star, mjd, data_name, secofday, status):
-        if os.path.exists("./"+str(data_name)):
+        if os.path.exists("/home/amigos/NECST/soft/core/"+str(data_name)):
             pass
         else:
-            os.mkdir(str(data_name))
-        f = open("./"+str(data_name)+"/process.log", "a")
+            os.mkdir("/home/amigos/NECST/soft/core/"+str(data_name))
+        f = open("/home/amigos/NECST/soft/core/"+str(data_name)+"/process.log", "a")
         
         #geo_status = [x1,x2,y1,y2] #for test
         geo_status = self.geo.read_geomech()
@@ -84,6 +79,12 @@ class ccd_controller(object):
     
     def all_sky_shot(self, number, magnitude, az_star, el_star, data_name, status):
         thr = 80
+        
+        if os.path.exists("/home/amigos/NECST/soft/data/"+str(data_name)):
+            pass
+        else:
+            os.mkdir("/home/amigos/NECST/soft/data/"+str(data_name))
+        
         
         #for test
         #status = {"Command_Az":0,"Command_El":0,"Current_Az":0,"Current_El":0,"OutTemp":0,"Press":0,"OutHumi":0}
@@ -104,7 +105,7 @@ class ccd_controller(object):
         
         
         #load array
-        in_image = Image.open("/home/amigos/NECST/soft/data/"+name+".png")
+        in_image = Image.open("/home/amigos/NECST/soft/data/"+str(data_name)+"/"+name+".png")
         #in_image = Image.open("test.png") #for test
         image = np.array(ImageOps.grayscale(in_image))
         ori_image = np.array(image)
@@ -168,5 +169,10 @@ class ccd_controller(object):
         print(yy)
         
         self.save_status(xx, yy, number, magnitude, az_star, el_star, mjd, data_name, secofday, status)
+        
+        path = os.getcwd()
+        com = "mv "+str(path)+"/"+str(filename)+".png /home/amigos/NECST/soft/data/"+str(data_name)+"/"+str(name)+".png"
+        ret = commands.getoutput(com)
+        print(ret)
         return
         
