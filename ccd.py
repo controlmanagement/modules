@@ -71,12 +71,13 @@ class ccd_controller(object):
         geo_status = self.geo.read_geomech()
         geo_x = (geo_status[0]-geo_status[1])/2
         geo_y = (geo_status[2]-geo_status[3])/2
+        geo_temp = self.geo.read_geomech_temp()
         
         #write papram
         f.write(str(number)+" "+str(magnitude)+" "+str(mjd)+" "+str(secofday)+" "+str(status["Command_Az"])+" "+str(status["Command_El"])+" "\
         +str(status["Current_Az"])+" "+str(status["Current_El"])+" "+str(status["Current_Dome"])+" "+str(x)+" "+str(y)+" "+str(status["OutTemp"])+" "+str(status["Press"])\
         +" "+str(status["OutHumi"])+" "+str(az_star)+" "+str(el_star)+" "+str(geo_x)+" "+str(geo_y)+" "+str(geo_status[0])+" "+str(geo_status[1])\
-        +" "+str(geo_status[2])+" "+str(geo_status[3]))
+        +" "+str(geo_temp[0])+" "+str(geo_status[2])+" "+str(geo_status[3])+" "+str(geo_temp[1]))
         f.write("\n")
         f.close()
         return
