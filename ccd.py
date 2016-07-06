@@ -74,7 +74,7 @@ class ccd_controller(object):
         
         #write papram
         f.write(str(number)+" "+str(magnitude)+" "+str(mjd)+" "+str(secofday)+" "+str(status["Command_Az"])+" "+str(status["Command_El"])+" "\
-        +str(status["Current_Az"])+" "+str(status["Current_El"])+" "str(status["Current_Dome"])+" "+str(x)+" "+str(y)+" "+str(status["OutTemp"])+" "+str(status["Press"])\
+        +str(status["Current_Az"])+" "+str(status["Current_El"])+" "+str(status["Current_Dome"])+" "+str(x)+" "+str(y)+" "+str(status["OutTemp"])+" "+str(status["Press"])\
         +" "+str(status["OutHumi"])+" "+str(az_star)+" "+str(el_star)+" "+str(geo_x)+" "+str(geo_y)+" "+str(geo_status[0])+" "+str(geo_status[1])\
         +" "+str(geo_status[2])+" "+str(geo_status[3]))
         f.write("\n")
