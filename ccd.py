@@ -103,7 +103,7 @@ class ccd_controller(object):
         
         
         #load array
-        in_image = Image.open(name+".png")
+        in_image = Image.open("/home/amigos/NECST/soft/data/"+name+".png")
         #in_image = Image.open("test.png") #for test
         image = np.array(ImageOps.grayscale(in_image))
         ori_image = np.array(image)
