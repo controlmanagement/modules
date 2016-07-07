@@ -379,9 +379,11 @@ class antenna_nanten_controller(object):
     def tracking_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate):
         if coord_sys == 'EQUATRIAL':
             while not self.stop_thread.is_set():
-                print('~~~~~~~~~~~~~')
-                print('coord_sys : %s, gx : %.1f, gy : %.1f, gpx : %.1f, gpy : %.1f'%(coord_sys, gx, gy, gpx, gpy))
-                print('~~~~~~~~~~~~~')
+                ret = self.nanten.enc.read_azel()
+                if ret[0] >= 240.*3600. or ret[0] <= -240.*3600. or ret[1] >= 88.*3600. or ret[1] <= 2.*3600.:
+                    self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+                    self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+                    return
                 b_time = time.time()
                 self.move_radec(gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate)
                 a_time = time.time()
@@ -389,6 +391,11 @@ class antenna_nanten_controller(object):
                     time.sleep(0.01-(a_time-b_time))
         elif coord_sys == 'GALACTIC':
             while not self.stop_thread.is_set():
+                ret = self.nanten.enc.read_azel()
+                if ret[0] >= 240.*3600. or ret[0] <= -240.*3600. or ret[1] >= 88.*3600. or ret[1] <= 2.*3600.:
+                    self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+                    self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+                    return
                 b_time = time.time()
                 self.move_lb(gx, gy, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate)
                 a_time = time.time()
@@ -396,6 +403,11 @@ class antenna_nanten_controller(object):
                     time.sleep(0.01-(a_time-b_time))
         else: # planet
             while not self.stop_thread.is_set():
+                ret = self.nanten.enc.read_azel()
+                if ret[0] >= 240.*3600. or ret[0] <= -240.*3600. or ret[1] >= 88.*3600. or ret[1] <= 2.*3600.:
+                    self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+                    self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+                    return
                 b_time = time.time()
                 self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate, el_max_rate)
                 a_time = time.time()
