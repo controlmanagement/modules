@@ -64,28 +64,20 @@ class nanten_main_controller(object):
         test_flag = 1
         self.indaz = az_arcsec
         self.indel = el_arcsec
-        while test_flag:
-            hensa_flag = 1
+        ret = self.enc.read_azel()
+        if abs(az_arcsec-ret[0]) >= 1 or abs(el_arcsec-ret[1]) > 1:
+            b_time = time.time()
+            self.move_azel(az_arcsec, el_arcsec, az_max_rate, el_max_rate)
             ret = self.enc.read_azel()
-            #ret = self.enc.get_azel()
-            if abs(az_arcsec-ret[0]) >= 1 or abs(el_arcsec-ret[1]) > 1:
-                while hensa_flag:
-                    b_time = time.time()
-                    self.move_azel(az_arcsec, el_arcsec, az_max_rate, el_max_rate)
-                    ret = self.enc.read_azel()
-                    #ret = self.enc.get_azel()
-                    if abs(az_arcsec-ret[0]) <= 1 and abs(el_arcsec-ret[1]) <= 1:
-                        hensa_flag = 0
-                        self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
-                        self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
-                        time.sleep(0.02)
-                    else:
-                        interval = time.time()-b_time
-                        if interval <= 0.01:
-                            time.sleep(0.01-interval)
-            else:
-                test_flag = 0
-        return
+            interval = time.time()-b_time
+            if interval <= 0.01:
+                time.sleep(0.01-interval)
+        else:
+            self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+            self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+            time.sleep(0.02)
+            return 0
+        return 1
         
     def move_azel(self, az_arcsec, el_arcsec, az_max_rate = 16000, el_max_rate = 12000, m_bStop = 'FALSE'):
         MOTOR_MAXSTEP = 1000
