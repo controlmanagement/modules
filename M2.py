@@ -88,19 +88,19 @@ class m2_controller(object):
         return self.m_pos
     
     def Strobe(self):
-        time.sleep(0.001)
+        time.sleep(0.01)
         self.dio.ctrl.out_byte("FBIDIO_OUT9_16", 0x01)
-        time.sleep(0.001)
+        time.sleep(0.01)
         self.dio.ctrl.out_byte("FBIDIO_OUT9_16", 0x00)
-        time.sleep(0.001)
+        time.sleep(0.01)
         return
     
     def StrobeHOff(self):
-        time.sleep(0.001)
+        time.sleep(0.01)
         self.dio.ctrl.out_byte("FBIDIO_OUT9_16", 0x05)
-        time.sleep(0.001)
+        time.sleep(0.01)
         self.dio.ctrl.out_byte("FBIDIO_OUT9_16", 0x04)
-        time.sleep(0.001)
+        time.sleep(0.01)
         return
     
     def move(self, dist):
