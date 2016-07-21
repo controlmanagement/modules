@@ -57,8 +57,12 @@ class antenna_nanten_controller(object):
         ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN1_8")
         if (ret>>2 & 0x01) == 1:
             self.drive_az = "ON"
+        else:
+            self.drive_az = "OFF"
         if (ret>>3 & 0x01) == 1:
             self.drive_el = "ON"
+        else:
+            self.drive_el = "OFF"
         return [self.drive_az, self.drive_el]
     
     def error_check(self):
