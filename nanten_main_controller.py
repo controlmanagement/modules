@@ -127,11 +127,22 @@ class nanten_main_controller(object):
         #if(0< motordrv_nanten2_cw_limit()+motordrv_nanten2_ccw_limit()+motordrv_nanten2_up_limit()+motordrv_nanten2_down_limit())
         #     motordrv_nanten2_drive_on(FALSE,FALSE);
         
+        
         # output to port
         if m_bStop == 'TRUE':
             dummy = self.m_stop_rate_az
         else:
             dummy = int(self.az_rate_d)
+        
+        
+        #for 1st limit
+        ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN1_8")
+        if (ret>>2 & 0x01) == 1:
+            pass
+        else:
+            dummy = 0
+        
+        
         #dummy=m_bStop==TRUE?m_stop_rate_az:motor_param.az_rate_ref;
         self.dio.ctrl.out_word("FBIDIO_OUT1_16", dummy)
         #dioOutputWord(CONTROLER_BASE2,0x00,dummy)  output port is unreliable
@@ -141,10 +152,19 @@ class nanten_main_controller(object):
             dummy = self.m_stop_rate_el
         else:
             dummy = int(self.el_rate_d)
+        
+        if (ret>>3 & 0x01) == 1:
+            pass
+        else:
+            dummy = 0
+            stop_flag = 1
+        
         #dummy=m_bStop==TRUE?m_stop_rate_el:motor_param.el_rate_ref;
         self.dio.ctrl.out_word("FBIDIO_OUT17_32", dummy)
         #dioOutputWord(CONTROLER_BASE2,0x02,dummy);
         self.el_rate_d = dummy
+        if stop_flag:
+            sys.exit()
         return [Az_track_flag, El_track_flag]
 
     def test_move(self,az_speed,el_speed,dist_arcsec = 5 * 3600):
