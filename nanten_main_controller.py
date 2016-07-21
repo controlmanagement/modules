@@ -84,6 +84,7 @@ class nanten_main_controller(object):
         #MOTOR_AZ_MAXRATE = 16000
         MOTOR_AZ_MAXRATE = 10000
         MOTOR_EL_MAXRATE = 12000
+        stop_flag = 0
         
         ret = self.calc_pid(az_arcsec, el_arcsec, az_max_rate, el_max_rate)
         az_rate_ref = ret[0]
@@ -141,6 +142,7 @@ class nanten_main_controller(object):
             pass
         else:
             dummy = 0
+            stop_flag = 1
         
         
         #dummy=m_bStop==TRUE?m_stop_rate_az:motor_param.az_rate_ref;
