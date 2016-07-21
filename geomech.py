@@ -1,6 +1,7 @@
 import ctypes
 import pyinterface
 import numpy as np
+import datetime
 
 
 
@@ -26,6 +27,11 @@ class geomech_controller(object):
     y1_arr = []
     x2_arr = []
     y2_arr = []
+    log_x1 = 0
+    log_x2 = 0
+    log_y1 = 0
+    log_y2 = 0
+    
     
     def __init__(self):
         self.open()
@@ -69,19 +75,19 @@ class geomech_controller(object):
         t_y2 = y2-self.GAIN_T_Y2*t2
         
         if abs(self.x1 - t_x1) > 150.:
-            pass
+            self.log_x1 += 1
         else:
             self.x1 = t_x1
         if abs(self.x2 - t_x2) > 150.:
-            pass
+            self.log_x2 += 1
         else:
             self.x2 = t_x2
         if abs(self.y1 - t_y1) > 150.:
-            pass
+            self.log_y1 += 1
         else:
             self.y1 = t_y1
         if abs(self.y2 - t_y2) > 150.:
-            pass
+            self.log_y2 += 1
         else:
             self.y2 = t_y2
         
@@ -141,6 +147,17 @@ class geomech_controller(object):
 
     def read_geomech_temp(self):
         return [self.t1, self.t2]
+    
+    def record_log(self):
+        name = datetime.date.today()
+        f = open(str(name)+"-geomech.log", "w")
+        f.write("x1 : "+str(self.log_x1)+"\n")
+        f.write("x2 : "+str(self.log_x2)+"\n")
+        f.write("y1 : "+str(self.log_y1)+"\n")
+        f.write("y2 : "+str(self.log_y2)+"\n")
+        f.close()
+        self.log_x1 = self.log_x2 = self.log_y1 = self.log_y2 = 0
+        return
 
 
 
