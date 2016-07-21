@@ -108,7 +108,7 @@ class m2_controller(object):
         puls = int(dist) * self.PULSRATE
         
         ret = self.get_pos()
-        if dist/1000.+float(ret) <= -4.0 or dist/1000.+float(ret) >= -5.5:
+        if dist/1000.+float(ret) <= -4.0 or dist/1000.+float(ret) >= 5.5:
             self.print_error("move limit")
             return
         if self.m_limit_up == 0 and puls < 0:
