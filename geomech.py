@@ -97,17 +97,17 @@ class geomech_controller(object):
         self.x1 = np.median(self.x1_arr)
         
         self.x2_arr.append(self.x2)
-        if len(self.x2_arr) > 3:
+        if len(self.x2_arr) > 5:
             self.x2_arr.pop(0)
         self.x2 = np.median(self.x2_arr)
         
         self.y1_arr.append(self.y1)
-        if len(self.y1_arr) > 3:
+        if len(self.y1_arr) > 5:
             self.y1_arr.pop(0)
         self.y1 = np.median(self.y1_arr)
         
         self.y2_arr.append(self.y2)
-        if len(self.y2_arr) > 3:
+        if len(self.y2_arr) > 5:
             self.y2_arr.pop(0)
         self.y2 = np.median(self.y2_arr)
         return [self.x1, self.x2, self.y1, self.y2]
