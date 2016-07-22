@@ -2,6 +2,7 @@ import ctypes
 import pyinterface
 import numpy as np
 import datetime
+import time
 
 
 
@@ -35,7 +36,57 @@ class geomech_controller(object):
     
     def __init__(self):
         self.open()
+        self.init_geo()
         pass
+    
+    def init_geo(self):
+        int_x1_arr = []
+        int_x2_arr = []
+        int_y1_arr = []
+        int_y2_arr = []
+        
+        for j in range(30):
+            chs = []
+            for i in range(10):
+                chs.append(i)
+            ranges = ["AD_10V"]*10
+            AdVoltage = [0]*10
+            
+            # int ret=AdInputAD(m_dnum,10,AD_INPUT_SINGLE,&m_Conf[0],AdData);
+            # m_dum = 1(device_number), 10(ulCh),   m_conf[0]
+            
+            AdData = self.dio.ctrl.input_ad(chs, ranges)
+            for i in range(10):
+                AdVoltage[i] = (AdData[i]-32768.)/3276.8
+            
+            x1 = (AdVoltage[0]-AdVoltage[1])*1000*self.GAIN_X1*self.URAD2ARCSEC
+            y1 = (AdVoltage[2]-AdVoltage[3])*1000*self.GAIN_Y1*self.URAD2ARCSEC
+            t1 = (AdVoltage[4]*100)
+            x2 = (AdVoltage[5]-AdVoltage[6])*1000*self.GAIN_X2*self.URAD2ARCSEC
+            y2 = (AdVoltage[7]-AdVoltage[8])*1000*self.GAIN_Y2*self.URAD2ARCSEC
+            t2 = (AdVoltage[9]*100)
+            
+            self.t1 = t1
+            self.t2 = t2
+            
+            # thermal correction
+            t_x1 = x1-self.GAIN_T_X1*t1
+            t_y1 = y1-self.GAIN_T_Y1*t1
+            t_x2 = x2-self.GAIN_T_X2*t2
+            t_y2 = y2-self.GAIN_T_Y2*t2
+            
+            int_x1_arr.append(t_x1)
+            int_x2_arr.append(t_x2)
+            int_y1_arr.append(t_y1)
+            int_y2_arr.append(t_y2)
+            
+            time.sleep(0.1)
+        
+        self.x1 = np.median(int_x1_arr)
+        self.x2 = np.median(int_x2_arr)
+        self.y1 = np.median(int_y1_arr)
+        self.y2 = np.median(int_y2_arr)
+        return
     
     def open(self, ndev = 1):
         self.dio = pyinterface.create_gpg3100(ndev)
@@ -74,25 +125,25 @@ class geomech_controller(object):
         t_x2 = x2-self.GAIN_T_X2*t2
         t_y2 = y2-self.GAIN_T_Y2*t2
         
-        if abs(self.x1 - t_x1) > 150.:
+        if abs(self.x1 - t_x1) > 50.:
             self.log_x1 += 1
         else:
             self.x1 = t_x1
-        if abs(self.x2 - t_x2) > 150.:
+        if abs(self.x2 - t_x2) > 50.:
             self.log_x2 += 1
         else:
             self.x2 = t_x2
-        if abs(self.y1 - t_y1) > 150.:
+        if abs(self.y1 - t_y1) > 50.:
             self.log_y1 += 1
         else:
             self.y1 = t_y1
-        if abs(self.y2 - t_y2) > 150.:
+        if abs(self.y2 - t_y2) > 50.:
             self.log_y2 += 1
         else:
             self.y2 = t_y2
         
         self.x1_arr.append(self.x1)
-        if len(self.x1_arr) > 3:
+        if len(self.x1_arr) > 5:
             self.x1_arr.pop(0)
         self.x1 = np.median(self.x1_arr)
         
