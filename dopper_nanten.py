@@ -97,7 +97,7 @@ class doppler_nanten (object):
         power = {"sg":pow_sg,}
         return {"freq":freq, "power":power}
     """
-    def get_vobs(mjdtmp, xtmp, ytmp, mode, offx, offy, dcos, offmode):
+    def get_vobs(self, mjdtmp, xtmp, ytmp, mode, offx, offy, dcos, offmode):
         if offmode == COORD_SAME | offmode == mode :
             ytmp += offy
             if dcos == 0 :
@@ -125,7 +125,7 @@ class doppler_nanten (object):
         vobs = calc_vobs(mjdtmp+2400000.5, xxtmp, yytmp)
         return vobs
 
-    def calc_vobs(jd, ra_2000, dec_2000):
+    def calc_vobs(self, jd, ra_2000, dec_2000):
         a = math.cos(dec_2000)
         x_2000[0] = a*math.cos(ra_2000)
         x_2000[1] = a*math.sin(ra_2000)
