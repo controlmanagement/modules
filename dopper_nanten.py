@@ -28,8 +28,8 @@ class doppler_nanten (object):
     vlsr = 0
     "1stsb1" =
     "1stsb2" =
-    2ndLO1 =
-    2ndLO2 =
+    "2ndLO1" =
+    "2ndLO2" =
     power_sg21 = 13.0
     power_sg22 = 13.0
     LIGHT_SPEED =　299792.458
