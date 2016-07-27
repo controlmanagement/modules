@@ -33,6 +33,14 @@ class geomech_controller(object):
     log_y1 = 0
     log_y2 = 0
     
+    #for test
+    moni_x1 = 0
+    moni_x2 = 0
+    moni_y1 = 0
+    moni_y2 = 0
+    vol = [0]*10
+    
+    
     
     def __init__(self):
         self.open()
@@ -108,6 +116,10 @@ class geomech_controller(object):
         AdData = self.dio.ctrl.input_ad(chs, ranges)
         for i in range(10):
             AdVoltage[i] = (AdData[i]-32768.)/3276.8
+            
+            #for test
+            self.vol[i] = AdVoltage[i]
+            
         
         x1 = (AdVoltage[0]-AdVoltage[1])*1000*self.GAIN_X1*self.URAD2ARCSEC
         y1 = (AdVoltage[2]-AdVoltage[3])*1000*self.GAIN_Y1*self.URAD2ARCSEC
@@ -125,19 +137,27 @@ class geomech_controller(object):
         t_x2 = x2-self.GAIN_T_X2*t2
         t_y2 = y2-self.GAIN_T_Y2*t2
         
-        if abs(self.x1 - t_x1) > 50.:
+        
+        #for geomech test
+        self.moni_x1 = t_x1
+        self.moni_x2 = t_x2
+        self.moni_y1 = t_y1
+        self.moni_y2 = t_y2
+        
+        
+        if abs(self.x1 - t_x1) > 30.:
             self.log_x1 += 1
         else:
             self.x1 = t_x1
-        if abs(self.x2 - t_x2) > 50.:
+        if abs(self.x2 - t_x2) > 30.:
             self.log_x2 += 1
         else:
             self.x2 = t_x2
-        if abs(self.y1 - t_y1) > 50.:
+        if abs(self.y1 - t_y1) > 30.:
             self.log_y1 += 1
         else:
             self.y1 = t_y1
-        if abs(self.y2 - t_y2) > 50.:
+        if abs(self.y2 - t_y2) > 30.:
             self.log_y2 += 1
         else:
             self.y2 = t_y2
@@ -199,6 +219,9 @@ class geomech_controller(object):
     def read_geomech_temp(self):
         return [self.t1, self.t2]
     
+    def read_geomech_moni(self):
+        return [self.moni_x1, self.moni_x2, self.moni_y1, self.moni_y2]
+    
     def record_log(self):
         name = datetime.date.today()
         f = open(str(name)+"-geomech.log", "w")
@@ -209,6 +232,9 @@ class geomech_controller(object):
         f.close()
         self.log_x1 = self.log_x2 = self.log_y1 = self.log_y2 = 0
         return
+    
+    def read_vol(self):
+        return self.vol
 
 
 
