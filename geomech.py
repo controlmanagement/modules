@@ -55,7 +55,7 @@ class geomech_controller(object):
         
         for j in range(30):
             chs = []
-            for i in range(10):
+            for i in range(11):
                 chs.append(i)
             ranges = ["AD_10V"]*10
             AdVoltage = [0]*10
@@ -64,10 +64,10 @@ class geomech_controller(object):
             # m_dum = 1(device_number), 10(ulCh),   m_conf[0]
             
             AdData = self.dio.ctrl.input_ad(chs, ranges)
-            for i in range(10):
+            for i in range(11):
                 AdVoltage[i] = (AdData[i]-32768.)/3276.8
             
-            x1 = (AdVoltage[0]-AdVoltage[1])*1000*self.GAIN_X1*self.URAD2ARCSEC
+            x1 = (AdVoltage[10]-AdVoltage[1])*1000*self.GAIN_X1*self.URAD2ARCSEC
             y1 = (AdVoltage[2]-AdVoltage[3])*1000*self.GAIN_Y1*self.URAD2ARCSEC
             t1 = (AdVoltage[4]*100)
             x2 = (AdVoltage[5]-AdVoltage[6])*1000*self.GAIN_X2*self.URAD2ARCSEC
@@ -105,7 +105,7 @@ class geomech_controller(object):
     
     def get_geomech(self):
         chs = []
-        for i in range(10):
+        for i in range(11):
             chs.append(i)
         ranges = ["AD_10V"]*10
         AdVoltage = [0]*10
@@ -114,14 +114,14 @@ class geomech_controller(object):
         # m_dum = 1(device_number), 10(ulCh),   m_conf[0]
         
         AdData = self.dio.ctrl.input_ad(chs, ranges)
-        for i in range(10):
+        for i in range(11):
             AdVoltage[i] = (AdData[i]-32768.)/3276.8
             
             #for test
             self.vol[i] = AdVoltage[i]
             
         
-        x1 = (AdVoltage[0]-AdVoltage[1])*1000*self.GAIN_X1*self.URAD2ARCSEC
+        x1 = (AdVoltage[10]-AdVoltage[1])*1000*self.GAIN_X1*self.URAD2ARCSEC
         y1 = (AdVoltage[2]-AdVoltage[3])*1000*self.GAIN_Y1*self.URAD2ARCSEC
         t1 = (AdVoltage[4]*100)
         x2 = (AdVoltage[5]-AdVoltage[6])*1000*self.GAIN_X2*self.URAD2ARCSEC
