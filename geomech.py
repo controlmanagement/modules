@@ -38,7 +38,7 @@ class geomech_controller(object):
     moni_x2 = 0
     moni_y1 = 0
     moni_y2 = 0
-    vol = [0]*10
+    vol = [0]*16
     
     
     
@@ -55,16 +55,16 @@ class geomech_controller(object):
         
         for j in range(30):
             chs = []
-            for i in range(11):
+            for i in range(16):
                 chs.append(i)
-            ranges = ["AD_10V"]*10
-            AdVoltage = [0]*10
+            ranges = ["AD_10V"]*16
+            AdVoltage = [0]*16
             
             # int ret=AdInputAD(m_dnum,10,AD_INPUT_SINGLE,&m_Conf[0],AdData);
             # m_dum = 1(device_number), 10(ulCh),   m_conf[0]
             
             AdData = self.dio.ctrl.input_ad(chs, ranges)
-            for i in range(11):
+            for i in range(16):
                 AdVoltage[i] = (AdData[i]-32768.)/3276.8
             
             x1 = (AdVoltage[10]-AdVoltage[1])*1000*self.GAIN_X1*self.URAD2ARCSEC
@@ -105,16 +105,16 @@ class geomech_controller(object):
     
     def get_geomech(self):
         chs = []
-        for i in range(11):
+        for i in range(16):
             chs.append(i)
-        ranges = ["AD_10V"]*10
-        AdVoltage = [0]*10
+        ranges = ["AD_10V"]*16
+        AdVoltage = [0]*16
         
         # int ret=AdInputAD(m_dnum,10,AD_INPUT_SINGLE,&m_Conf[0],AdData);
         # m_dum = 1(device_number), 10(ulCh),   m_conf[0]
         
         AdData = self.dio.ctrl.input_ad(chs, ranges)
-        for i in range(11):
+        for i in range(16):
             AdVoltage[i] = (AdData[i]-32768.)/3276.8
             
             #for test
@@ -251,4 +251,3 @@ def start_geomech_server(port1 = 8100, port2 = 8101):
     server = pyinterface.server_client_wrapper.server_wrapper(geomech, '', port1, port2)
     server.start()
     return server
-
