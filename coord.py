@@ -30,7 +30,7 @@ class coord_calc(object):
 	def __init__(self):
 		self.jpl = SPK.open('/home/amigos/python/jpl_ephem/de430.bsp')
 		# from https://pypi.python.org/pypi/jplephem
-		self.geomech = geomech.geomech_controller()
+		self.geomech = geomech.geomech_monitor_client('172.20.0.12',8101)
 	
 	def calc_jd_utc(self):
 		h = time.gmtime()
