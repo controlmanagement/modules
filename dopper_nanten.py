@@ -1,11 +1,11 @@
 #-*- coding: utf-8 -*-
 
 #import csv
-import pyslalib from slalib
-import SG
+from pyslalib import slalib
+#import SG
 import math
 import time
-
+"""
 class doppler(object):
 
     def set_track(self, stime, x, y, coord, offset_x, offset_y, offset_dcos, offset_coord, vlsrs):
@@ -14,44 +14,52 @@ class doppler(object):
     def callibrate_doppler(self, x, y, coord, offset_x=0, offset_y=0,
                            offset_dcos=1, offset_coord="SAME",
                            vlsrs=0., stime=0):
-        """ドップラーシフトの補正"""
+        #ドップラーシフトの補正
 
         vobs = self.doppler.set_track(x, y, coord, vlsrs, offset_x, offset_y,
                                       offset_dcos, offset_coord, stime)
         return vobs[0], vobs[1], vobs[2]
-
+"""
 class doppler_nanten (object):
 
+
     #PATH_DEVICE_TABLE = "/home/amigos/NECST/soft/obs/params/device_table.prm"
-    bandnum = 2
-    restFreq =
-    vlsr = 0
-    "1stsb1" =
-    "1stsb2" =
-    "2ndLO1" =
-    "2ndLO2" =
-    power_sg21 = 13.0
-    power_sg22 = 13.0
-    LIGHT_SPEED =　299792.458
+    dic1 = {"bandnum":2,
+            "restFreq":230538.0,
+            "vlsr":0,
+            "1stsb1":1,
+            "1stsb2":1,
+            "2ndLO1":3985.5,
+            "2ndLO2":3985.5,
+            "power_sg21":13.0,
+            "power_sg22":13.0,
+            "LIGHT_SPEED":299792.458 }
 
 
     coord_dict = {"J2000"     : 1,
-                   "B1950"     : 2,
-                   "LB"        : 3,
-                   "GALACTIC"  : 3,
-                   "APPARENT"  : 10,
-                   "HORIZONTAL": "COORD_HORIZONTAL",
-                   "SAME"      : 0}
+                  "B1950"     : 2,
+                  "LB"        : 3,
+                  "GALACTIC"  : 3,
+                  "APPARENT"  : 10,
+                  #"HORIZONTAL": "COORD_HORIZONTAL",
+                  "SAME"      : 0}
+
+
+
 
 
     def __init__(self):
-        self.sg2if1 = SG.secondsg01()
-        self.sg2if2 = SG.secondsg02()
+
+        #self.sg2if1 = SG.secondsg01()
+        #self.sg2if2 = SG.secondsg02()
+
+
         """
         for record in csv.reader(open(PATH_DEVICE_TABLE,"r")):
             r_dict[record[0]] =record[1]
             continue
         """
+
         pass
 
     def set_track(self, x, y, coord, vlsr,
@@ -59,30 +67,31 @@ class doppler_nanten (object):
         """
         setting 2ndLO
         """
+        coord = self.coord_dict[coord]
+        offset_coord = self.coord_dict[offset_coord]
         mjd = 40587.0 + time.time()/(24.*3600.)
-        coord = self.coord_dict[coord.upper()]
         vobs_mjd = mjd + stime/24./3600.
-        vobs = get_vobs(vobs_mjd,math.radians(x),math.radians(y),coord,
-                        off__x, offset_y, offset_dcos, offset_coord)
-        c =　LIGHT_SPEED
-        for band in range(1, bandnum+1):
-            rf = restFreq
-            vdiff = vobs - vlsr
+        vobs = self.get_vobs(vobs_mjd,math.radians(x),math.radians(y),coord,
+                             offset_x, offset_y, offset_dcos, offset_coord)
+        c = self.dic1["LIGHT_SPEED"]
+        for band in range(1, self.dic1["bandnum"]+1):
+            rf = self.dic1["restFreq"]
+            vdiff = vobs - self.dic1["vlsr"]
             fdiff = vdiff / c * rf
-            if "1stsb%d"%(band) == "U":
+            if self.dic1["1stsb%d"%(band)] == 1:
                 sb = 1
-            if "1stsb%d"%(band) == "L":
+            if self.dic1["1stsb%d"%(band)] == -1:
                 sb = -1
-            set_freq = "2ndLO%d"%(band) + sb * fdiff
+            set_freq = self.dic1["2ndLO%d"%(band)] + sb * fdiff
             if band == 1:
-                self.sg2if1.set_sg(set_freq,power_sg21)
+                #self.sg2if1.set_sg(set_freq,power_sg21)
                 vdiff_21 = vdiff
                 fdiff_21 = fdiff
             elif band == 2:
-                self.sg2if2.set_sg(set_freq,power_sg22)
+                #self.sg2if2.set_sg(set_freq,power_sg22)
                 vdiff_22 = vdiff
                 fdiff_22 = fdiff
-            continue
+
         Vdiff = {"sg21":vdiff_21, "sg22":vdiff_22}
         Fdiff = {"sg21":fdiff_21, "sg22":fdiff_22}
         return vobs,Vdiff,Fdiff
@@ -98,7 +107,7 @@ class doppler_nanten (object):
         return {"freq":freq, "power":power}
     """
     def get_vobs(self, mjdtmp, xtmp, ytmp, mode, offx, offy, dcos, offmode):
-        if offmode == COORD_SAME | offmode == mode :
+        if offmode == self.coord_dict["SAME"] | offmode == mode :
             ytmp += offy
             if dcos == 0 :
                 xtmp += offx
@@ -107,25 +116,59 @@ class doppler_nanten (object):
         else :
             print("error coord != off_coord")
             pass
-        if mode == COORD_J2000 :
+        if mode == self.coord_dict["J2000"] :
             xxtmp = xtmp
             yytmp = ytmp
-        elif mode == COORD_B1950 :
-            ret = slalib.slaFk45z(xtmp, ytmp, 1950)
+        elif mode == self.coord_dict["B1950"] :
+            ret = slalib.sla_fk45z(xtmp, ytmp, 1950)
             xxtmp = ret[0]
             yytmp = ret[1]
-        elif mode == COORD_LB :
-            ret = slalib.slaGaleq(xtmp, ytmp)
+        elif mode == self.coord_dict["LB"] :
+            ret = slalib.sla_galeq(xtmp, ytmp)
             xxtmp = ret[0]
             yytmp = ret[1]
         else :
             xxtmp = xtmp
             yytmp = ytmp
 
-        vobs = calc_vobs(mjdtmp+2400000.5, xxtmp, yytmp)
+        vobs = self.calc_vobs(mjdtmp+2400000.5, xxtmp, yytmp)
         return vobs
 
     def calc_vobs(self, jd, ra_2000, dec_2000):
+
+        x_2000 = [0.,0.,0.]
+        x = [0.,0.,0.]
+        x1 = [0.,0.,0.]
+        v = [0.,0.,0.]
+        v_rev = [0.,0.,0.]
+        v_rot = [0.,0.,0.]
+        v2 = [0.,0.,0.]
+        solx = [0.,0.,0.]
+        solx1 = [0.,0.,0.]
+        solv = [0.,0.,0.]
+        DEG2RAD = math.pi/180.
+        SEC2RAD = 2*math.pi/24.*60.*60.
+        ARCSEC2RAD = math.pi/(180.*3600.)
+        RAD2DEG = 180./math.pi
+        glongitude = 138.472153 * math.pi/180.
+        glatitude = 35.940874 * math.pi/180.
+        gheight = 1386
+
+        #gdut1 = -0.14
+        #gstop_flag = 1
+        #gkisa = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+        #gtemperature = 273.0
+        #gpressure = 860
+        #ghumidity = 0.2
+        #gtlr = 0.0065
+        #tai_utc = 34.0
+        #instruction = 0
+        #target_changed = 1
+
+
+
+
+
         a = math.cos(dec_2000)
         x_2000[0] = a*math.cos(ra_2000)
         x_2000[1] = a*math.sin(ra_2000)
@@ -135,7 +178,7 @@ class doppler_nanten (object):
 
         ranow=ra_2000
         delnow=dec_2000
-        ret = slalib.slaPreces( "FK5", 2000.,2000.+tu*100.,ranow,delnow)
+        ret =slalib.sla_preces( "FK5", 2000.,2000.+tu*100.,ranow,delnow)
         ranow = ret[0]
         delnow = ret[1]
 
@@ -144,7 +187,7 @@ class doppler_nanten (object):
         x[1]=a*math.sin(ranow)
         x[2]=math.sin(delnow)
 
-        ret = slalib.slaNutc(jd-2400000.5)#radian
+        ret = slalib.sla_nutc(jd-2400000.5)#radian
         nut_long = ret[0]
         nut_obliq = ret[1]
         eps0 = ret[2]
@@ -193,7 +236,7 @@ class doppler_nanten (object):
     	v_rev[2] = v[1] * math.sin(e * ARCSEC2RAD) + v[2] * math.cos(e * ARCSEC2RAD)
 
     	v_e = (465.1e-3) * (1.+0.0001568*gheight/1000.) \
-    	  * math.cos(glatitude)/sqrt(1.+0.0066945*math.pow(math.sin(glatitude),2.0))
+    	  * math.cos(glatitude)/math.sqrt(1.+0.0066945*math.pow(math.sin(glatitude),2.0))
 
     	am = 18.*3600.+41.*60.+50.54841+8640184.812866*tu \
     	               +0.093104*tu*tu-0.0000062*tu*tu*tu
@@ -236,7 +279,7 @@ class doppler_nanten (object):
     	rasol=18.*15. *DEG2RAD
     	delsol=30.*DEG2RAD
 
-    	ret = slalib.slaPreces( "FK4", 1900.,2000.+tu*100., rasol, delsol)
+    	ret = slalib.sla_preces( "FK4", 1900.,2000.+tu*100., rasol, delsol)
         rasol = ret[0]
         delsol = ret[1]
 
@@ -259,11 +302,12 @@ class doppler_nanten (object):
     	vobs = vobs - (solv[0] * x[0] + solv[1] * x[1] + solv[2] * x[2])
     	vobs = -vobs
 
-    	printf("vobs=%f\n",vobs)
-    	if (gcalc_flag == 1):
+    	print("vobs=%f\n" % vobs)
+        """
+        if gcalc_flag == 1 :
     		return vobs
 
-    	else if (gcalc_flag == 2):
+    	else gcalc_flag == 2:
     		return lst
-
+        """
     	return vobs
