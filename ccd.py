@@ -78,15 +78,13 @@ class ccd_controller(object):
         return
     
     def all_sky_shot(self, number, magnitude, az_star, el_star, data_name, status):
-        thr = 80
+        thr = 80 #threshold of brightness
         
         if os.path.exists("/home/amigos/NECST/soft/data/"+str(data_name)):
             pass
         else:
             os.mkdir("/home/amigos/NECST/soft/data/"+str(data_name))
         
-        
-        #for test
         #status = {"Command_Az":0,"Command_El":0,"Current_Az":0,"Current_El":0,"OutTemp":0,"Press":0,"OutHumi":0}
         
         date = datetime.datetime.today()
@@ -103,10 +101,12 @@ class ccd_controller(object):
         mjd = ret[0]
         secofday = date.hour*60*60 + date.minute*60 + date.second + date.microsecond*0.000001
         
-        
         #load array
+        path = os.getcwd()
+        com = "mv "+str(path)+"/"+str(name)+".png /home/amigos/NECST/soft/data/"+str(data_name)+"/"+str(name)+".png"
+        ret = commands.getoutput(com)
+        print(ret)
         in_image = Image.open("/home/amigos/NECST/soft/data/"+str(data_name)+"/"+name+".png")
-        #in_image = Image.open("test.png") #for test
         image = np.array(ImageOps.grayscale(in_image))
         ori_image = np.array(image)
         
@@ -158,21 +158,35 @@ class ccd_controller(object):
                 yy += (y+i-10.)*image[y+i-10.][x+j-10.]
                 f += image[y+i-10.][x+j-10.]
         
-        if f == 0.: #two or three stars
+        if f == 0.: #two or more stars
             print("MANY STARS ARE PHOTOGRAPHED")
             return
         
         xx = xx/f
         yy = yy/f
-        
         print(xx)
         print(yy)
         
         self.save_status(xx, yy, number, magnitude, az_star, el_star, mjd, data_name, secofday, status)
-        
-        path = os.getcwd()
-        com = "mv "+str(path)+"/"+str(filename)+".png /home/amigos/NECST/soft/data/"+str(data_name)+"/"+str(name)+".png"
-        ret = commands.getoutput(com)
-        print(ret)
         return
         
+
+
+
+
+
+def ccd_client(host, port):
+    client = pyinterface.server_client_wrapper.control_client_wrapper(ccd_controller, host, port)
+    return client
+
+def ccd_monitor_client(host, port):
+    client = pyinterface.server_client_wrapper.monitor_client_wrapper(ccd_controller, host, port)
+    return client
+
+def start_ccd_server(port1 = 8010, port2 = 8011):
+    ccd = ccd_controller()
+    server = pyinterface.server_client_wrapper.server_wrapper(ccd,'', port1, port2)
+    server.start()
+    return server
+
+
