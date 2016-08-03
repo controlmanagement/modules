@@ -9,6 +9,7 @@ import m4
 import abs
 import geomech
 import datetime
+import ccd
 
 ret1 = m4.start_m4_server()
 ret2 = abs.start_abs_server()
@@ -18,6 +19,7 @@ time.sleep(1)
 ret4 = geomech.geomech_client('172.20.0.12',8100)
 date = datetime.date.today()
 b_day = date.day
+ret5 = ccd.start_ccd_server()
 
 while(1):
     date = datetime.date.today()
