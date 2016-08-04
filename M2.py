@@ -218,7 +218,7 @@ def m2_client(host, port):
     return client
 
 def m2_monitor_client(host, port):
-    client = pyinterface.server_client_wrapper.monitor_client_wrapper(m2controller, host, port)
+    client = pyinterface.server_client_wrapper.monitor_client_wrapper(m2_controller, host, port)
     return client
 
 def start_m2_server(port1 = 9999, port2 = 9998):
