@@ -55,7 +55,10 @@ while(1):
     lst_mm = int(lst_plb)
     lst_plb = 60.0*(lst_plb -lst_mm)
     lst_ss = int(lst_plb)
-
+    lst_hh = "{0:02d}".format(lst_hh)
+    lst_mm = "{0:02d}".format(lst_mm)
+    lst_ss = "{0:02d}".format(lst_ss)
+    
     # limit check
     if telstatus[4] == 0:
         print 'soft limit cw\n'
@@ -97,7 +100,7 @@ while(1):
         print 'emergency switch\n'
 
 
-    log = "telescope: %s %s %s %s %s %5.0f %6.1f %2d:%2d:%2d %5.2f %5.2f  dome: door %s  membrane: %s %s %5.2f" %(telstatus[0], telstatus[1], telstatus[2], telstatus[3], telstatus2, mjd, secofday, lst_hh, lst_mm, lst_ss, encstatus[0]/3600., encstatus[1]/3600., domestatus[1][1], domestatus[2][1], domestatus[3], domeposstatus/3600.,)
+    log = "telescope: %s %s %s %s %s %5.0f %6.1f %s:%s:%s %5.2f %5.2f  dome: door %s  membrane: %s %s %5.2f" %(telstatus[0], telstatus[1], telstatus[2], telstatus[3], telstatus2, mjd, secofday, lst_hh, lst_mm, lst_ss, encstatus[0]/3600., encstatus[1]/3600., domestatus[1][1], domestatus[2][1], domestatus[3], domeposstatus/3600.,)
 
     f.write(log + "\n")
     print log
