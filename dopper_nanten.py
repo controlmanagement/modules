@@ -24,8 +24,30 @@ class doppler_nanten (object):
 
 
     #PATH_DEVICE_TABLE = "/home/amigos/NECST/soft/obs/params/device_table.prm"
+    #doppler_1p85.py,motor_command.c,motor_server.c,nanten_astro.h,calc_doppler.cpp,
     dic1 = {"bandnum":2,
             "restFreq":230538.0,
+            #12CO Rest frequency [MHz] from Koln Univ.
+            "REST_FREQ_12COJ1_0":115271.2018,
+            "REST_FREQ_12COJ2_1":230538.0000,
+            "REST_FREQ_12COJ3_2":345795.9899,
+            "REST_FREQ_12COJ4_3":461040.7682,
+            "REST_FREQ_12COJ7_6":806651.8060,
+            #13CO Rest frequency [MHz] from Koln Univ.
+            "REST_FREQ_13COJ1_0":110201.3541,
+            "REST_FREQ_13COJ2_1":220398.6190,
+            "REST_FREQ_13COJ3_2":330587.8655,
+            "REST_FREQ_13COJ4_3":440765.0398,
+            "REST_FREQ_13COJ7_6":771183.8856,
+            #C18O Rest frequency [MHz] from Koln Univ.
+            "REST_FREQ_C18OJ1_0":109782.1734,
+            "REST_FREQ_C18OJ2_1":219560.3541,
+            "REST_FREQ_C18OJ3_2":329330.5525,
+            "REST_FREQ_C18OJ4_3":439088.7658,
+            "REST_FREQ_C18OJ7_6":768251.5933,
+            #CI Rest frequency [MHz] from Koln Univ.
+            "REST_FREQ_CI3P1_0":492160.6510,
+            "REST_FREQ_CI3P2_1":809341.9700,
             "vlsr":0,
             "1stsb1":1,
             "1stsb2":1,
@@ -33,6 +55,7 @@ class doppler_nanten (object):
             "2ndLO2":3985.5,
             "power_sg21":13.0,
             "power_sg22":13.0,
+            #light speed [km/sec]
             "LIGHT_SPEED":299792.458 }
 
 
@@ -150,9 +173,18 @@ class doppler_nanten (object):
         SEC2RAD = 2*math.pi/24.*60.*60.
         ARCSEC2RAD = math.pi/(180.*3600.)
         RAD2DEG = 180./math.pi
-        glongitude = 138.472153 * math.pi/180.
-        glatitude = 35.940874 * math.pi/180.
-        gheight = 1386
+        #1.85m at nobeyama
+        #glongitude = 138.472153 * math.pi/180.
+        #nanten2 at atacama (nanten2wiki)
+        glongitude = -67.70308139 * math.pi/180.
+        #1.85m at nobeyama
+        #glatitude = 35.940874 * math.pi/180.
+        #nanten2 at atacama (nanten2wiki)
+        glatitude = -22.96995611 * math.pi/180.
+        #1.85m at nobeyama
+        #gheight = 1386
+        #nanten2 at atacama
+        gheight = 4863.85
 
         #gdut1 = -0.14
         #gstop_flag = 1
@@ -164,6 +196,7 @@ class doppler_nanten (object):
         #tai_utc = 34.0
         #instruction = 0
         #target_changed = 1
+
 
 
 
