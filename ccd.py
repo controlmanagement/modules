@@ -169,6 +169,123 @@ class ccd_controller(object):
         
         self.save_status(xx, yy, number, magnitude, az_star, el_star, mjd, data_name, secofday, status)
         return
+    
+    
+    
+    
+    
+    
+    #for tracking(test)
+    def save_track_status(self, x, y, ra, dec, az_star, el_star, mjd, data_name, secofday, status):
+        if os.path.exists("/home/amigos/NECST/soft/core/"+str(data_name)):
+            pass
+        else:
+            os.mkdir("/home/amigos/NECST/soft/core/"+str(data_name))
+        f = open("/home/amigos/NECST/soft/core/"+str(data_name)+"/param.log", "a")
+        
+        #geo_status = [x1,x2,y1,y2] #for test
+        geo_status = self.geo.read_geomech()
+        geo_x = (geo_status[0]-geo_status[1])/2
+        geo_y = (geo_status[2]-geo_status[3])/2
+        geo_temp = self.geo.read_geomech_temp()
+        
+        #write papram
+        f.write(str(ra)+" "+str(dec)+" "+str(mjd)+" "+str(secofday)+" "+str(status["Command_Az"])+" "+str(status["Command_El"])+" "\
+        +str(status["Current_Az"])+" "+str(status["Current_El"])+" "+str(status["Current_Dome"])+" "+str(x)+" "+str(y)+" "+str(status["OutTemp"])+" "\
+        +str(status["Press"])+" "+str(status["OutHumi"])+" "+str(az_star)+" "+str(el_star)+" "+str(status["WindDir"])+" "+str(status["WindSp"])+" "\
+        +str(geo_x)+" "+str(geo_y)+" "+str(geo_status[0])+" "+str(geo_status[3])+" "+str(geo_temp[0])+" "+str(geo_status[1])+" "\
+        +str(geo_status[3])+" "+str(geo_temp[1]))
+        f.write("\n")
+        f.close()
+        return
+    
+    
+    
+    #for tracking(test)
+    def onepoint_shot(self, ra, dec, az_star, el_star, data_name, status):
+        thr = 80 #threshold of brightness <=?
+        
+        if os.path.exists("/home/amigos/NECST/soft/data/"+str(data_name)):
+            pass
+        else:
+            os.mkdir("/home/amigos/NECST/soft/data/"+str(data_name))
+        
+        name = time.strftime('%Y%m%d_%H%M%S')
+        
+        #oneshot
+        self.oneshot(name)
+        ret = slalib.sla_cldj(date.year, date.month, date.day)
+        mjd = ret[0]
+        secofday = date.hour*60*60 + date.minute*60 + date.second + date.microsecond*0.000001
+        
+        #load array
+        path = os.getcwd()
+        com = "mv "+str(path)+"/"+str(name)+".png /home/amigos/NECST/soft/data/"+str(data_name)+"/"+str(name)+".png"
+        ret = commands.getoutput(com)
+        print(ret)
+        in_image = Image.open("/home/amigos/NECST/soft/data/"+str(data_name)+"/"+name+".png")
+        image = np.array(ImageOps.grayscale(in_image))
+        ori_image = np.array(image)
+        
+        #threshold
+        width = len(image[0])
+        height = len(image)
+        for i in range(height):
+            for j in range(width):
+                if image[i][j] < thr:
+                    image[i][j] = 0
+        
+        #calc dimention
+        p_array = np.zeros(256)
+        for i in range(height):
+            for j in range(width):
+                p_array[image[i][j]] += 1
+        
+        #find color
+        num = 1
+        nmax = 1
+        for i in range(255):
+            if nmax < p_array[i+1]:
+                nmax = p_array[i+1]
+                num = i+1
+        
+        #find star
+        x = 0
+        y = 0
+        n = 0
+        for i in range(height):
+            for j in range(width):
+                if image[i][j] == num:
+                    x += j
+                    y += i
+                    n += 1
+        if n == 0:
+            print("CAN'T FIND STAR") #black photograph
+            return 1
+        x = x/n
+        y = y/n
+        
+        #find center
+        xx = 0.
+        yy = 0.
+        f = 0.
+        for i in range(21):
+            for j in range(21):
+                xx += (x+j-10.)*image[y+i-10.][x+j-10.]
+                yy += (y+i-10.)*image[y+i-10.][x+j-10.]
+                f += image[y+i-10.][x+j-10.]
+        
+        if f == 0.: #two or more stars
+            print("MANY STARS ARE PHOTOGRAPHED")
+            return 1
+        
+        xx = xx/f
+        yy = yy/f
+        print(xx)
+        print(yy)
+        
+        self.save_track_status(xx, yy, ra, az_star, el_star, mjd, data_name, secofday, status)
+        return
         
 
 
