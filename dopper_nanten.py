@@ -110,11 +110,17 @@ class doppler_nanten (object):
                 sb = -1
             set_freq = self.dic1["2ndLO%d"%(band)] + sb * fdiff
             if band == 1:
-                #self.sg2if1.set_sg(dic1["set_freq"],dic1["power_sg21"])
+                freq21 = dic1["2ndLO1"]
+                power21 = dic1["power_sg21"]
+                print("freq21", freq21, "power21", power21)
+                #self.sg2if1.set_sg(freq21, power21)
                 vdiff_21 = vdiff
                 fdiff_21 = fdiff
             elif band == 2:
-                #self.sg2if2.set_sg(dic1["set_freq"],dic1["power_sg22"])
+                freq22 = dic1["2ndLO2"]
+                power22 = dic1["power_sg22"]
+                print("freq22", freq22, "power22", power22)
+                #self.sg2if2.set_sg(freq22, power22)
                 vdiff_22 = vdiff
                 fdiff_22 = fdiff
 
