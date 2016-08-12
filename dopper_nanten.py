@@ -2,7 +2,7 @@
 
 #import csv
 from pyslalib import slalib
-#import SG
+import SG
 import math
 import time
 """
@@ -77,8 +77,8 @@ class doppler_nanten (object):
 
     def __init__(self):
 
-        #self.sg2if1 = SG.secondsg01()
-        #self.sg2if2 = SG.secondsg02()
+        self.sg2if1 = SG.secondsg01()
+        self.sg2if2 = SG.secondsg02()
 
         #use device_table
         """
