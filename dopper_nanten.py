@@ -68,7 +68,7 @@ class doppler_nanten (object):
                   "LB"        : 3,
                   "GALACTIC"  : 3,
                   "APPARENT"  : 10,
-                  #"HORIZONTAL": "COORD_HORIZONTAL",
+                  "HORIZONTAL": 100,
                   "SAME"      : 0}
 
 
@@ -80,7 +80,7 @@ class doppler_nanten (object):
         #self.sg2if1 = SG.secondsg01()
         #self.sg2if2 = SG.secondsg02()
 
-        #for device_table
+        #use device_table
         """
         for record in csv.reader(open(PATH_DEVICE_TABLE,"r")):
             r_dict[record[0]] =record[1]
@@ -294,93 +294,91 @@ class doppler_nanten (object):
         v[1] = r*ramda1*math.cos(ramda) + r1*math.sin(ramda)
         v[2] = r * beta
 
-        v[0]    = v[0] - (0.263 * math.cos((3034.9*tu+124.4)*DEG2RAD) +0.058 * math.cos((1222. *tu+140.)*DEG2RAD) +0.013 * math.cos((6069. *tu+144.)*DEG2RAD))
-    	v[1]    = v[1] - (0.263 * math.cos((3034.9*tu+34.4)*DEG2RAD) +0.058 * math.cos((1222. *tu+50.)*DEG2RAD) +0.013 * math.cos((6069. *tu+54.)*DEG2RAD))
+        v[0] = v[0] - (0.263 * math.cos((3034.9*tu+124.4)*DEG2RAD) +0.058 * math.cos((1222. *tu+140.)*DEG2RAD) +0.013 * math.cos((6069. *tu+144.)*DEG2RAD))
+        v[1] = v[1] - (0.263 * math.cos((3034.9*tu+34.4)*DEG2RAD) +0.058 * math.cos((1222. *tu+50.)*DEG2RAD) +0.013 * math.cos((6069. *tu+54.)*DEG2RAD))
 
-    	v[0] = v[0] * v0
-    	v[1] = v[1] * v0
-    	v[2] = v[2] * v0
+        v[0] = v[0] * v0
+        v[1] = v[1] * v0
+        v[2] = v[2] * v0
 
-    	e = (23.439291 - 0.013004*tu)*3600.
+        e = (23.439291 - 0.013004*tu)*3600.
+        v_rev[0] = v[0]
+        v_rev[1] = v[1] * math.cos(e * ARCSEC2RAD) - v[2] * math.sin(e * ARCSEC2RAD)
+        v_rev[2] = v[1] * math.sin(e * ARCSEC2RAD) + v[2] * math.cos(e * ARCSEC2RAD)
 
-    	v_rev[0] = v[0]
-    	v_rev[1] = v[1] * math.cos(e * ARCSEC2RAD) - v[2] * math.sin(e * ARCSEC2RAD)
-    	v_rev[2] = v[1] * math.sin(e * ARCSEC2RAD) + v[2] * math.cos(e * ARCSEC2RAD)
+        v_e = (465.1e-3) * (1.+0.0001568*gheight/1000.) * math.cos(glatitude)/math.sqrt(1.+0.0066945*math.pow(math.sin(glatitude),2.0))
 
-    	v_e = (465.1e-3) * (1.+0.0001568*gheight/1000.) * math.cos(glatitude)/math.sqrt(1.+0.0066945*math.pow(math.sin(glatitude),2.0))
+        am = 18.*3600.+41.*60.+50.54841+8640184.812866*tu +0.093104*tu*tu-0.0000062*tu*tu*tu
+        gmst = (jd - 0.5 - long(jd - 0.5)) * 24. * 3600. + am - 12.*3600.
 
-    	am = 18.*3600.+41.*60.+50.54841+8640184.812866*tu +0.093104*tu*tu-0.0000062*tu*tu*tu
+        l = 280.4664*3600. + 129602771.36*tu - 1.093*tu*tu
+        l = l * ARCSEC2RAD
+        p = (282.937+1.720*tu)*3600.
+        p = p * ARCSEC2RAD
 
-    	gmst = (jd - 0.5 - long(jd - 0.5)) * 24. * 3600. + am - 12.*3600.
+        w = (125.045 - 1934.136*tu + 0.002*tu*tu)*3600.
+        w = w * ARCSEC2RAD
+        ll = (218.317+481267.881*tu-0.001*tu*tu)*3600.
+        ll = ll*ARCSEC2RAD
+        pp = (83.353+4069.014*tu-0.010*tu*tu)*3600.
+        pp = pp*ARCSEC2RAD
+        dpsi = (-17.1996-0.01742*tu)*math.sin(w) + (-1.3187)*math.sin(2*l)+0.2062*math.sin(2*w) +0.1426*math.sin(l-p)-0.0517*math.sin(3*l-p)+0.0217*math.sin(l+p) +0.0129*math.sin(2*l-w)-0.2274*math.sin(2*ll)+0.0712*math.sin(ll-pp) -0.0386*math.sin(2*ll-w)-0.0301*math.sin(3*ll-pp) -0.0158*math.sin(-ll+3*l-pp)+0.0123*math.sin(ll+pp)
+        e = e  * ARCSEC2RAD
 
-    	l = 280.4664*3600. + 129602771.36*tu - 1.093*tu*tu
-    	l = l * ARCSEC2RAD
-    	p = (282.937+1.720*tu)*3600.
-    	p = p * ARCSEC2RAD
+        dpsicose = dpsi * math.cos(e)
 
-    	w = (125.045 - 1934.136*tu + 0.002*tu*tu)*3600.
-    	w = w * ARCSEC2RAD
-    	ll = (218.317+481267.881*tu-0.001*tu*tu)*3600.
-    	ll = ll*ARCSEC2RAD
-    	pp = (83.353+4069.014*tu-0.010*tu*tu)*3600.
-    	pp = pp*ARCSEC2RAD
-    	dpsi = (-17.1996-0.01742*tu)*math.sin(w) + (-1.3187)*math.sin(2*l)+0.2062*math.sin(2*w) +0.1426*math.sin(l-p)-0.0517*math.sin(3*l-p)+0.0217*math.sin(l+p) +0.0129*math.sin(2*l-w)-0.2274*math.sin(2*ll)+0.0712*math.sin(ll-pp) -0.0386*math.sin(2*ll-w)-0.0301*math.sin(3*ll-pp) -0.0158*math.sin(-ll+3*l-pp)+0.0123*math.sin(ll+pp)
-    	e = e  * ARCSEC2RAD
+        lst = gmst + (dpsicose + glongitude*RAD2DEG*3600.) / 15.
 
-    	dpsicose = dpsi * math.cos(e)
+        v_rot[0] = -v_e * math.sin(lst * SEC2RAD)
+        v_rot[1] = v_e * math.cos(lst * SEC2RAD)
+        v_rot[2] = 0.
 
-    	lst = gmst + (dpsicose + glongitude*RAD2DEG*3600.) / 15.
+        v2[0] = v_rev[0] + v_rot[0]
+        v2[1] = v_rev[1] + v_rot[1]
+        v2[2] = v_rev[2] + v_rot[2]
 
-    	v_rot[0] = -v_e * math.sin(lst * SEC2RAD)
-    	v_rot[1] = v_e * math.cos(lst * SEC2RAD)
-    	v_rot[2] = 0.
+        vobs = -(v2[0] * x_2000[0] + v2[1] * x_2000[1] + v2[2] * x_2000[2])
+        rasol=18.*15. *DEG2RAD
+        delsol=30.*DEG2RAD
 
-    	v2[0] = v_rev[0] + v_rot[0]
-    	v2[1] = v_rev[1] + v_rot[1]
-    	v2[2] = v_rev[2] + v_rot[2]
+        #ret = slalib.sla_preces( "FK4", 1900.,2000.+tu*100., rasol, delsol)
 
-    	vobs = -(v2[0] * x_2000[0] + v2[1] * x_2000[1] + v2[2] * x_2000[2])
-    	rasol=18.*15. *DEG2RAD
-    	delsol=30.*DEG2RAD
-
-    	#ret = slalib.sla_preces( "FK4", 1900.,2000.+tu*100., rasol, delsol)
-
-    	ret = slalib.sla_preces( "FK4", 1950.,2000.+tu*100., rasol, delsol)
+        ret = slalib.sla_preces( "FK4", 1950.,2000.+tu*100., rasol, delsol)
 
         rasol = ret[0]
         delsol = ret[1]
 
-    	a = math.cos(delsol)
-    	solx[0] = a*math.cos(rasol)
-    	solx[1] = a*math.sin(rasol)
-    	solx[2] = math.sin(delsol)
+        a = math.cos(delsol)
+        solx[0] = a*math.cos(rasol)
+        solx[1] = a*math.sin(rasol)
+        solx[2] = math.sin(delsol)
 
 
-    	#solx1[0] = solx[0] - (solx[1] * math.cos(eps0) + solx[2] *	\
-    	#		      math.sin(eps0)) * nut_long
-    	#solx1[1] = solx[1] + (solx[0] * math.cos(eps0) * nut_long\
-    	#		      - solx[2] * nut_obliq)
-    	#solx1[2] = solx[2] + (solx[0] * math.sin(eps0) * nut_long \
-    	#		      + solx[1] * nut_obliq)
+        #solx1[0] = solx[0] - (solx[1] * math.cos(eps0) + solx[2] *	\
+        #		      math.sin(eps0)) * nut_long
+        #solx1[1] = solx[1] + (solx[0] * math.cos(eps0) * nut_long\
+        #		      - solx[2] * nut_obliq)
+        #solx1[2] = solx[2] + (solx[0] * math.sin(eps0) * nut_long \
+        #		      + solx[1] * nut_obliq)
 
 
-    	solx1[0] = solx[0] - (solx[1] * math.cos(nut_obliq) + solx[2] * math.sin(nut_obliq)) * nut_long
-    	solx1[1] = solx[1] + (solx[0] * math.cos(nut_obliq) * nut_long - solx[2] * nut_obliq)
-    	solx1[2] = solx[2] + (solx[0] * math.sin(nut_obliq) * nut_long + solx[1] * nut_obliq)
+        solx1[0] = solx[0] - (solx[1] * math.cos(nut_obliq) + solx[2] * math.sin(nut_obliq)) * nut_long
+        solx1[1] = solx[1] + (solx[0] * math.cos(nut_obliq) * nut_long - solx[2] * nut_obliq)
+        solx1[2] = solx[2] + (solx[0] * math.sin(nut_obliq) * nut_long + solx[1] * nut_obliq)
 
-    	solv[0]=solx1[0]*20.
-    	solv[1]=solx1[1]*20.
-    	solv[2]=solx1[2]*20.
+        solv[0]=solx1[0]*20.
+        solv[1]=solx1[1]*20.
+        solv[2]=solx1[2]*20.
 
-    	vobs = vobs - (solv[0] * x[0] + solv[1] * x[1] + solv[2] * x[2])
-    	vobs = -vobs
+        vobs = vobs - (solv[0] * x[0] + solv[1] * x[1] + solv[2] * x[2])
+        vobs = -vobs
 
-    	print("vobs=%f\n" % vobs)
+        print("vobs=%f\n" % vobs)
         """
         if gcalc_flag == 1 :
-    		return vobs
+        	return vobs
 
-    	else gcalc_flag == 2:
-    		return lst
+        else gcalc_flag == 2:
+        	return lst
         """
-    	return vobs
+        return vobs
