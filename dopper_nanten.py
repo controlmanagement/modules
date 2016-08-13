@@ -5,6 +5,8 @@ from pyslalib import slalib
 import SG
 import math
 import time
+import sys
+
 """
 class doppler(object):
 
@@ -76,6 +78,7 @@ class doppler_nanten (object):
 
 
     def __init__(self):
+        sys.path.append("/home/amigos/RX_system/base_param")
 
         self.sg2if1 = SG.secondsg01()
         self.sg2if2 = SG.secondsg02()
