@@ -29,7 +29,8 @@ class doppler_nanten (object):
     #doppler_1p85.py,motor_command.c,motor_server.c,nanten_astro.h,calc_doppler.cpp,
     dic1 = {"bandnum":2,
             #set frequency [GHz]
-            "restFreq":230.5380,
+            "restFreq1":230.5380,
+            "restFreq2":220.3986765,
             #12CO Rest frequency [GHz] from Koln Univ.
             "REST_FREQ_12COJ1_0":115.2712018,
             "REST_FREQ_12COJ2_1":230.5380000,
@@ -52,10 +53,10 @@ class doppler_nanten (object):
             "REST_FREQ_CI3P1_0":492.1606510,
             "REST_FREQ_CI3P2_1":809.3419700,
             #set speed [km/sec]
-            "vlsr":0,
+            #"vlsr":0,
             #Upper ***sb*:1 , Lower ***sb*:-1
             "1stsb1":1,
-            "1stsb2":1,
+            "1stsb2":-1,
             #set frequency [GHz]
             "2ndLO1":8.038000000000,
             "2ndLO2":9.301318999999,
@@ -75,8 +76,6 @@ class doppler_nanten (object):
 
 
 
-
-
     def __init__(self):
         sys.path.append("/home/amigos/RX_system/base_param")
 
@@ -92,7 +91,8 @@ class doppler_nanten (object):
 
         pass
 
-    def set_track(self, x, y, coord, offset_x, offset_y, offset_dcos, offset_coord, stime):
+    #def set_track(self, x, y, coord, offset_x, offset_y, offset_dcos, offset_coord, stime):
+    def set_track(self, x, y, vlsr, coord, offset_x, offset_y, offset_dcos, offset_coord, stime):
         """
         setting 2ndLO
         """
@@ -104,8 +104,9 @@ class doppler_nanten (object):
                              offset_x, offset_y, offset_dcos, offset_coord)
         c = self.dic1["LIGHT_SPEED"]
         for band in range(1, self.dic1["bandnum"]+1):
-            rf = self.dic1["restFreq"]
-            vdiff = vobs - self.dic1["vlsr"]
+            rf = self.dic1["restFreq%d" %(band)]
+            #vdiff = vobs - self.dic1["vlsr"]
+            vdiff = vobs - vlsr
             fdiff = vdiff / c * rf
             if self.dic1["1stsb%d"%(band)] == 1:
                 sb = 1
@@ -113,17 +114,18 @@ class doppler_nanten (object):
                 sb = -1
             set_freq = self.dic1["2ndLO%d"%(band)] + sb * fdiff
             if band == 1:
-                freq21 = dic1["2ndLO1"]
-                power21 = dic1["power_sg21"]
+                freq21 = set_freq
+                power21 = self.dic1["power_sg21"]
                 print("freq21", freq21, "power21", power21)
-                #self.sg2if1.set_sg(freq21, power21)
+                self.sg2if1.set_sg(freq21, power21)
                 vdiff_21 = vdiff
                 fdiff_21 = fdiff
+                time.sleep(1.)
             elif band == 2:
-                freq22 = dic1["2ndLO2"]
-                power22 = dic1["power_sg22"]
+                freq22 = set_freq
+                power22 = self.dic1["power_sg22"]
                 print("freq22", freq22, "power22", power22)
-                #self.sg2if2.set_sg(freq22, power22)
+                self.sg2if2.set_sg(freq22, power22)
                 vdiff_22 = vdiff
                 fdiff_22 = fdiff
 
@@ -132,7 +134,7 @@ class doppler_nanten (object):
         print("vobs=",vobs,"Vdiff=",Vdiff,"Fdiff=",Fdiff)
         return vobs,Vdiff,Fdiff
 
-    def set_track_old(self, x, y, coord, offset_x, offset_y, offset_dcos, offset_coord, stime, mjd, secofday):
+    def set_track_old(self, x, y, vlsr, coord, offset_x, offset_y, offset_dcos, offset_coord, stime, mjd, secofday):
         """
         setting 2ndLO
         """
@@ -144,8 +146,8 @@ class doppler_nanten (object):
                              offset_x, offset_y, offset_dcos, offset_coord)
         c = self.dic1["LIGHT_SPEED"]
         for band in range(1, self.dic1["bandnum"]+1):
-            rf = self.dic1["restFreq"]
-            vdiff = vobs - self.dic1["vlsr"]
+            rf = self.dic1["restFreq%d" %(band)]
+            vdiff = vobs - vlsr
             fdiff = vdiff / c * rf
             if self.dic1["1stsb%d"%(band)] == 1:
                 sb = 1
@@ -382,7 +384,7 @@ class doppler_nanten (object):
         vobs = vobs - (solv[0] * x[0] + solv[1] * x[1] + solv[2] * x[2])
         vobs = -vobs
 
-        print("vobs=%f\n" % vobs)
+        #print("vobs=%f\n" % vobs)
         """
         if gcalc_flag == 1 :
         	return vobs
