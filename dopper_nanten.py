@@ -28,6 +28,14 @@ class doppler_nanten (object):
     #PATH_DEVICE_TABLE = "/home/amigos/NECST/soft/obs/params/device_table.prm"
     #doppler_1p85.py,motor_command.c,motor_server.c,nanten_astro.h,calc_doppler.cpp,
     dic1 = {"bandnum":2,
+            #set sg_power [dBm]
+            "power_sg21":13.0,
+            "power_sg22":13.0,
+            #light speed [km/sec]
+            "LIGHT_SPEED":299792.458 }
+
+    """
+    dic1 = {"bandnum":2,
             #set frequency [GHz]
             "restFreq1":230.5380,
             "restFreq2":220.3986765,
@@ -60,24 +68,28 @@ class doppler_nanten (object):
             #set frequency [GHz]
             "2ndLO1":8.038000000000,
             "2ndLO2":9.301318999999,
+
             #set sg_power [dBm]
             "power_sg21":13.0,
             "power_sg22":13.0,
             #light speed [km/sec]
             "LIGHT_SPEED":299792.458 }
+    """
 
-    coord_dict = {"J2000"     : 1,
-                  "B1950"     : 2,
-                  "LB"        : 3,
-                  "GALACTIC"  : 3,
-                  "APPARENT"  : 10,
-                  "HORIZONTAL": 100,
-                  "SAME"      : 0}
+
+    coord_dict = {"j2000"     : 1,
+                  "b1950"     : 2,
+                  "lb"        : 3,
+                  "galactic"  : 3,
+                  "gal"  : 3,
+                  #"APPARENT"  : 10,
+                  #"HORIZONTAL": 100,
+                  "same"      : 0}
 
 
 
     def __init__(self):
-        sys.path.append("/home/amigos/RX_system/base_param")
+        #sys.path.append("/home/amigos/RX_system/base_param")
 
         self.sg2if1 = SG.secondsg01()
         self.sg2if2 = SG.secondsg02()
@@ -92,81 +104,86 @@ class doppler_nanten (object):
         pass
 
     #def set_track(self, x, y, coord, offset_x, offset_y, offset_dcos, offset_coord, stime):
-    def set_track(self, x, y, vlsr, coord, offset_x, offset_y, offset_dcos, offset_coord, stime):
+    def set_track(self, x, y, vlsr, coord, offset_x, offset_y, offset_dcos, offset_coord, stime, restFreq1, restFreq2, firstsb1, firstsb2, secondLO1, secondLO2):
         """
         setting 2ndLO
         """
-        coord = self.coord_dict[coord]
-        offset_coord = self.coord_dict[offset_coord]
         mjd = 40587.0 + time.time()/(24.*3600.)
         vobs_mjd = mjd + stime/24./3600.
         vobs = self.get_vobs(vobs_mjd,math.radians(x),math.radians(y),coord,
                              offset_x, offset_y, offset_dcos, offset_coord)
         c = self.dic1["LIGHT_SPEED"]
         for band in range(1, self.dic1["bandnum"]+1):
-            rf = self.dic1["restFreq%d" %(band)]
-            #vdiff = vobs - self.dic1["vlsr"]
-            vdiff = vobs - vlsr
-            fdiff = vdiff / c * rf
-            if self.dic1["1stsb%d"%(band)] == 1:
-                sb = 1
-            if self.dic1["1stsb%d"%(band)] == -1:
-                sb = -1
-            set_freq = self.dic1["2ndLO%d"%(band)] + sb * fdiff
             if band == 1:
-                freq21 = set_freq
+                #vdiff = vobs - self.dic1["vlsr"]
+                vdiff = vobs - vlsr
+                fdiff = vdiff / c * restFreq1
+                freq21 = secondLO1 + firstsb1 * fdiff
                 power21 = self.dic1["power_sg21"]
-                print("freq21", freq21, "power21", power21)
+                #print("freq21", freq21, "power21", power21)
                 self.sg2if1.set_sg(freq21, power21)
                 vdiff_21 = vdiff
                 fdiff_21 = fdiff
+                flocal_21 = freq21
                 time.sleep(1.)
+
             elif band == 2:
-                freq22 = set_freq
+                #vdiff = vobs - self.dic1["vlsr"]
+                vdiff = vobs - vlsr
+                fdiff = vdiff / c * restFreq2
+                freq22 = secondLO2 + firstsb2 * fdiff
                 power22 = self.dic1["power_sg22"]
-                print("freq22", freq22, "power22", power22)
+                #print("freq22", freq22, "power22", power22)
                 self.sg2if2.set_sg(freq22, power22)
                 vdiff_22 = vdiff
                 fdiff_22 = fdiff
+                flocal_22 = freq22
 
         Vdiff = {"sg21":vdiff_21, "sg22":vdiff_22}
         Fdiff = {"sg21":fdiff_21, "sg22":fdiff_22}
-        print("vobs=",vobs,"Vdiff=",Vdiff,"Fdiff=",Fdiff)
-        return vobs,Vdiff,Fdiff
+        Flocal =  {"sg21":flocal_21, "sg22":flocal_22}
+        print("vobs=",vobs,"Vdiff=",Vdiff,"Fdiff=",Fdiff,"Flocal=",Flocal)
+        return vobs,Vdiff,Fdiff,Flocal
 
-    def set_track_old(self, x, y, vlsr, coord, offset_x, offset_y, offset_dcos, offset_coord, stime, mjd, secofday):
+    def set_track_old(self, x, y, vlsr, coord, offset_x, offset_y, offset_dcos, offset_coord, stime, restFreq1, restFreq2, firstsb1, firstsb2, secondLO1, secondLO2, mjd, secofday):
         """
         setting 2ndLO
         """
-        coord = self.coord_dict[coord]
-        offset_coord = self.coord_dict[offset_coord]
         mjd = mjd + secofday / (24.* 3600.)
-        vobs_mjd = mjd + stime / (24. * 3600.)
         vobs = self.get_vobs(vobs_mjd,math.radians(x),math.radians(y),coord,
                              offset_x, offset_y, offset_dcos, offset_coord)
         c = self.dic1["LIGHT_SPEED"]
         for band in range(1, self.dic1["bandnum"]+1):
-            rf = self.dic1["restFreq%d" %(band)]
-            vdiff = vobs - vlsr
-            fdiff = vdiff / c * rf
-            if self.dic1["1stsb%d"%(band)] == 1:
-                sb = 1
-            if self.dic1["1stsb%d"%(band)] == -1:
-                sb = -1
-            set_freq = self.dic1["2ndLO%d"%(band)] + sb * fdiff
             if band == 1:
-                #self.sg2if1.set_sg(dic1["set_freq"],dic1["power_sg21"])
+                #vdiff = vobs - self.dic1["vlsr"]
+                vdiff = vobs - vlsr
+                fdiff = vdiff / c * restFreq1
+                freq21 = secondLO1 + firstsb1 * fdiff
+                power21 = self.dic1["power_sg21"]
+                #print("freq21", freq21, "power21", power21)
+                #self.sg2if1.set_sg(freq21, power21)
                 vdiff_21 = vdiff
                 fdiff_21 = fdiff
+                flocal_21 = freq21
+                time.sleep(1.)
+
             elif band == 2:
-                #self.sg2if2.set_sg(dic1["set_freq"],dic1["power_sg22"])
+                #vdiff = vobs - self.dic1["vlsr"]
+                vdiff = vobs - vlsr
+                fdiff = vdiff / c * restFreq2
+                freq22 = secondLO2 + firstsb2 * fdiff
+                power22 = self.dic1["power_sg22"]
+                #print("freq22", freq22, "power22", power22)
+                #self.sg2if2.set_sg(freq22, power22)
                 vdiff_22 = vdiff
                 fdiff_22 = fdiff
+                flocal_22 = freq22
 
         Vdiff = {"sg21":vdiff_21, "sg22":vdiff_22}
         Fdiff = {"sg21":fdiff_21, "sg22":fdiff_22}
-        print("vobs=",vobs,"Vdiff=",Vdiff,"Fdiff=",Fdiff)
-        return vobs,Vdiff,Fdiff
+        Flocal =  {"sg21":flocal_21, "sg22":flocal_22}
+        print("vobs=",vobs,"Vdiff=",Vdiff,"Fdiff=",Fdiff,"Flocal=",Flocal)
+        return vobs,Vdiff,Fdiff,Flocal
     """
     def get_status(self):
         freq_sg = self.sg.freq_check()
@@ -178,7 +195,18 @@ class doppler_nanten (object):
         return {"freq":freq, "power":power}
     """
     def get_vobs(self, mjdtmp, xtmp, ytmp, mode, offx, offy, dcos, offmode):
-        if offmode == self.coord_dict["SAME"] | offmode == mode :
+
+        mode = mode.lower()
+        offmode = offmode.lower()
+        mode = self.coord_dict[mode]
+        offmode = self.coord_dict[offmode]
+        if offmode == self.coord_dict["same"]:
+            ytmp += offy
+            if dcos == 0 :
+                xtmp += offx
+            else :
+                xtmp += offx/math.cos(ytmp)
+        elif offmode == mode :
             ytmp += offy
             if dcos == 0 :
                 xtmp += offx
@@ -187,14 +215,22 @@ class doppler_nanten (object):
         else :
             print("error coord != off_coord")
             pass
-        if mode == self.coord_dict["J2000"] :
+        if mode == self.coord_dict["j2000"] :
             xxtmp = xtmp
             yytmp = ytmp
-        elif mode == self.coord_dict["B1950"] :
+        elif mode == self.coord_dict["b1950"] :
             ret = slalib.sla_fk45z(xtmp, ytmp, 1950)
             xxtmp = ret[0]
             yytmp = ret[1]
-        elif mode == self.coord_dict["LB"] :
+        elif mode == self.coord_dict["lb"] :
+            ret = slalib.sla_galeq(xtmp, ytmp)
+            xxtmp = ret[0]
+            yytmp = ret[1]
+        elif mode == self.coord_dict["galactic"] :
+            ret = slalib.sla_galeq(xtmp, ytmp)
+            xxtmp = ret[0]
+            yytmp = ret[1]
+        elif mode == self.coord_dict["gal"] :
             ret = slalib.sla_galeq(xtmp, ytmp)
             xxtmp = ret[0]
             yytmp = ret[1]
