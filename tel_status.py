@@ -31,6 +31,13 @@ enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
 dome = dome.dome_monitor_client('172.20.0.11',8008)
 #dome_pos = dome_pos.dome_pos_monitor_client('172.20.0.11',8006)
 
+
+#for get status
+import controller
+ctrl = controller.controller()
+del ctrl
+
+
 while(1):
     telstatus = tel.read_error()
     telstatus2 = tel.read_status()
