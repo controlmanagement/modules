@@ -2,10 +2,11 @@
 
 #import csv
 from pyslalib import slalib
-import SG
 import math
 import time
 import sys
+sys.path.append("/home/amigos/NECRX_system/base_param")
+import SG
 
 """
 class doppler(object):
@@ -120,7 +121,8 @@ class doppler_nanten (object):
                 fdiff = vdiff / c * restFreq1
                 freq21 = secondLO1 + firstsb1 * fdiff
                 power21 = self.dic1["power_sg21"]
-                #print("freq21", freq21, "power21", power21)
+                #print('vdiff',vdiff,type(vdiff),'fdiff',fdiff,type(fdiff),'secondLO1',secondLO1,type('secondLO1'),'firstsb1',firstsb1,type(firstsb1),'self.dic1["bandnum"]',self.dic1["bandnum"],type(self.dic1["bandnum"]),'band',band,type(band))
+                #print("freq21", freq21,type(freq21), "power21", power21,type(power21))
                 self.sg2if1.set_sg(freq21, power21)
                 vdiff_21 = vdiff
                 fdiff_21 = fdiff
@@ -133,17 +135,27 @@ class doppler_nanten (object):
                 fdiff = vdiff / c * restFreq2
                 freq22 = secondLO2 + firstsb2 * fdiff
                 power22 = self.dic1["power_sg22"]
-                #print("freq22", freq22, "power22", power22)
+                #print('vdiff',vdiff,type(vdiff),'fdiff',fdiff,type(fdiff),'secondLO1',secondLO1,type('secondLO1'),'firstsb1',firstsb1,type(firstsb1),'self.dic1["bandnum"]',self.dic1["bandnum"],type(self.dic1["bandnum"]),'band',band,type(band))
+                #print("freq22", freq22,type(freq22), "power22", power22,type(power21))
                 self.sg2if2.set_sg(freq22, power22)
                 vdiff_22 = vdiff
                 fdiff_22 = fdiff
                 flocal_22 = freq22
+                time.sleep(1.)
 
         Vdiff = {"sg21":vdiff_21, "sg22":vdiff_22}
         Fdiff = {"sg21":fdiff_21, "sg22":fdiff_22}
         Flocal =  {"sg21":flocal_21, "sg22":flocal_22}
         print("vobs=",vobs,"Vdiff=",Vdiff,"Fdiff=",Fdiff,"Flocal=",Flocal)
         return vobs,Vdiff,Fdiff,Flocal
+
+    def t_set_track(self):
+        print("if1")
+        aaa = 8.038000000000
+        bbb = self.dic1["power_sg21"]
+        print("aaa=",aaa,"bbb=",bbb)
+        self.sg2if1.set_sg(aaa,bbb)
+
 
     def set_track_old(self, x, y, vlsr, coord, offset_x, offset_y, offset_dcos, offset_coord, stime, restFreq1, restFreq2, firstsb1, firstsb2, secondLO1, secondLO2, mjd, secofday):
         """
@@ -239,6 +251,7 @@ class doppler_nanten (object):
             yytmp = ytmp
 
         vobs = self.calc_vobs(mjdtmp+2400000.5, xxtmp, yytmp)
+        #print('vobs',vobs,type(vobs))
         return vobs
 
     def calc_vobs(self, jd, ra_2000, dec_2000):
@@ -428,4 +441,5 @@ class doppler_nanten (object):
         else gcalc_flag == 2:
         	return lst
         """
+	    #print('vobs',vobs,type(vobs))
         return vobs
