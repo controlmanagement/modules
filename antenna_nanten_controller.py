@@ -39,6 +39,7 @@ class antenna_nanten_controller(object):
     def drive_on(self): # this fanction => clear_error and drive_on
         # void motordrv_nanten2_drive_on(BOOL az_drive,BOOL el_drive) by [motordrv_nanten2.c]
         self.dio.ctrl.out_byte("FBIDIO_OUT1_8", 3)
+        self.nanten.init_speed()
         return
     
     def drive_off(self):
@@ -147,6 +148,11 @@ class antenna_nanten_controller(object):
         except: pass
         hensa_flag = 1
         
+        #for drive off
+        ret = self.drive_check()
+        if ret[0] == "OFF" or ret[1] == "OFF":
+            return
+        
         while hensa_flag:
             self.target_az = az_arcsec
             self.target_el = el_arcsec
@@ -164,6 +170,11 @@ class antenna_nanten_controller(object):
         return
     
     def move_azel(self, real_az, real_el, dcos, hosei = 'hosei_230.txt', off_az = 0, off_el = 0, az_max_rate=16000, el_max_rate=12000):
+        #for drive off
+        ret = self.drive_check()
+        if ret[0] == "OFF" or ret[1] == "OFF":
+            return
+        
         if off_az != 0 or off_el != 0: #for test
             self.set_offset("HORIZONTAL", off_az, off_el)
         if dcos == 0:
