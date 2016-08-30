@@ -60,6 +60,11 @@ class nanten_main_controller(object):
         self.el_encmoni = ret[1]
         pass
     
+    def init_speed(self):
+        self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+        self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+        return
+    
     def azel_move(self, az_arcsec, el_arcsec, az_max_rate, el_max_rate):
         test_flag = 1
         self.indaz = az_arcsec
