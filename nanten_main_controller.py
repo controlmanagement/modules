@@ -142,7 +142,7 @@ class nanten_main_controller(object):
         
         
         #for 1st limit
-        ret = self.nanten.dio.ctrl.in_byte("FBIDIO_IN1_8")
+        ret = self.dio.ctrl.in_byte("FBIDIO_IN1_8")
         if (ret>>2 & 0x01) == 1:
             pass
         else:
