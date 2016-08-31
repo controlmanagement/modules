@@ -11,6 +11,13 @@ import abs
 import geomech
 import datetime
 import ccd
+import os
+
+
+pid = os.getpid()
+f = open("server_opt.pid", "w")
+f.write(str(pid))
+f.close()
 
 ret1 = m4.start_m4_server()
 ret2 = abs.start_abs_server()
@@ -44,7 +51,10 @@ while(1):
         f.write('message:' + e.message+"\n")
         f.write(str(e)+"\n")
         f.write("\n")
-        
         f.close()
+        
+        while 1:
+            print("================geomech error================")
+            time.sleep(0.1)
         
 
