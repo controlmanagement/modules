@@ -58,7 +58,7 @@ class antenna_nanten(core.controller.antenna):
         temp = float(condition[6])+273.
         press = float(condition[12])
         humid = float(condition[9])/100.
-        self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
+        self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, lamda, 1, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
         return
     
     def galactic_move(self, l, b, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL", lamda=2600, az_max_rate=16000, el_max_rate=12000):
