@@ -184,7 +184,7 @@ class antenna_nanten_controller(object):
             real_az += self.off_list["off_az"]
         else:
             real_el += self.off_list["off_el"]
-            real_az = real_az+self.off_list["off_az"]/math.cos(real_el) # because of projection
+            real_az = real_az+self.off_list["off_az"]/math.cos(real_el/3600.*math.pi/180.) # because of projection
         
         """
         if set_coord == "HORIZONTAL":
