@@ -174,9 +174,8 @@ class antenna_nanten_controller(object):
         ret = self.drive_check()
         if ret[0] == "OFF" or ret[1] == "OFF":
             return
-        
-        if off_az != 0 or off_el != 0: #for test
-            self.set_offset("HORIZONTAL", off_az, off_el)
+        #if off_az != 0 or off_el != 0: #for test
+        self.set_offset("HORIZONTAL", off_az, off_el)
         if dcos == 0:
             #print(real_az, real_el, type(real_az), type(real_el))
             #print(self.off_list)
@@ -185,7 +184,6 @@ class antenna_nanten_controller(object):
         else:
             real_el += self.off_list["off_el"]
             real_az = real_az+self.off_list["off_az"]/math.cos(real_el/3600.*math.pi/180.) # because of projection
-        
         """
         if set_coord == "HORIZONTAL":
             ret = self.coord.apply_kisa(real_az, real_el, hosei)
@@ -198,15 +196,14 @@ class antenna_nanten_controller(object):
         
         real_az_n = real_az/3600.*math.pi/180.
         real_el_n = real_el/3600.*math.pi/180.
-        
+
         ret = self.coord.apply_kisa(real_az_n, real_el_n, hosei) # until define the set_coord
         target_az = real_az+ret[0]
         target_el = real_el+ret[1]
         
-        
         self.target_az = target_az
         self.target_el = target_el
-        
+
         #az_max_rate =3000
         #el_max_rate =3000
         
@@ -222,8 +219,8 @@ class antenna_nanten_controller(object):
         ##debug
         #print('moving!!!, {gx}, {gy}, {code_mode}'.format(**locals()))
         ##debug-end
-        if off_x != 0 or off_y != 0: #for test
-            self.set_offset(off_coord, off_x, off_y)
+        #if off_x != 0 or off_y != 0: #for test
+        self.set_offset(off_coord, off_x, off_y)
         #lamda not equals lambda
         # Calculate current MJD
         tv = time.time()
@@ -262,8 +259,6 @@ class antenna_nanten_controller(object):
         else:
             ret[1] = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
             ret[0] = ret[0] + (float(self.off_list["off_ra"])/3600.*math.pi/180)/math.cos(ret[1])
-            dcos = 0
-        
         ret = slalib.sla_aop(ret[0], ret[1], mjd, self.dut1, self.longitude, self.latitude, self.height, 0, 0, temp, pressure, humid, lamda, tlr=0.0065)
         """
         ret[0] = azimath(radian, N=0, E=90)
@@ -272,11 +267,9 @@ class antenna_nanten_controller(object):
         #From zenith angle to elevation 
         real_az = ret[0]
         real_el = math.pi/2. - ret[1]
-        
         real_az = real_az*180./math.pi*3600.
         real_el = real_el*180./math.pi*3600.
-
-        track = self.move_azel(real_az, real_el, dcos, hosei, az_max_rate=az_max_rate, el_max_rate=el_max_rate)
+        track = self.move_azel(real_az, real_el, dcos, hosei, off_az=off_x,off_el=off_y,az_max_rate=az_max_rate, el_max_rate=el_max_rate)
         return track
     
     def move_lb(self, gx, gy, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0, az_max_rate=16000, el_max_rate=12000):
@@ -330,7 +323,6 @@ class antenna_nanten_controller(object):
                 # gpx,gpy => 0 for radio observation or planet observation
                 # change this when you do optical observation
                 ret = self.move_radec(start_x, start_y, 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei)
-
                 Az_track_flag = ret[0]
                 El_track_flag = ret[1]
             else:
@@ -353,14 +345,19 @@ class antenna_nanten_controller(object):
         geomech_flag = 0
         loop_count = 0
         interval = 0
-        
+
+
         while otf_end_flag == 0:
             loop_count += 1
             if loop_count%10 == 1 or interval > 0.1:
                 geomech_flag = 1
                 loop_count = 1
+                #f.write(str(loop_count)+ 'if' +'\n')
+                #f.write(str(mjd_start) + ' ' + str(mjd_end) + '\n')
             else:
                 geomech_flag = 0
+                #f.write(str(loop_count)+ 'else' +'\n')
+                #f.write(str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + '\n')
             mjd = 40587 + time.time()/(24.*3600.)
             if mjd >= mjd_start and mjd <= mjd_end:
                 off_x = (end_x - start_x) / (mjd_end - mjd_start) * (mjd - mjd_start) + start_x
@@ -370,19 +367,25 @@ class antenna_nanten_controller(object):
                     self.move_azel(off_x, off_y, dcos)
                     #self.move_azel(off_x,off_y, dcos, geomech_flag)
                 elif coord_sys == 'EQUATORIAL':
+                    #f.write(str('first') + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + ' ' + str(off_x) + ' ' + str(off_y) + '\n')
                     self.move_radec(off_x*math.pi/180., off_y*math.pi/180., 0, 0, code_mode, temp, pressure, humid, lamda, hosei)
+                    #for i in range(1000):
+                    #f.write(str('second') + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + ' ' + str(off_x) + ' ' + str(off_y) + '\n')
+                        #time.sleep(0.01)
                     #self.move_radec(off_x, off_y, 0, 0, code_mode, temp, pressure, humid, lamda, hosei, geomech_flag)
                 elif coord_sys == 'GALACTIC':
                     self.move_lb(off_x*math.pi/180., off_y*math.pi/180., temp, pressure, humid, lamda, dcos)
                     #self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos, geomech_flag)
-            
+
             if mjd > mjd_end:
                 otf_end_flag = 1
-            
+
+                #f.write('finish_program' + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + '\n')
             loop_time = 40587 + time.time()/(24.*3600.)
             interval = (loop_time-mjd)*24*3600.
             if interval < 0.01:
                 time.sleep(0.01-interval)
+        #f.close()
         return
     
     def thread_start(self, coord_sys, ntarg, gx, gy, gpx, gpy, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0, az_max_rate=16000, el_max_rate=12000):
