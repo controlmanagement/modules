@@ -377,7 +377,7 @@ class antenna_nanten_controller(object):
                     self.move_lb(off_x*math.pi/180., off_y*math.pi/180., temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
                     #self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos, geomech_flag)
                 else:#planet
-                    self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)#coord_mode = 0 → j2000 
+                    self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)#coord_mode = 0 => j2000 
 
             if mjd > mjd_end:
                 otf_end_flag = 1
