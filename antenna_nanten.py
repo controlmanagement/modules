@@ -47,7 +47,7 @@ class antenna_nanten(core.controller.antenna):
         self.antenna.azel_stop()
         return
     
-    def radec_move(self, ra, dec, code_mode, off_x = 0, off_y = 0, hosei = 'hosei_230.txt',offcoord = "HORIZONTAL", lamda=2600, az_max_rate=16000, el_max_rate=12000):
+    def radec_move(self, ra, dec, code_mode, off_x = 0, off_y = 0, hosei = 'hosei_230.txt',offcoord = "HORIZONTAL", lamda=2600, az_max_rate=16000, el_max_rate=12000,dcos=1):
         """antennaを(Ra, Dec)に動かす
         ra,dec は degreeで
         code_mode → 'J2000' or 'B1950'"""
@@ -58,10 +58,10 @@ class antenna_nanten(core.controller.antenna):
         temp = float(condition[6])+273.
         press = float(condition[12])
         humid = float(condition[9])/100.
-        self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, lamda, 1, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
+        self.antenna.thread_start('EQUATRIAL', 0, gx, gy, 0, 0, code_mode, temp, press, humid, lamda, dcos, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
         return
     
-    def galactic_move(self, l, b, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL", lamda=2600, az_max_rate=16000, el_max_rate=12000):
+    def galactic_move(self, l, b, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL", lamda=2600, az_max_rate=16000, el_max_rate=12000,dcos=0):
         """antennaを(l, b)に動かす"""
         gx = l*math.pi/180.
         gy = b*math.pi/180.
@@ -69,10 +69,10 @@ class antenna_nanten(core.controller.antenna):
         temp = float(condition[6])+273.
         press = float(condition[12])
         humid = float(condition[9])/100.
-        self.antenna.thread_start('GALACTIC', 0, gx, gy, 0, 0, 0, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
+        self.antenna.thread_start('GALACTIC', 0, gx, gy, 0, 0, 0, temp, press, humid, lamda, dcos, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
         return
     
-    def planet_move(self, number, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL", lamda=2600, az_max_rate=16000, el_max_rate=12000):
+    def planet_move(self, number, off_x = 0, off_y = 0, hosei = 'hosei_230.txt', offcoord = "HORIZONTAL", lamda=2600, az_max_rate=16000, el_max_rate=12000, dcos=0):
         """antennaをplanetに動かす
         1.Mercury 2.Venus 3. 4.Mars 5.Jupiter 6.Saturn 7.Uranus 8.Neptune, 9.Pluto, 10.Moon, 11.Sun"""
         ##debug
@@ -83,7 +83,7 @@ class antenna_nanten(core.controller.antenna):
         temp = float(condition[6])+273.
         press = float(condition[12])
         humid = float(condition[9])/100.
-        self.antenna.thread_start('PLANET', number, 0, 0, 0, 0, 0, temp, press, humid, lamda, 0, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
+        self.antenna.thread_start('PLANET', number, 0, 0, 0, 0, 0, temp, press, humid, lamda, dcos, hosei, offcoord, off_x, off_y, az_max_rate, el_max_rate)
         return
     
     def set_offset(self, off_x, _off_y, off_coord = "HORIZONTAL"):
@@ -95,7 +95,7 @@ class antenna_nanten(core.controller.antenna):
         self.antenna.tracking_end()
         return
     
-    def otf_start(self, sx, sy, dcos, coord_sys, dx, dy, dt, n, rampt, delay, lamda, hosei, code_mode):
+    def otf_start(self, sx, sy, dcos, coord_sys, dx, dy, dt, n, rampt, delay, lamda, hosei, code_mode, ntarg=0, off_coord = "HORIZONTAL", off_x=0, off_y=0):
         condition = self.weather.read_weather()
         temp = float(condition[6])+273.
         press = float(condition[12])
@@ -108,7 +108,7 @@ class antenna_nanten(core.controller.antenna):
         end_y = sy + dy * (n - 0.5)
         mjd = 40587 + time.time()/(24.*3600.)
         
-        self.antenna.otf_thread_start(mjd+delay/24./3600., start_x, start_y, mjd+(delay+total_t)/24./3600., end_x, end_y, dcos, coord_sys, hosei,temp, press, humid, lamda, code_mode)
+        self.antenna.otf_thread_start(mjd+delay/24./3600., start_x, start_y, mjd+(delay+total_t)/24./3600., end_x, end_y, dcos, coord_sys, hosei,temp, press, humid, lamda, code_mode, ntarg, off_coord, off_x, off_y)
         return mjd+(delay+rampt)/24./3600.
     
     def otf_tracking_end(self):
