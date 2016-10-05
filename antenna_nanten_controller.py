@@ -334,13 +334,13 @@ class antenna_nanten_controller(object):
         return
     """
     
-    def otf_thread_start(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei, temp, pressure, humid, lamda, code_mode):
+    def otf_thread_start(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei, temp, pressure, humid, lamda, code_mode, ntarg=0, off_coord = "HORIZONTAL", off_x=0, off_y=0):
         self.otf_stop_thread = threading.Event()
-        self.otf_tracking = threading.Thread(target = self.otf, args = (mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode))
+        self.otf_tracking = threading.Thread(target = self.otf, args = (mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode, ntarg, off_coord, off_x, off_y))
         self.otf_tracking.start()
         return
     
-    def otf(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode):
+    def otf(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode, ntarg, off_coord, off_x, off_y):
         otf_end_flag = 0
         geomech_flag = 0
         loop_count = 0
@@ -368,14 +368,16 @@ class antenna_nanten_controller(object):
                     #self.move_azel(off_x,off_y, dcos, geomech_flag)
                 elif coord_sys == 'EQUATORIAL':
                     #f.write(str('first') + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + ' ' + str(off_x) + ' ' + str(off_y) + '\n')
-                    self.move_radec(off_x*math.pi/180., off_y*math.pi/180., 0, 0, code_mode, temp, pressure, humid, lamda, hosei)
+                    self.move_radec(off_x*math.pi/180., off_y*math.pi/180., 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
                     #for i in range(1000):
                     #f.write(str('second') + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + ' ' + str(off_x) + ' ' + str(off_y) + '\n')
                         #time.sleep(0.01)
                     #self.move_radec(off_x, off_y, 0, 0, code_mode, temp, pressure, humid, lamda, hosei, geomech_flag)
                 elif coord_sys == 'GALACTIC':
-                    self.move_lb(off_x*math.pi/180., off_y*math.pi/180., temp, pressure, humid, lamda, dcos)
+                    self.move_lb(off_x*math.pi/180., off_y*math.pi/180., temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
                     #self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos, geomech_flag)
+                else:#planet
+                    self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)#coord_mode = 0 → j2000 
 
             if mjd > mjd_end:
                 otf_end_flag = 1
