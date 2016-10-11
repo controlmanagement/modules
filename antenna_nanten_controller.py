@@ -234,7 +234,7 @@ class antenna_nanten_controller(object):
         tai_utc = 36.0 # tai_utc=TAI-UTC  2015 July from ftp://maia.usno.navy.mil/ser7/tai-utc.dat
         
         # lamda is wavelength(not lambda)
-        if code_mode == "B1950":
+        if code_mode == "b1950":
             ret = slalib.sla_fk425(gx, gy, gpx, gpy, 0, 0)
             gaJ2000 = ret[0]
             gdJ2000 = ret[1]
@@ -580,3 +580,4 @@ def start_antenna_server(port1 = 8003, port2 = 8004):
     server = pyinterface.server_client_wrapper.server_wrapper(antenna, '', port1, port2)
     server.start()
     return server
+
