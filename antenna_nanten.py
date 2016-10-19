@@ -95,20 +95,20 @@ class antenna_nanten(core.controller.antenna):
         self.antenna.tracking_end()
         return
     
-    def otf_start(self, sx, sy, dcos, coord_sys, dx, dy, dt, n, rampt, delay, lamda, hosei, code_mode, ntarg=0, off_coord = "HORIZONTAL", off_x=0, off_y=0):
+    def otf_start(self, lambda_on, beta_on, dcos, coord_sys, dx, dy, dt, n, rampt, delay, lamda, hosei, code_mode, off_x, off_y, off_coord, ntarg = 0):
         condition = self.weather.read_weather()
         temp = float(condition[6])+273.
         press = float(condition[12])
         humid = float(condition[9])/100.
         
-        start_x = sx-float(dx)/2.-float(dx)/float(dt)*rampt
-        start_y = sy-float(dy)/2.-float(dy)/float(dt)*rampt
+        start_x = off_x-float(dx)/2.-float(dx)/float(dt)*rampt
+        start_y = off_y-float(dy)/2.-float(dy)/float(dt)*rampt
         total_t = rampt + dt * n
-        end_x = sx + dx * (n - 0.5)
-        end_y = sy + dy * (n - 0.5)
+        end_x = off_x + dx * (n - 0.5)
+        end_y = off_y + dy * (n - 0.5)
         mjd = 40587 + time.time()/(24.*3600.)
         
-        self.antenna.otf_thread_start(mjd+delay/24./3600., start_x, start_y, mjd+(delay+total_t)/24./3600., end_x, end_y, dcos, coord_sys, hosei,temp, press, humid, lamda, code_mode, ntarg, off_coord, off_x, off_y)
+        self.antenna.otf_thread_start(lambda_on, beta_on, mjd+delay/24./3600., mjd+(delay+total_t)/24./3600., start_x, start_y, end_x, end_y, dcos, coord_sys, hosei, temp, press, humid, lamda, code_mode, off_x, off_y, off_coord, ntarg)
         return mjd+(delay+rampt)/24./3600.
     
     def otf_tracking_end(self):
@@ -181,4 +181,6 @@ class antenna_nanten(core.controller.antenna):
     def dome_track_end(self):
         self.dome.end_thread()
         return
+    
+
     
