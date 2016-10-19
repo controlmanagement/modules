@@ -334,13 +334,13 @@ class antenna_nanten_controller(object):
         return
     """
     
-    def otf_thread_start(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei, temp, pressure, humid, lamda, code_mode, ntarg=0, off_coord = "HORIZONTAL", off_x=0, off_y=0):
+    def otf_thread_start(self, lambda_on, beta_on, mjd_start, mjd_end, start_x, start_y, end_x, end_y, dcos, coord_sys, hosei, temp, pressure, humid, lamda, code_mode, off_x, off_y, off_coord, ntarg=0):
         self.otf_stop_thread = threading.Event()
-        self.otf_tracking = threading.Thread(target = self.otf, args = (mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode, ntarg, off_coord, off_x, off_y))
+        self.otf_tracking = threading.Thread(target = self.otf, args = (lambda_on, beta_on, mjd_start, mjd_end, start_x, start_y, end_x, end_y, dcos, coord_sys, hosei, temp, pressure, humid, lamda, code_mode, off_x, off_y, off_coord, ntarg))
         self.otf_tracking.start()
         return
     
-    def otf(self, mjd_start, start_x, start_y, mjd_end, end_x, end_y, dcos, coord_sys, hosei,temp, pressure, humid, lamda, code_mode, ntarg, off_coord, off_x, off_y):
+    def otf(self, lambda_on, beta_on, mjd_start, mjd_end, start_x, start_y, end_x, end_y, dcos, coord_sys, hosei, temp, pressure, humid, lamda, code_mode, off_x, off_y, off_coord, ntarg):
         otf_end_flag = 0
         geomech_flag = 0
         loop_count = 0
@@ -360,24 +360,24 @@ class antenna_nanten_controller(object):
                 #f.write(str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + '\n')
             mjd = 40587 + time.time()/(24.*3600.)
             if mjd >= mjd_start and mjd <= mjd_end:
-                off_x = (end_x - start_x) / (mjd_end - mjd_start) * (mjd - mjd_start)
-                off_y = (end_y - start_y) / (mjd_end - mjd_start) * (mjd - mjd_start)
+                off_dx = (end_x - start_x) / (mjd_end - mjd_start) * (mjd - mjd_start)
+                off_dy = (end_y - start_y) / (mjd_end - mjd_start) * (mjd - mjd_start)
                 
                 if coord_sys == 'HORIZONTAL':
-                    self.move_azel(start_x, start_y, dcos, hosei, off_x, off_y)
+                    self.move_azel(lambda_on, beta_on, dcos, hosei, off_az = off_x+off_dx, off_el = off_y+off_dy)
                     #self.move_azel(off_x,off_y, dcos, geomech_flag)
                 elif coord_sys == 'EQUATORIAL':
                     #f.write(str('first') + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + ' ' + str(off_x) + ' ' + str(off_y) + '\n')
-                    self.move_radec(start_x*math.pi/180., start_y*math.pi/180., 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
+                    self.move_radec(lambda_on*math.pi/180., beta_on*math.pi/180., 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x+off_dx, off_y+off_dy)
                     #for i in range(1000):
                     #f.write(str('second') + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + ' ' + str(off_x) + ' ' + str(off_y) + '\n')
                         #time.sleep(0.01)
                     #self.move_radec(off_x, off_y, 0, 0, code_mode, temp, pressure, humid, lamda, hosei, geomech_flag)
                 elif coord_sys == 'GALACTIC':
-                    self.move_lb(start_x*math.pi/180., start_y*math.pi/180., temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)
+                    self.move_lb(lambda_on*math.pi/180., beta_on*math.pi/180., temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x+off_dx, off_y+off_dy)
                     #self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos, geomech_flag)
                 else:#planet
-                    self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y)#coord_mode = 0 => j2000 
+                    self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x+off_dx, off_y+off_dy)#coord_mode = 0 => j2000 
 
             if mjd > mjd_end:
                 otf_end_flag = 1
@@ -580,3 +580,4 @@ def start_antenna_server(port1 = 8003, port2 = 8004):
     server = pyinterface.server_client_wrapper.server_wrapper(antenna, '', port1, port2)
     server.start()
     return server
+
