@@ -346,7 +346,7 @@ class antenna_nanten_controller(object):
         loop_count = 0
         interval = 0
 
-
+        #f = open('loop.txt','a')
         while otf_end_flag == 0:
             loop_count += 1
             if loop_count%10 == 1 or interval > 0.1:
@@ -362,23 +362,31 @@ class antenna_nanten_controller(object):
             if mjd >= mjd_start and mjd <= mjd_end:
                 off_dx = (end_x - start_x) / (mjd_end - mjd_start) * (mjd - mjd_start)
                 off_dy = (end_y - start_y) / (mjd_end - mjd_start) * (mjd - mjd_start)
-                
                 if coord_sys == 'HORIZONTAL':
-                    self.move_azel(lambda_on, beta_on, dcos, hosei, off_az = off_x+off_dx, off_el = off_y+off_dy)
+                    self.move_azel(lambda_on, beta_on, dcos, hosei, off_az = start_x+off_dx, off_el = start_y+off_dy)
                     #self.move_azel(off_x,off_y, dcos, geomech_flag)
                 elif coord_sys == 'EQUATORIAL':
                     #f.write(str('first') + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + ' ' + str(off_x) + ' ' + str(off_y) + '\n')
-                    self.move_radec(lambda_on*math.pi/180., beta_on*math.pi/180., 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x+off_dx, off_y+off_dy)
+                    self.move_radec(lambda_on*math.pi/180., beta_on*math.pi/180., 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, start_x+off_dx, start_y+off_dy)
                     #for i in range(1000):
                     #f.write(str('second') + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + ' ' + str(off_x) + ' ' + str(off_y) + '\n')
                         #time.sleep(0.01)
                     #self.move_radec(off_x, off_y, 0, 0, code_mode, temp, pressure, humid, lamda, hosei, geomech_flag)
                 elif coord_sys == 'GALACTIC':
-                    self.move_lb(lambda_on*math.pi/180., beta_on*math.pi/180., temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x+off_dx, off_y+off_dy)
+                    self.move_lb(lambda_on*math.pi/180., beta_on*math.pi/180., temp, pressure, humid, lamda, dcos, hosei, off_coord, start_x+off_dx, start_y+off_dy)
                     #self.move_lb(off_x, off_y, temp, pressure, humid, lamda, dcos, geomech_flag)
-                else:#planet
-                    self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x+off_dx, off_y+off_dy)#coord_mode = 0 => j2000 
-
+                    #else:to_planet,else_is_no_effect?
+                elif coord_sys == 'PLANET':
+                    #f.write(str(ntarg) + '\n')
+                    #f.write('off_dx : ' + str(off_dx) + '\n')
+                    #f.write('off_dy : ' + str(off_dy) + '\n')
+                    #f.write('start_x : ' + str(start_x) + '\n')
+                    #f.write('start_y : ' + str(start_y) + '\n')
+                    self.move_planet(ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, start_x+off_dx, start_y+off_dy)#coord_mode = 0 => j2000 
+                    #f.write('off_dx : ' + str(off_dx) + '\n')
+                    #f.write('off_dy : ' + str(off_dy) + '\n')
+                    #f.write('start_x : ' + str(start_x) + '\n')
+                    #f.write('start_y : ' + str(start_y) + '\n')
             if mjd > mjd_end:
                 otf_end_flag = 1
 
@@ -580,4 +588,6 @@ def start_antenna_server(port1 = 8003, port2 = 8004):
     server = pyinterface.server_client_wrapper.server_wrapper(antenna, '', port1, port2)
     server.start()
     return server
+
+
 
