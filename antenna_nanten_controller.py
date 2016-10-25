@@ -169,13 +169,13 @@ class antenna_nanten_controller(object):
         print("STOP MOVING")
         return
     
-    def move_azel(self, real_az, real_el, dcos, hosei = 'hosei_230.txt', off_az = 0, off_el = 0, az_max_rate=16000, el_max_rate=12000):
+    def move_azel(self, real_az, real_el, dcos, hosei = 'hosei_230.txt', off_az = 0, off_el = 0, az_max_rate=16000, el_max_rate=12000, off_coord):
         #for drive off
         ret = self.drive_check()
         if ret[0] == "OFF" or ret[1] == "OFF":
             return
         #if off_az != 0 or off_el != 0: #for test
-        self.set_offset("HORIZONTAL", off_az, off_el)
+        self.set_offset(off_coord, off_az, off_el)
         if dcos == 0:
             #print(real_az, real_el, type(real_az), type(real_el))
             #print(self.off_list)
@@ -269,7 +269,7 @@ class antenna_nanten_controller(object):
         real_el = math.pi/2. - ret[1]
         real_az = real_az*180./math.pi*3600.
         real_el = real_el*180./math.pi*3600.
-        track = self.move_azel(real_az, real_el, dcos, hosei, off_az=off_x,off_el=off_y,az_max_rate=az_max_rate, el_max_rate=el_max_rate)
+        track = self.move_azel(real_az, real_el, dcos, hosei, off_az=off_x,off_el=off_y,az_max_rate=az_max_rate, el_max_rate=el_max_rate,off_coord)
         return track
     
     def move_lb(self, gx, gy, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0, az_max_rate=16000, el_max_rate=12000):
@@ -289,7 +289,7 @@ class antenna_nanten_controller(object):
         gpaJ2000 = gpdJ2000 = 0
         """
         
-        track = self.move_radec(ret[0], ret[1], 0, 0, "J2000", temp, pressure, humid, lamda, dcos, hosei, az_max_rate=az_max_rate, el_max_rate=el_max_rate)
+        track = self.move_radec(ret[0], ret[1], 0, 0, "J2000", temp, pressure, humid, lamda, dcos, hosei, az_max_rate=az_max_rate, el_max_rate=el_max_rate, off_coord, off_x, off_y)
         return track
     
     def move_planet(self, ntarg, code_mode, temp, pressure, humid, lamda, dcos, hosei = 'hosei_230.txt', off_coord = "HORIZONTAL", off_x = 0, off_y = 0, az_max_rate=16000, el_max_rate=12000):
