@@ -332,7 +332,7 @@ class antenna_nanten_controller(object):
         ret = self.coord.planet_J2000_geo_to_topo(ret[0], ret[1], ret[2], ret[3], self.dut1, self.longitude, self.latitude, self.height)
         
         #ret[2] = ra, ret[3] = dec
-        self.move_radec(ret[2], ret[3], 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate=az_max_rate, el_max_rate=el_max_rate, off_coord=off_coord, off_x=off_x, off_y=off_y)
+        self.move_radec(ret[2], ret[3], 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate=az_max_rate, el_max_rate=el_max_rate)
         return
     
     """
@@ -629,6 +629,7 @@ def start_antenna_server(port1 = 8003, port2 = 8004):
     server = pyinterface.server_client_wrapper.server_wrapper(antenna, '', port1, port2)
     server.start()
     return server
+
 
 
 
