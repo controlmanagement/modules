@@ -29,7 +29,14 @@ class antenna_nanten_controller(object):
     antenna_status = ""
     az_v = el_v = 0
     off_list = {"off_az":0, "off_el":0, "off_ra":0, "off_dec":0, "off_l":0, "off_b":0}
-    
+    ra_off_ra = 0
+    ra_off_dec = 0
+    ra_real_ra = 0
+    ra_real_dec = 0
+    off_eq = 0
+    off_ga = 0
+    #cc = 0
+
     def __init__(self):
         self.coord = coord.coord_calc() # for test <= MUST REMOVE [#]
         self.nanten = nanten_main_controller.nanten_main_controller()
@@ -113,7 +120,7 @@ class antenna_nanten_controller(object):
         if coord == "HORIZONTAL":
             self.off_list["off_az"] = off_x
             self.off_list["off_el"] = off_y
-        elif coord == "EQUATRIAL":
+        elif coord == "EQUATORIAL":
             self.off_list["off_ra"] = off_x
             self.off_list["off_dec"] = off_y
         else: #GALACTIC
@@ -221,6 +228,10 @@ class antenna_nanten_controller(object):
         ##debug-end
         #if off_x != 0 or off_y != 0: #for test
         self.set_offset(off_coord, off_x, off_y)
+        self.off_eq = gx*180./math.pi#self.off_list["off_az"]
+        self.off_ga = gy*180./math.pi#self.off_list["off_l"]
+        self.ra_off_ra = self.off_list["off_ra"]#
+        self.ra_off_dec = self.off_list["off_dec"]#
         #lamda not equals lambda
         # Calculate current MJD
         tv = time.time()
@@ -229,8 +240,13 @@ class antenna_nanten_controller(object):
         #tv_sec = int(tv)
         #tv_usec = tv - tv_sec
         #mjd = (tv_sec + tv_usec/1000000.)/24./3600. + 40587.0 # 40587.0 = MJD0
-        
-        
+        if dcos == 0:
+            gy = gy + float(self.off_list["off_dec"])*math.pi/180/3600.
+            gx = gx + float(self.off_list["off_ra"])*math.pi/180/3600.
+        else:
+            gy = gy + float(self.off_list["off_dec"])*math.pi/180/3600.
+            gx = gx + float(self.off_list["off_ra"])*math.pi/180/3600./math.cos(gy)
+
         tai_utc = 36.0 # tai_utc=TAI-UTC  2015 July from ftp://maia.usno.navy.mil/ser7/tai-utc.dat
         
         # lamda is wavelength(not lambda)
@@ -252,18 +268,33 @@ class antenna_nanten_controller(object):
         ret[0] = apparent_ra
         ret[1] = apparent_dec
         """
-        if dcos == 0:
+        self.ra_real_ra = ret[0]*3600.
+        self.ra_real_dec = ret[1]*3600.
+        #if dcos == 0:
             #print(type(ret), ret[1], self.off_list['off_dec'])
-            ret[1] = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
-            ret[0] = ret[0] + float(self.off_list["off_ra"])/3600.*math.pi/180
-        else:
-            ret[1] = ret[1] + float(self.off_list["off_dec"])/3600.*math.pi/180
-            ret[0] = ret[0] + (float(self.off_list["off_ra"])/3600.*math.pi/180)/math.cos(ret[1])
+            #ret[1] = ret[1]
+            #ret[0] = ret[0]
+        #else:
+            #ret[1] = ret[1]
+            #ret[0] = ret[0]
         ret = slalib.sla_aop(ret[0], ret[1], mjd, self.dut1, self.longitude, self.latitude, self.height, 0, 0, temp, pressure, humid, lamda, tlr=0.0065)
         """
         ret[0] = azimath(radian, N=0, E=90)
         ret[1] = zenith(radian)
         """
+        #f = open('radec.txt','a')
+        #while self.cc < 1:
+        #f.write('gx : ' + 'gy : ' + 'off_ra : ' + 'off_dec : ' + 'real_ra : ' + 'real_dec' + '\n')
+        #self.cc += 1
+        #self.ra_real_ra = self.ra_real_ra - 83.80613*3600.
+        #f.write(str(self.off_eq) +' '+ str(self.off_ga) +' '+ str(self.ra_off_ra) +' '+ str(self.ra_off_dec) +' '+ str(self.ra_real_ra) +' '+ str(self.ra_real_dec) + '\n')
+        #f.write('bug_eq : ' + str(self.off_eq) +'\n')
+        #f.write('bug_ga : ' + str(self.off_ga) +'\n')
+        #f.write('off_ra : ' + str(self.ra_off_ra) +'\n')
+        #f.write('off_dec : ' + str(self.ra_off_dec) +'\n')
+        #f.write('real_ra : ' + str(self.ra_real_ra) +'\n')
+        #f.write('real_dec : ' + str(self.ra_real_dec) +'\n')
+        #f.close()
         #From zenith angle to elevation 
         real_az = ret[0]
         real_el = math.pi/2. - ret[1]
@@ -301,7 +332,7 @@ class antenna_nanten_controller(object):
         ret = self.coord.planet_J2000_geo_to_topo(ret[0], ret[1], ret[2], ret[3], self.dut1, self.longitude, self.latitude, self.height)
         
         #ret[2] = ra, ret[3] = dec
-        self.move_radec(ret[2], ret[3], 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate=az_max_rate, el_max_rate=el_max_rate)
+        self.move_radec(ret[2], ret[3], 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, off_x, off_y, az_max_rate=az_max_rate, el_max_rate=el_max_rate, off_coord=off_coord, off_x=off_x, off_y=off_y)
         return
     
     """
@@ -346,7 +377,7 @@ class antenna_nanten_controller(object):
         loop_count = 0
         interval = 0
 
-        #f = open('loop.txt','a')
+        #f = open('otfthread.txt','a')
         while otf_end_flag == 0:
             loop_count += 1
             if loop_count%10 == 1 or interval > 0.1:
@@ -366,8 +397,16 @@ class antenna_nanten_controller(object):
                     self.move_azel(lambda_on, beta_on, dcos, hosei, off_az = start_x+off_dx, off_el = start_y+off_dy)
                     #self.move_azel(off_x,off_y, dcos, geomech_flag)
                 elif coord_sys == 'EQUATORIAL':
+                    #f.write('off_dx : ' + str(off_dx) + '\n')                 
+                    #f.write('off_dy : ' + str(off_dy) + '\n')
+                    #f.write('start_x : ' + str(start_x) + '\n')
+                    #f.write('start_y : ' + str(start_y) + '\n')
                     #f.write(str('first') + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + ' ' + str(off_x) + ' ' + str(off_y) + '\n')
                     self.move_radec(lambda_on*math.pi/180., beta_on*math.pi/180., 0, 0, code_mode, temp, pressure, humid, lamda, dcos, hosei, off_coord, start_x+off_dx, start_y+off_dy)
+                    #f.write('off_dx : ' + str(off_dx) + '\n')
+                    #f.write('off_dy : ' + str(off_dy) + '\n')
+                    #f.write('start_x : ' + str(start_x) + '\n')
+                    #f.write('start_y : ' + str(start_y) + '\n')
                     #for i in range(1000):
                     #f.write(str('second') + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + ' ' + str(off_x) + ' ' + str(off_y) + '\n')
                         #time.sleep(0.01)
@@ -389,8 +428,10 @@ class antenna_nanten_controller(object):
                     #f.write('start_y : ' + str(start_y) + '\n')
             if mjd > mjd_end:
                 otf_end_flag = 1
-
                 #f.write('finish_program' + ' ' + str(mjd) + ' ' + str(mjd_start) + ' ' + str(mjd_end) + '\n')
+                #f.write('\n')
+                #f.write('\n')
+                #f.write('\n')
             loop_time = 40587 + time.time()/(24.*3600.)
             interval = (loop_time-mjd)*24*3600.
             if interval < 0.01:
@@ -588,6 +629,7 @@ def start_antenna_server(port1 = 8003, port2 = 8004):
     server = pyinterface.server_client_wrapper.server_wrapper(antenna, '', port1, port2)
     server.start()
     return server
+
 
 
 
