@@ -5,6 +5,7 @@ sys.path.append('/home/amigos/python/')
 import numpy as np
 import pyinterface
 import antenna_enc
+import threading
 
 
 class nanten_main_controller(object):
@@ -50,7 +51,16 @@ class nanten_main_controller(object):
     t2_moni = 0
     az_pidihensamoni = 0
     el_pidihensamoni = 0
-
+    
+    
+    
+    th_az = 0
+    th_el = 0
+    server_flag = []
+    end_flag = 0
+    
+    
+    
     def __init__(self):
         self.dio = pyinterface.create_gpg2000(3)
         self.enc = antenna_enc.enc_monitor_client('172.20.0.11',8002)
@@ -59,6 +69,35 @@ class nanten_main_controller(object):
         self.az_encmoni = ret[0]
         self.el_encmoni = ret[1]
         pass
+    
+    
+    
+    
+    
+    
+    def read_enc(self):
+        ret = self.enc.read_azel()
+        self.th_az = ret[0]
+        self.th_el = ret[1]
+        return
+    
+    def count_time(self):
+        flag_list = self.server_flag[:]
+        time.sleep(1)
+        if self.server_flag == flag_list:
+            self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
+            self.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
+            self.end_flag = 1
+            for i in range(1000):
+                print(flag_list)
+        return
+    
+    
+    
+    
+    
+    
+    
     
     def init_speed(self):
         self.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
@@ -173,7 +212,7 @@ class nanten_main_controller(object):
         if stop_flag:
             sys.exit()
         return [Az_track_flag, El_track_flag]
-
+    
     def test_move(self,az_speed,el_speed,dist_arcsec = 5 * 3600):
         # type check
         if isinstance(az_speed,int) and isinstance(el_speed,int) and isinstance(dist_arcsec,int):
@@ -274,10 +313,33 @@ class nanten_main_controller(object):
         else:
             pass
         
-        ret = self.enc.read_azel()
-        #ret = self.enc.get_azel()
-        az_enc = ret[0]
-        el_enc = ret[1]
+        
+        
+        tv = time.time()
+        self.server_flag.append(tv)
+        if len(self.server_flag) == 4:
+            self.server_flag.pop(0)
+        self.end_flag = 0
+        enc_thread = threading.Thread(target = self.read_enc)
+        enc_thread.start()
+        count_thread = threading.Thread(target = self.count_time)
+        count_thread.start()
+        enc_thread.join()
+        
+        
+        if self.end_flag:
+            for i in range(2000):
+                print("!!!end!!!")
+            sys.exit()
+        
+        #ret = self.enc.read_azel()
+        #az_enc = ret[0]
+        #el_enc = ret[1]
+        az_enc = self.th_az
+        el_enc = self.th_el
+        
+        
+        
         
         #for az >= 180*3600 and az <= -180*3600
         if az_enc > 40*3600 and az_arcsec+360*3600 < 220*3600:
@@ -285,8 +347,10 @@ class nanten_main_controller(object):
         elif az_enc < -40*3600 and az_arcsec-360*3600 > -220*3600:
             az_arcsec -= 360*3600
         
-        self.az_encmoni = ret[0]
-        self.el_encmoni = ret[1]
+        #self.az_encmoni = ret[0]
+        #self.el_encmoni = ret[1]
+        self.az_encmoni = self.th_az
+        self.el_encmoni = self.th_el
         self.az_targetmoni = az_arcsec
         self.el_targetmoni = el_arcsec
         
