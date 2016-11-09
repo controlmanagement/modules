@@ -57,6 +57,8 @@ class nanten_main_controller(object):
     th_az = 0
     th_el = 0
     server_flag = []
+    time_list = [0,0,0,0,0]
+    save_time = 0
     end_flag = 0
     
     
@@ -76,9 +78,22 @@ class nanten_main_controller(object):
     
     
     def read_enc(self):
+        t1 = time.time()
         ret = self.enc.read_azel()
+        t2 = time.time()
         self.th_az = ret[0]
         self.th_el = ret[1]
+        
+        if t2 - t1 <= 0.005:
+            self.time_list[0] = self.time_list[0] + 1
+        elif t2 - t1 <= 0.01:
+            self.time_list[1] = self.time_list[1] + 1
+        elif t2 - t1 <= 0.015:
+            self.time_list[2] = self.time_list[2] + 1
+        elif t2 - t1 <= 0.02:
+            self.time_list[3] = self.time_list[3] + 1
+        elif t2 - t1 <= 0.025:
+            self.time_list[4] = self.time_list[4] + 1
         return
     
     def count_time(self):
@@ -90,6 +105,20 @@ class nanten_main_controller(object):
             self.end_flag = 1
             for i in range(1000):
                 print(flag_list)
+                return
+        
+        
+        if self.save_time == 0:
+            self.save_time = time.time()
+        tv = time.time()
+        if tv - self.save_time >= 180.:
+            name = "enc_hist"+str(int(tv))+".txt"
+            f = open(name, "w")
+            for i in range(5):
+                f.write(str(self.time_list[i])+"\n")
+            f.close()
+            self.save_time = time.time()
+        
         return
     
     
