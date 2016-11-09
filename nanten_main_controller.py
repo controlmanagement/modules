@@ -92,7 +92,7 @@ class nanten_main_controller(object):
             self.time_list[2] = self.time_list[2] + 1
         elif t2 - t1 <= 0.02:
             self.time_list[3] = self.time_list[3] + 1
-        elif t2 - t1 <= 0.025:
+        else:
             self.time_list[4] = self.time_list[4] + 1
         return
     
