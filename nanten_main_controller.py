@@ -92,7 +92,7 @@ class nanten_main_controller(object):
             self.time_list[2] = self.time_list[2] + 1
         elif t2 - t1 <= 0.02:
             self.time_list[3] = self.time_list[3] + 1
-        else:
+        elif t2 - t1 <= 0.025:
             self.time_list[4] = self.time_list[4] + 1
         return
     
@@ -111,13 +111,14 @@ class nanten_main_controller(object):
         if self.save_time == 0:
             self.save_time = time.time()
         tv = time.time()
-        if tv - self.save_time >= 180.:
+        if tv - self.save_time >= 60.:
             name = "enc_hist"+str(int(tv))+".txt"
             f = open(name, "w")
             for i in range(5):
                 f.write(str(self.time_list[i])+"\n")
             f.close()
             self.save_time = time.time()
+            self.time_list = [0, 0, 0, 0, 0]
         
         return
     
