@@ -93,12 +93,16 @@ class geomech_controller(object):
             t2 = (AdVoltage[9]*100)
             f.write(str('geo12')+'\n')
             
-            x1 = 0
-            y1 = 0
-            t1 = 0
-            x2 = 0
-            y2 = 0
-            t2 = 0
+            
+            #now available
+            #x1 = 0
+            #y1 = 0
+            #t1 = 0
+            #x2 = 0
+            #y2 = 0
+            #t2 = 0
+            
+            
             f.write(str('geo13')+'\n')
             
             
@@ -154,13 +158,13 @@ class geomech_controller(object):
             #for test
             self.vol[i] = AdVoltage[i]
             
-        #now unavailable
-        x1 = 0 #(AdVoltage[10]-AdVoltage[1])*1000*self.GAIN_X1*self.URAD2ARCSEC
-        y1 = 0 #(AdVoltage[2]-AdVoltage[3])*1000*self.GAIN_Y1*self.URAD2ARCSEC
-        t1 = 0 #(AdVoltage[4]*100)
-        x2 = 0 #(AdVoltage[5]-AdVoltage[6])*1000*self.GAIN_X2*self.URAD2ARCSEC
-        y2 = 0 #(AdVoltage[7]-AdVoltage[8])*1000*self.GAIN_Y2*self.URAD2ARCSEC
-        t2 = 0 #(AdVoltage[9]*100)
+        #now available
+        x1 = (AdVoltage[10]-AdVoltage[1])*1000*self.GAIN_X1*self.URAD2ARCSEC
+        y1 = (AdVoltage[2]-AdVoltage[3])*1000*self.GAIN_Y1*self.URAD2ARCSEC
+        t1 = (AdVoltage[4]*100)
+        x2 = (AdVoltage[5]-AdVoltage[6])*1000*self.GAIN_X2*self.URAD2ARCSEC
+        y2 = (AdVoltage[7]-AdVoltage[8])*1000*self.GAIN_Y2*self.URAD2ARCSEC
+        t2 = (AdVoltage[9]*100)
         
         self.t1 = t1
         self.t2 = t2
