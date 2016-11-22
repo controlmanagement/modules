@@ -48,32 +48,50 @@ class geomech_controller(object):
         pass
     
     def init_geo(self):
+        f = open('geo.txt','a')
+        mjd = 40587 + time.time()/(24.*3600.)
+        f.write(str(mjd)+'\n')
+        f.write(str(mjd)+'\n')
+        f.write(str(mjd)+'\n')
+        f.write(str(mjd)+'\n')
+
         int_x1_arr = []
         int_x2_arr = []
         int_y1_arr = []
         int_y2_arr = []
-        
+        f.write(str('geo1')+'\n')
+
         for j in range(30):
             chs = []
+            f.write(str('geo2')+'\n')
             for i in range(16):
                 chs.append(i)
+                f.write(str('geo3')+'\n')
             ranges = ["AD_10V"]*16
             AdVoltage = [0]*16
+            f.write(str('geo4')+'\n')
             
             # int ret=AdInputAD(m_dnum,10,AD_INPUT_SINGLE,&m_Conf[0],AdData);
             # m_dum = 1(device_number), 10(ulCh),   m_conf[0]
             
             AdData = self.dio.ctrl.input_ad(chs, ranges)
+            f.write(str('geo5')+'\n')
             for i in range(16):
                 AdVoltage[i] = (AdData[i]-32768.)/3276.8
+                f.write(str('geo6')+'\n')
             
             x1 = (AdVoltage[10]-AdVoltage[1])*1000*self.GAIN_X1*self.URAD2ARCSEC
+            f.write(str('geo7')+'\n')
             y1 = (AdVoltage[2]-AdVoltage[3])*1000*self.GAIN_Y1*self.URAD2ARCSEC
+            f.write(str('geo8')+'\n')
             t1 = (AdVoltage[4]*100)
+            f.write(str('geo9')+'\n')
             x2 = (AdVoltage[5]-AdVoltage[6])*1000*self.GAIN_X2*self.URAD2ARCSEC
+            f.write(str('geo10')+'\n')
             y2 = (AdVoltage[7]-AdVoltage[8])*1000*self.GAIN_Y2*self.URAD2ARCSEC
+            f.write(str('geo11')+'\n')
             t2 = (AdVoltage[9]*100)
-            
+            f.write(str('geo12')+'\n')
             
             x1 = 0
             y1 = 0
@@ -81,29 +99,35 @@ class geomech_controller(object):
             x2 = 0
             y2 = 0
             t2 = 0
-            
+            f.write(str('geo13')+'\n')
             
             
             self.t1 = t1
             self.t2 = t2
-            
+            f.write(str('geo14')+'\n')
+
             # thermal correction
             t_x1 = x1-self.GAIN_T_X1*t1
             t_y1 = y1-self.GAIN_T_Y1*t1
             t_x2 = x2-self.GAIN_T_X2*t2
             t_y2 = y2-self.GAIN_T_Y2*t2
-            
+            f.write(str('geo15')+'\n')
+
             int_x1_arr.append(t_x1)
             int_x2_arr.append(t_x2)
             int_y1_arr.append(t_y1)
             int_y2_arr.append(t_y2)
-            
+            f.write(str('geo16')+'\n')
+
             time.sleep(0.1)
         
+            f.write(str('geo17')+'\n')
         self.x1 = np.median(int_x1_arr)
         self.x2 = np.median(int_x2_arr)
         self.y1 = np.median(int_y1_arr)
         self.y2 = np.median(int_y2_arr)
+        f.write(str('geo18')+'\n')
+        f.close()
         return
     
     def open(self, ndev = 1):
