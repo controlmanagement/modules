@@ -68,6 +68,12 @@ class enc_controller(object):
 			
 		self.Az = self.bin2dec_2s_complement(byte_az, 3)
 		
+		#for loop test
+        f = open("enc_test_log.txt","w")
+        f.write("get_az")
+		f.close()
+		
+		
 		portio.outb(2, 0x2006)
 		cntEl = portio.inl(0x2000)
 		b_num = bin(cntEl)
@@ -81,6 +87,12 @@ class enc_controller(object):
 		else:
 			encEl = int((324.*cntEl-295.)/590.)
 		self.El = encEl+45.*3600.      #arcsecond
+		
+		#for loop test
+        f = open("enc_test_log.txt","w")
+        f.write("get_el")
+		f.close()
+		
 		
                 #print(self.Az/3600.)
 		#print(self.El/3600.)
