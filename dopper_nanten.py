@@ -84,7 +84,7 @@ class doppler_nanten (object):
                   "galactic"  : 3,
                   "gal"  : 3,
                   #"APPARENT"  : 10,
-                  #"HORIZONTAL": 100,
+                  "horizontal": 100,
                   "same"      : 0}
 
 
@@ -212,46 +212,74 @@ class doppler_nanten (object):
         offmode = offmode.lower()
         mode = self.coord_dict[mode]
         offmode = self.coord_dict[offmode]
-        if offmode == self.coord_dict["same"]:
-            ytmp += offy
-            if dcos == 0 :
-                xtmp += offx
-            else :
-                xtmp += offx/math.cos(ytmp)
-        elif offmode == mode :
-            ytmp += offy
-            if dcos == 0 :
-                xtmp += offx
-            else :
-                xtmp += offx/math.cos(ytmp)
-        else :
-            print("error coord != off_coord")
-            pass
+        #if offmode == self.coord_dict["same"]:
+            #ytmp += offy
+            #if dcos == 0 :
+                #xtmp += offx
+            #else :
+                #xtmp += offx/math.cos(ytmp)
+        #elif offmode == mode :
+            #ytmp += offy
+            #if dcos == 0 :
+                #xtmp += offx
+            #else :
+                #xtmp += offx/math.cos(ytmp)
+        #else :
+            #print("error coord != off_coord")
+            #pass
         if mode == self.coord_dict["j2000"] :
-            xxtmp = xtmp
-            yytmp = ytmp
+            xtmp = xtmp
+            ytmp = ytmp
         elif mode == self.coord_dict["b1950"] :
             ret = slalib.sla_fk45z(xtmp, ytmp, 1950)
-            xxtmp = ret[0]
-            yytmp = ret[1]
+            xtmp = ret[0]
+            ytmp = ret[1]
         elif mode == self.coord_dict["lb"] :
             ret = slalib.sla_galeq(xtmp, ytmp)
-            xxtmp = ret[0]
-            yytmp = ret[1]
+            xtmp = ret[0]
+            ytmp = ret[1]
         elif mode == self.coord_dict["galactic"] :
             ret = slalib.sla_galeq(xtmp, ytmp)
-            xxtmp = ret[0]
-            yytmp = ret[1]
+            xtmp = ret[0]
+            ytmp = ret[1]
         elif mode == self.coord_dict["gal"] :
             ret = slalib.sla_galeq(xtmp, ytmp)
-            xxtmp = ret[0]
-            yytmp = ret[1]
+            xtmp = ret[0]
+            ytmp = ret[1]
         else :
-            xxtmp = xtmp
-            yytmp = ytmp
+            print("error coord !")#
+            #xxtmp = xtmp
+            #yytmp = ytmp
+        if offmode == self.coord_dict["j2000"] :
+            offx = offx
+            offy = offy
+        elif offmode == self.coord_dict["b1950"] :
+            ret = slalib.sla_fk45z(offx, offy, 1950)
+            offx = ret[0]
+            offy = ret[1]
+        elif offmode == self.coord_dict["lb"] :
+            ret = slalib.sla_galeq(offx, offy)
+            offx = ret[0]
+            offy = ret[1]
+        elif offmode == self.coord_dict["galactic"] :
+            ret = slalib.sla_galeq(offx, offy)
+            offx = ret[0]
+            offy = ret[1]
+        elif offmode == self.coord_dict["gal"] :
+            ret = slalib.sla_galeq(offx, offy)
+            offx = ret[0]
+            offy = ret[1]
+        else :#horizontal
+            offx = 0
+            offy = 0
+        ytmp += offy
+        if dcos == 0 :
+            xtmp += offx
+        elif dcos == 1:
+            xtmp += offx/math.cos(ytmp)
 
-        vobs = self.calc_vobs(mjdtmp+2400000.5, xxtmp, yytmp)
-        #print('vobs',vobs,type(vobs))
+        vobs = self.calc_vobs(mjdtmp+2400000.5, xtmp, ytmp)
+        print('vobs',vobs,type(vobs))
         return vobs
 
     def calc_vobs(self, jd, ra_2000, dec_2000):
@@ -441,5 +469,5 @@ class doppler_nanten (object):
         else gcalc_flag == 2:
         	return lst
         """
-	    #print('vobs',vobs,type(vobs))
+	#print('vobs',vobs,type(vobs))
         return vobs
