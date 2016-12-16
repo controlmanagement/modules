@@ -1,6 +1,7 @@
 
 import m4
 import abs
+import m2
 
 import time
 from datetime import datetime as dt
@@ -24,7 +25,7 @@ file = str(dtime.year) + month + day + '.txt'
 
 
 
-
+m2 = m2.m2_monitor_client('172.20.0.12',9998)
 m4 = m4.m4_monitor_client('172.20.0.12',6004)
 hot = abs.abs_monitor_client('172.20.0.12',6002)
 
@@ -49,8 +50,8 @@ while(1):
 
 	m4pos = m4.read_pos()
 	hotpos = hot.read_pos()
-	
-	log = "%5.0f %6.1f %2d:%2d:%2d m4: %s  hot: %s" %(mjd, secofday, lst_hh, lst_mm, lst_ss, m4pos, hotpos)	
+	m2pos = m2.read_pos()
+	log = "%5.0f %6.1f %2d:%2d:%2d m4: %s  hot: %s m2: %s" %(mjd, secofday, lst_hh, lst_mm, lst_ss, m4pos, hotpos,m2pos)	
 	print log
 	time.sleep(1)
 
