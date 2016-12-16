@@ -23,7 +23,7 @@ class m2_controller(object):
     
     
     def __init__(self, ndev = 2):
-	    self.dio = pyinterface.create_gpg2000(ndev)
+	self.dio = pyinterface.create_gpg2000(ndev)
         self.InitIndexFF()
         self.get_pos()
         pass
@@ -103,7 +103,11 @@ class m2_controller(object):
     def move(self, dist):
         #move subref
         puls = int(dist) * self.PULSRATE
-        
+
+        ret = self.get_pos()
+        if dist/1000.+float(ret) <= -4.0 or dist/1000.+float(ret) >= 5.5:
+            self.print_error("move limit")
+            return
         if self.m_limit_up == 0 and puls < 0:
             self.print_error("can't move up direction")
             return
