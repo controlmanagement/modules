@@ -22,8 +22,11 @@ class m2_controller(object):
     
     
     
-    def __init__(self, ndev = 2):
-	self.dio = pyinterface.create_gpg2000(ndev)
+    def __init__(self):
+        pass
+    
+    def open(self, ndev = 2):
+        self.dio = pyinterface.create_gpg2000(ndev)
         self.InitIndexFF()
         self.get_pos()
         pass
@@ -103,7 +106,7 @@ class m2_controller(object):
     def move(self, dist):
         #move subref
         puls = int(dist) * self.PULSRATE
-
+        
         ret = self.get_pos()
         if dist/1000.+float(ret) <= -4.0 or dist/1000.+float(ret) >= 5.5:
             self.print_error("move limit")
@@ -116,6 +119,7 @@ class m2_controller(object):
             return
         
         self.MoveIndexFF(puls)
+        self.get_pos()
         return
     
     
@@ -223,3 +227,4 @@ def start_m2_server(port1 = 9999, port2 = 9998):
     server = pyinterface.server_client_wrapper.server_wrapper(m2,'', port1, port2)
     server.start()
     return server
+
