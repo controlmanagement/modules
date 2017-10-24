@@ -111,10 +111,12 @@ class dome_controller(object):
                 turn = 'right'
         if abs(dir) < 5.0 or abs(dir) > 355.0 :
             speed = 'low'
-        elif abs(dir) > 15.0 or abs(dir) < 345.0:
+        elif abs(dir) > 20.0 and abs(dir) < 340.0:#or => and
             speed = 'high'
         else:
             speed = 'mid'
+        if dir <= 1:
+            dir = 0
         if dir != 0:
             global buffer
             self.buffer[1] = 1
@@ -134,7 +136,7 @@ class dome_controller(object):
                 else:
                     if abs(dir) < 5.0 or dir > 355.0:
                         speed = 'low'
-                    elif abs(dir) > 20.0 or abs(dir) < 340.0:
+                    elif abs(dir) > 20.0 and abs(dir) < 340.0:
                         speed = 'high'
                     else:
                         speed = 'mid'
@@ -419,4 +421,3 @@ def start_dome_server(port1 = 8007, port2 = 8008):
     server = pyinterface.server_client_wrapper.server_wrapper(dome,'', port1, port2)
     server.start()
     return server
-
