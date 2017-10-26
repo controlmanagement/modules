@@ -168,6 +168,7 @@ class antenna_nanten_controller(object):
                 self.nanten.dio.ctrl.out_word("FBIDIO_OUT1_16", 0)
                 self.nanten.dio.ctrl.out_word("FBIDIO_OUT17_32", 0)
                 return
+        self.az_track = self.el_track = "True"
         return
     
     def azel_stop(self):
